@@ -40,7 +40,7 @@ public class AuthDao {
 	}
 
 	public User findUserByUserId(Long userId) {
-		return session.selectOne("auth.findUserByUserId");
+		return session.selectOne("auth.findUserByUserId",userId);
 	}
 
 }

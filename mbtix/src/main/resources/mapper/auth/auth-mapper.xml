@@ -8,7 +8,7 @@
         <result property="email" column="EMAIL"/>
         <result property="nickname" column="NICKNAME"/>
         <result property="name" column="NAME"/>
-        <result property="mbti" column="MBTI"/>
+        <result property="mbtiId" column="MBTI_ID"/>
         <collection property="roles" ofType="java.lang.String" javaType="java.util.List">
             <result column="AUTHORITY"/>
         </collection>
@@ -34,8 +34,8 @@
     WHERE EMAIL = #{email}
 	</select>
 	
-	<insert id="insertUser" parameterType="com.kh.mbtix.security.model.dto.AuthDto$SignupRequest" keyProperty="userId">
-	    <selectKey keyProperty="userId" resultType="long" order="AFTER">
+	<insert id="insertUser" parameterType="com.kh.mbtix.security.model.dto.AuthDto$User" keyProperty="userId">
+	    <selectKey keyProperty="userId" resultType="long" order="BEFORE">
 	        SELECT USERS_SEQ.NEXTVAL FROM DUAL
 	    </selectKey>
 	
@@ -54,7 +54,7 @@
     <insert id="insertUserRole">
     <foreach collection="roles" item="role">
         INSERT INTO USER_AUTHORITY(USER_ID, AUTHORITY)
-        VALUES (#{userId}, #{role});
+        VALUES (#{userId}, #{role})
     </foreach>
 	</insert>
     

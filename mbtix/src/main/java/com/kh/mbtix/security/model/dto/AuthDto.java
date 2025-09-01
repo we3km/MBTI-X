@@ -108,8 +108,8 @@ public class AuthDto {
     private String email;     // 이메일
     private String name;      // 이름
     private String nickname;  // 닉네임
-    private String profile;   // 프로필 이미지 URL
     private String mbtiId;
+    private List<String> roles;
 	}
 	
 	@Data
