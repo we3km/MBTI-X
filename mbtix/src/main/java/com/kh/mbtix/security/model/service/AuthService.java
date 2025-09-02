@@ -2,9 +2,12 @@ package com.kh.mbtix.security.model.service;
 
 import java.util.List;
 
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PostMapping;
 
 import com.kh.mbtix.security.model.dao.AuthDao;
 import com.kh.mbtix.security.model.dto.AuthDto.AuthResult;
@@ -14,8 +17,11 @@ import com.kh.mbtix.security.model.dto.AuthDto.UserAuthority;
 import com.kh.mbtix.security.model.dto.AuthDto.UserCredential;
 import com.kh.mbtix.security.model.provider.JWTProvider;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -101,6 +107,7 @@ public class AuthService {
 
 
 	public boolean isLoginIdAvailable(String loginId) {
+		log.debug("중복검사 아이디({})",loginId);
 		return authDao.findByLoginId(loginId) == null;
 	}
 
@@ -108,7 +115,80 @@ public class AuthService {
 	public boolean isNicknameAvailable(String nickname) {
 		return authDao.findByNickname(nickname) == null;
 	}
+
+
+	public boolean existsByLoginId(String loginId) {
+		User user = authDao.findByLoginId(loginId);
+		return user != null;
+	}
+
+
+	public AuthResult login(String loginId, String password) {
+		User user = authDao.findByLoginpassword(loginId);
+		
+		if(!encoder.matches(password, user.getPassword())) {
+			throw new BadCredentialsException("비밀번호 오류");
+		}
+		
+		String acessToken = jwt.createAccessToken(user.getUserId(), 30);
+		String refreshToken = jwt.createRefreshToken(user.getUserId(), 7);
+		
+		User userNoPassword = User.builder()
+				.userId(user.getUserId())
+				.loginId(user.getLoginId())
+				.name(user.getName())
+				.nickname(user.getNickname())
+				.roles(user.getRoles())
+				.email(user.getEmail())
+				.mbtiId(user.getMbtiId())
+				.build();
+		return AuthResult.builder()
+				.accessToken(acessToken)
+				.refreshToken(refreshToken)
+				.user(userNoPassword)
+				.build();
+	}
+
+
+	public AuthResult refreshByCookie(String refreshCookie) {
+		Long userId = jwt.parseRefresh(refreshCookie);
+		User user = authDao.findUserByUserId(userId);
+		
+		String accessToken =jwt.createAccessToken(userId, 30);
+		
+		return AuthResult.builder()
+				.accessToken(accessToken)
+				.user(user)
+				.build();
+	}
+	
+//	@PostMapping("/logout")
+//	public ResponseEntity<Void> logiut(HttpServletRequest request){
+//		
+//		String accessToken = resolveAccessToken(request);
+//		Long userId = jwt.getUserId(accessToken);
+//		
+//		String authAccessToken = service.getauthAccessToken(userId);
+//		
+//		if(authAccessToken != null) {
+//			
+//		}
+//			
+//	}
+
+
+	public String resolveAccessToken(HttpServletRequest request) {
+		String bearerToken = request.getHeader("Authroiztion");
+		if(bearerToken != null && bearerToken.startsWith("Bearer ")) {
+			return bearerToken.substring(7);
+		}
+		return null;
+		
+	
+	}
+	
+
+	}
 	
 	
 
-}

@@ -17,6 +17,7 @@ public class AuthDto {
 	public static class LoginRequest{
 		private String loginId;
 		private String password;
+		private boolean rememberMe;
 		
 	}
 	
@@ -104,6 +105,7 @@ public class AuthDto {
 	@Builder
 	public static class User{
 	private Long userId;
+	private String password;
     private String loginId;   // 사용자 ID (로컬 회원가입용)
     private String email;     // 이메일
     private String name;      // 이름
