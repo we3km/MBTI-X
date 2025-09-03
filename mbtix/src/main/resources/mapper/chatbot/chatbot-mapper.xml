@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="chatbot">
+    
+    <insert id="createChatbot">
+		<selectKey keyProperty="roomId" resultType="int" order="BEFORE">
+			SELECT CHATBOT_ROOM_SEQ.NEXTVAL FROM DUAL
+		</selectKey>
+		INSERT INTO CHATBOT_ROOM
+		VALUES(
+			#{roomId},
+			#{userId},
+			#{botMbti},
+			#{botName},
+			SYSDATE
+		)
+	</insert>
+	
+	
+	<select id="selectChatbotList" resultType="com.kh.mbtix.chatbot.model.dto.ChatbotRoom$ChatbotRoomResponse">
+		SELECT *
+		FROM CHATBOT_ROOM
+		WHERE USER_ID = #{userId}
+	</select>
+	
+</mapper>
