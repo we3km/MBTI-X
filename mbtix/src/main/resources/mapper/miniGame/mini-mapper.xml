@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="minimapper">
+	
+	<!-- 스코어 점수 할당 -->
+	<insert id="insertPoint" parameterType="map">
+		INSERT INTO GAME_SCORE (
+        PLAYED_NO,
+        GAME_CODE,
+        SCORE,
+        USER_ID
+    ) VALUES (
+        GAME_SCORE_SEQ.NEXTVAL,
+        #{gameCode},
+        #{score},
+        #{userId}
+    )
+	</insert>
+	
+	<!-- 각 게임의 랭크 뽑아옴 -->	
+	<select id="getRank" resultType="map">
+		SELECT 
+		    M.MBTI_NAME,
+		    SUM(GS.SCORE) AS TOTAL_SCORE,
+		    GS.GAME_CODE
+		FROM GAME_SCORE GS
+		INNER JOIN USERS U 
+		    ON U.USER_ID = GS.USER_ID
+		INNER JOIN MBTI M 
+		    ON U.MBTI_ID = M.MBTI_ID
+		GROUP BY M.MBTI_ID, M.MBTI_NAME, GS.GAME_CODE
+		ORDER BY TOTAL_SCORE DESC
+	</select>
+	
+	<!-- 스피드 퀴즈 문제 랜덤으로 5문제 뽑아옴 -->
+	<select id="selectQuiz" resultType="com.kh.mbtix.miniGame.model.dto.Quiz">
+	    SELECT *
+			FROM GAME_QUIZ
+		ORDER BY DBMS_RANDOM.VALUE
+		FETCH FIRST 5 ROWS ONLY
+	</select>	
+	
+	<!-- 각 회원의 MBTI 비율 -->
+	<select id="getUserMBTI" resultType="map">
+	    SELECT 
+		    M.MBTI_NAME,
+		    COUNT(U.USER_ID) AS USER_COUNT
+		FROM USERS U
+		JOIN MBTI M ON U.MBTI_ID = M.MBTI_ID
+		GROUP BY M.MBTI_NAME
+	</select>	
+	
+	<!-- 메인페이지 퀴즈 제목 가져오기 -->
+	<select id="getQuizTitle" resultType="String">
+	    SELECT TITLE
+		FROM BAL_GAME
+		WHERE CREATE_DATE = '2025/09/01'
+	</select>	
+
+</mapper>
+
+
+
+
+
+
+
+
+
+
+

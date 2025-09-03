@@ -1,6 +1,78 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="auth">
+	
+	 <resultMap id="UserResult" type="com.kh.mbtix.security.model.dto.AuthDto$User" autoMapping="true">
+        <id property="userId" column="USER_ID" />
+        <result property="loginId" column="LOGIN_ID"/>
+        <result property="email" column="EMAIL"/>
+        <result property="nickname" column="NICKNAME"/>
+        <result property="name" column="NAME"/>
+        <result property="mbtiId" column="MBTI_ID"/>
+        <collection property="roles" ofType="java.lang.String" javaType="java.util.List">
+            <result column="AUTHORITY"/>
+        </collection>
+    </resultMap>
+
     
+    <select id="findByLoginId" resultType="com.kh.mbtix.security.model.dto.AuthDto$User">
+    SELECT *
+    FROM USERS
+    WHERE LOGIN_ID = #{loginId}
+	</select>
+	
+	
+	<select id="findByNickname" resultType="com.kh.mbtix.security.model.dto.AuthDto$User">
+    SELECT *
+    FROM USERS
+    WHERE NICKNAME = #{nickname}
+	</select>
+	
+	<select id="findByEmail" resultType="com.kh.mbtix.security.model.dto.AuthDto$User">
+    SELECT *
+    FROM USERS
+    WHERE EMAIL = #{email}
+	</select>
+	
+	<insert id="insertUser" parameterType="com.kh.mbtix.security.model.dto.AuthDto$User" keyProperty="userId">
+	    <selectKey keyProperty="userId" resultType="long" order="BEFORE">
+	        SELECT USERS_SEQ.NEXTVAL FROM DUAL
+	    </selectKey>
+	
+	    INSERT INTO USERS (
+	        USER_ID, LOGIN_ID, EMAIL, NICKNAME, NAME, MBTI_ID, CREATED_AT, IS_QUIT, POINT
+	    ) VALUES (
+	        #{userId}, #{loginId}, #{email}, #{nickname}, #{name}, #{mbtiId}, SYSDATE, 'N', 1000
+	    )
+	</insert>
+	
+	<insert id="insertCred">
+        INSERT INTO USER_CREDENTIALS (USER_ID, PASSWORD)
+        VALUES (#{userId}, #{password})
+    </insert>
     
+    <insert id="insertUserRole">
+    <foreach collection="roles" item="role">
+        INSERT INTO USER_AUTHORITY(USER_ID, AUTHORITY)
+        VALUES (#{userId}, #{role})
+    </foreach>
+	</insert>
+    
+    <select id="findUserByUserId" parameterType="long" resultMap="UserResult">
+        SELECT U.USER_ID, U.LOGIN_ID, U.EMAIL, U.NICKNAME, U.NAME, U.MBTI_ID,
+               UA.AUTHORITY
+        FROM USERS U
+        LEFT JOIN USER_AUTHORITY UA ON U.USER_ID = UA.USER_ID
+        WHERE U.USER_ID = #{userId}
+    </select>
+    
+    <select id="findByLoginpassword" resultMap="UserResult">
+    SELECT U.USER_ID, U.LOGIN_ID, U.EMAIL, U.NICKNAME, U.NAME, U.MBTI_ID, C.PASSWORD, UA.AUTHORITY
+    FROM USERS U
+    LEFT JOIN USER_CREDENTIALS C ON C.USER_ID = U.USER_ID
+    JOIN USER_AUTHORITY UA ON U.USER_ID = UA.USER_ID
+    WHERE U.LOGIN_ID = #{loginId}
+    </select>
+	
+	  
 </mapper>
