@@ -15,24 +15,21 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-//import com.kh.mbtix.security.filter.JWTAutenticationFilter;
-//import com.kh.mbtix.security.model.handler.OAuth2SuccessHandler;
-//import com.kh.mbtix.security.model.service.OAuth2Service;
-
+import com.kh.mbtix.security.filter.JWTAutenticationFilter;
+import com.kh.mbtix.security.model.handler.OAuth2SuccessHandler;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-
 @Configuration
 @RequiredArgsConstructor
 @EnableWebSecurity
 public class SecurityConfig {
 
 	@Bean
-	public SecurityFilterChain filterChain(HttpSecurity http
-//			JWTAutenticationFilter jwtFilter,
+
+	public SecurityFilterChain filterChain(HttpSecurity http,
+			JWTAutenticationFilter jwtFilter,
 //			OAuth2Service oauth2Service,
-//			OAuth2SuccessHandler oauth2SuccessHandler
+			OAuth2SuccessHandler oauth2SuccessHandler
 			) throws Exception {
 		http
 				// Cors관련 빈객체 등록
@@ -62,13 +59,14 @@ public class SecurityConfig {
 				.authorizeHttpRequests(auth -> 
 					auth
 					.requestMatchers("/auth/login", "/auth/signup", "/auth/logout","/auth/refresh",
-							 "/auth/checkId", "/auth/checkNickname","/auth/send-code","/auth/verify-code"
-							 ,"/chatbot/**"
+							 "/auth/checkId", "/auth/checkNickname","/auth/send-code","/auth/verify-code",
+							 "/auth/checkemail","/chatbot/**"
 							).permitAll()
 					.requestMatchers("/oauth2/**","/login**","/error").permitAll()
 					.requestMatchers("/**").authenticated()
 				);
-//		http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+
+		http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 		
 		return http.build();
 	}
@@ -84,7 +82,7 @@ public class SecurityConfig {
 		// 허용 메서드
 		config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE"));
 		config.setAllowedHeaders(List.of("*"));
-		config.setExposedHeaders(List.of("Location","Authorization"));
+		config.setExposedHeaders(List.of("Location","Authorization","Set-Cookie"));
 		config.setAllowCredentials(true); // 세션,쿠키 허용
 		config.setMaxAge(3600L); // 요청정보 캐싱시간
 
