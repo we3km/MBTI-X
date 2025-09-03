@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.kh.mbtix.cs.model.dao.InquiryDao">
+
+    <select id="findAllInquiries" parameterType="string" resultType="com.kh.mbtix.cs.model.vo.Cs">
+        SELECT
+               C.INQUIRY_ID,
+               C.STATUS,
+               C.INQUIRY_TITLE,
+               U.LOGIN_ID AS "userLoginId",
+               C.CREATED_AT
+          FROM CS C
+          LEFT JOIN USERS U ON (C.USER_ID = U.USER_ID)
+         <if test="status != null and status != ''">
+           WHERE C.STATUS = #{status}
+         </if>
+         ORDER BY C.INQUIRY_ID DESC
+    </select>
+
+    <select id="findInquiryById" parameterType="_int" resultType="com.kh.mbtix.cs.model.vo.Cs">
+        SELECT
+               C.INQUIRY_ID,
+               C.USER_ID,
+               C.INQUIRY_TITLE,
+               C.INQUIRY_CONTENT,
+               C.CREATED_AT,
+               C.ANSWER,
+               C.ANSWER_AT,
+               C.STATUS,
+               C.CS_CATEGORY,
+               U.LOGIN_ID AS "userLoginId",
+               U.NICKNAME AS "userNickname"
+          FROM CS C
+          LEFT JOIN USERS U ON (C.USER_ID = U.USER_ID)
+         WHERE C.INQUIRY_ID = #{inquiryId}
+    </select>
+
+    <update id="submitAnswer" parameterType="com.kh.mbtix.cs.model.vo.Cs">
+        UPDATE CS
+           SET ANSWER = #{answer},
+               ANSWER_AT = SYSDATE,
+               STATUS = 'Y'
+         WHERE INQUIRY_ID = #{inquiryId}
+    </update>
+    
+    <select id="findInquiriesByUserId" parameterType="long" resultType="com.kh.mbtix.cs.model.vo.Cs">
+        SELECT
+               INQUIRY_ID,
+               STATUS,
+               INQUIRY_TITLE,
+               CREATED_AT
+          FROM CS
+         WHERE USER_ID = #{userId}
+         ORDER BY INQUIRY_ID DESC
+	</select>
+
+    <select id="findUserInquiryById" parameterType="com.kh.mbtix.cs.model.vo.Cs" resultType="com.kh.mbtix.cs.model.vo.Cs">
+        SELECT
+               INQUIRY_ID,
+               USER_ID,
+               INQUIRY_TITLE,
+               INQUIRY_CONTENT,
+               CREATED_AT,
+               ANSWER,
+               ANSWER_AT,
+               STATUS,
+               CS_CATEGORY
+          FROM CS
+         WHERE INQUIRY_ID = #{inquiryId} AND USER_ID = #{userId}
+	</select>
+
+    <insert id="createInquiry" parameterType="com.kh.mbtix.cs.model.vo.Cs">
+        INSERT INTO CS (
+            INQUIRY_ID,
+            USER_ID,
+            INQUIRY_TITLE,
+            INQUIRY_CONTENT,
+            CREATED_AT,
+            STATUS,
+            CS_CATEGORY
+        ) VALUES (
+            CS_SEQ.NEXTVAL,
+            #{userId},
+            #{inquiryTitle},
+            #{inquiryContent},
+            SYSDATE,
+            'N',
+            #{csCategory, jdbcType=INTEGER}
+        )
+	</insert>
+    
+</mapper>
