@@ -62,7 +62,9 @@ public class SecurityConfig {
 				.authorizeHttpRequests(auth -> 
 					auth
 					.requestMatchers("/auth/login", "/auth/signup", "/auth/logout","/auth/refresh",
-							 "/auth/checkId", "/auth/checkNickname","/auth/send-code","/auth/verify-code"
+							 "/auth/checkId", "/auth/checkNickname","/auth/send-code","/auth/verify-code",
+							 "/auth/checkemail"
+							 
 							).permitAll()
 					.requestMatchers("/oauth2/**","/login**","/error").permitAll()
 					.requestMatchers("/**").authenticated()
@@ -83,7 +85,7 @@ public class SecurityConfig {
 		// 허용 메서드
 		config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE"));
 		config.setAllowedHeaders(List.of("*"));
-		config.setExposedHeaders(List.of("Location","Authorization"));
+		config.setExposedHeaders(List.of("Location","Authorization","Set-Cookie"));
 		config.setAllowCredentials(true); // 세션,쿠키 허용
 		config.setMaxAge(3600L); // 요청정보 캐싱시간
 

@@ -92,14 +92,14 @@ public class AuthService {
 		authDao.insertUserRole(auth);
 		
 		// 토큰 발급
-		String accessToken = jwt.createAccessToken(user.getUserId(), 30);
-		String refreshToken = jwt.createRefreshToken(user.getUserId(), 7);
+//		String accessToken = jwt.createAccessToken(user.getUserId(), 30);
+//		String refreshToken = jwt.createRefreshToken(user.getUserId(), 7);
 		
 		user = authDao.findUserByUserId(user.getUserId());
 		
 		return AuthResult.builder()
-				.accessToken(accessToken)
-				.refreshToken(refreshToken)
+//				.accessToken(accessToken)
+//				.refreshToken(refreshToken)
 				.user(user)
 				.build();
 		
@@ -185,6 +185,11 @@ public class AuthService {
 		return null;
 		
 	
+	}
+
+
+	public boolean isEmailAvailable(String email) {
+		return authDao.findByEmail(email) == null; 
 	}
 	
 

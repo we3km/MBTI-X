@@ -73,6 +73,13 @@ public class AuthController {
 	        boolean available = service.isNicknameAvailable(nickname);
 	        return ResponseEntity.ok(available);
 	    }
+	    
+	    //이메일 중복 확인
+	    @GetMapping("/checkemail")
+	    public ResponseEntity<Boolean> checkemail(@RequestParam String email){
+	    	boolean available = service.isEmailAvailable(email);
+	    	return ResponseEntity.ok(available);
+	    }
 	
 	
 	

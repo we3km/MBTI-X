@@ -73,6 +73,7 @@
     JOIN USER_AUTHORITY UA ON U.USER_ID = UA.USER_ID
     WHERE U.LOGIN_ID = #{loginId}
     </select>
+    
 	
 	  
 </mapper>
