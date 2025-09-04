@@ -17,6 +17,7 @@ public class AuthDto {
 	public static class LoginRequest{
 		private String loginId;
 		private String password;
+		private boolean rememberMe;
 		
 	}
 	

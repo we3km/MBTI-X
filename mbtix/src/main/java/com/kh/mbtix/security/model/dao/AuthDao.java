@@ -20,14 +20,17 @@ public class AuthDao {
 	private final SqlSessionTemplate session;
 	
 	public AuthDto.User findByLoginId(String loginId) {
-		log.debug(">>> DAO 호출 loginId={}", loginId);
+		log.debug(">>> findByLoginId DAO 호출 loginId={}", loginId);
 	    User u = session.selectOne("auth.findByLoginId", loginId);
 	    log.debug(">>> 조회 결과 = {}", u);
 	    return u;
 	}
 
 	public Object findByEmail(String email) {
-		return session.selectOne("auth.findByEmail",email);
+		log.debug(">>> findByEmail DAO 호출 email={}", email);
+	    User u = session.selectOne("auth.findByEmail",email);
+	    log.debug(">>> 조회 결과 = {}", u);
+	    return u;
 	}
 
 	public Object findByNickname(String nickname) {

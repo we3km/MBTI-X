@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-
+import com.kh.mbtix.config.SecurityConfig;
 import com.kh.mbtix.security.model.dto.AuthDto.AuthResult;
 import com.kh.mbtix.security.model.dto.AuthDto.LoginRequest;
 import com.kh.mbtix.security.model.dto.AuthDto.SignupRequest;
@@ -33,12 +33,13 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {
+
+    private final SecurityConfig securityConfig;
 	private final KakaoService kakaoService;
 	private final AuthService service;
 	private final JWTProvider jwt;
 	public static final String REFRESH_COOKIE = "REFRESH_TOKEN";
 	private final EmailService emailService;
-	
 	
 	//이메일 인증코드 발송
 	 @PostMapping("/send-code")
@@ -71,6 +72,13 @@ public class AuthController {
 	    public ResponseEntity<Boolean> checkNickname(@RequestParam String nickname) {
 	        boolean available = service.isNicknameAvailable(nickname);
 	        return ResponseEntity.ok(available);
+	    }
+	    
+	    //이메일 중복 확인
+	    @GetMapping("/checkemail")
+	    public ResponseEntity<Boolean> checkemail(@RequestParam String email){
+	    	boolean available = service.isEmailAvailable(email);
+	    	return ResponseEntity.ok(available);
 	    }
 	
 	
@@ -129,22 +137,33 @@ public class AuthController {
 	    public ResponseEntity<?> login(@RequestBody LoginRequest req) {
 	        final String loginId = req.getLoginId() == null ? "" : req.getLoginId().trim().toLowerCase();
 	        final String password = req.getPassword() == null ? "" : req.getPassword();
+	        final boolean rememberMe = req.isRememberMe();
 
 	        try {
 	            AuthResult result = service.login(loginId, password);
-
-	            ResponseCookie refreshCookie = ResponseCookie
+	            
+	            //ResponseCookie refreshCookie = ResponseCookie
+	            ResponseCookie.ResponseCookieBuilder cookieBuilder = ResponseCookie
 	                    .from(REFRESH_COOKIE, result.getRefreshToken())
 	                    .httpOnly(true)
 	                    .secure(false)            // 배포 시 true
 	                    .path("/")
-	                    .sameSite("Lax")
-	                    .maxAge(Duration.ofDays(7))
-	                    .build();
-
+	                    .sameSite("Lax");
+//	                    .maxAge(Duration.ofDays(7))
+//	                    .build();
+	            
+	            if(rememberMe) {
+	            	cookieBuilder.maxAge(Duration.ofDays(7));
+	            }else {
+	            	cookieBuilder.maxAge(-1);
+	            }
+	            
+//	            return ResponseEntity.ok()
+//	                    .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+//	                    .body(result); // 로그인은 user 포함 전체 반환 (프론트에서 userId 저장)
 	            return ResponseEntity.ok()
-	                    .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
-	                    .body(result); // 로그인은 user 포함 전체 반환 (프론트에서 userId 저장)
+	            		.header(HttpHeaders.SET_COOKIE,cookieBuilder.build().toString())
+	            		.body(result);
 	        } catch (BadCredentialsException e) {
 	            // 아이디 없거나 비번 틀려도 동일하게 401
 	            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)

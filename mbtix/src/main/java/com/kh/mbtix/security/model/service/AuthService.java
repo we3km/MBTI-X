@@ -2,10 +2,12 @@ package com.kh.mbtix.security.model.service;
 
 import java.util.List;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PostMapping;
 
 import com.kh.mbtix.security.model.dao.AuthDao;
 import com.kh.mbtix.security.model.dto.AuthDto.AuthResult;
@@ -15,6 +17,7 @@ import com.kh.mbtix.security.model.dto.AuthDto.UserAuthority;
 import com.kh.mbtix.security.model.dto.AuthDto.UserCredential;
 import com.kh.mbtix.security.model.provider.JWTProvider;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -87,16 +90,13 @@ public class AuthService {
 				.roles(List.of("ROLE_USER"))
 				.build();
 		authDao.insertUserRole(auth);
-		
-		// 토큰 발급
-		String accessToken = jwt.createAccessToken(user.getUserId(), 30);
-		String refreshToken = jwt.createRefreshToken(user.getUserId(), 7);
+
 		
 		user = authDao.findUserByUserId(user.getUserId());
 		
 		return AuthResult.builder()
-				.accessToken(accessToken)
-				.refreshToken(refreshToken)
+//				.accessToken(accessToken)
+//				.refreshToken(refreshToken)
 				.user(user)
 				.build();
 		
@@ -159,7 +159,21 @@ public class AuthService {
 				.build();
 	}
 
+	public String resolveAccessToken(HttpServletRequest request) {
+		String bearerToken = request.getHeader("Authroiztion");
+		if(bearerToken != null && bearerToken.startsWith("Bearer ")) {
+			return bearerToken.substring(7);
+		}
+		return null;
+		
+	
 	}
+
+	public boolean isEmailAvailable(String email) {
+		return authDao.findByEmail(email) == null; 
+	}
+	
+}
 	
 	
 

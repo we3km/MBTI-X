@@ -32,7 +32,6 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http,
             JWTAutenticationFilter jwtFilter,
-//          OAuth2Service oauth2Service,
             OAuth2SuccessHandler oauth2SuccessHandler
             ) throws Exception {
         http
