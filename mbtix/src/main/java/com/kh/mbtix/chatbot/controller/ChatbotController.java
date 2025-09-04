@@ -11,10 +11,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.kh.mbtix.chatbot.model.dto.ChatMessageDto.ChatMessageResponse;
+import com.kh.mbtix.chatbot.model.dto.ChatMessageDto.ChatMessageSave;
 import com.kh.mbtix.chatbot.model.dto.ChatbotRoom.ChatbotRoomResponse;
 import com.kh.mbtix.chatbot.model.dto.ChatbotRoom.CreateChatbotRoom;
 import com.kh.mbtix.chatbot.model.service.ChatbotService;
+import com.kh.mbtix.security.model.provider.JWTProvider;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,9 +28,11 @@ import lombok.extern.slf4j.Slf4j;
 public class ChatbotController {
 
 	private final ChatbotService chatbotService;
+	private final JWTProvider jwtTokenProvider;
 	
+	//
 	@GetMapping("/chatbot/rooms/{userId}")
-	public ResponseEntity<List<ChatbotRoomResponse>> menuDetail(
+	public ResponseEntity<List<ChatbotRoomResponse>> chatbotRoomList(
 			@PathVariable long userId
 			){
 		List<ChatbotRoomResponse> list = chatbotService.selectChatbotList(userId);
@@ -37,20 +43,49 @@ public class ChatbotController {
 	
 	@PostMapping("/chatbot")
 //	@CrossOrigin(origins="http://localhost:5173")
-	public ResponseEntity<Void> createRoom(
+	public ResponseEntity<Long> createRoom(
 				@RequestBody CreateChatbotRoom room
 			) {
-		long userId = 1; // 로그인 추가후 변경
 		int result = chatbotService.createChatbot(room);
-		
 		if(result > 0) {
 			// Post 요청의 경우 응답데이터 header에 이동할 URI 정보를 적어주는 것이 규칙
 			URI location = URI.create("/chat");
 			// 201 Created
-			return ResponseEntity.created(location).build();
+			return ResponseEntity.created(location).body(room.getRoomId());
 		}else {
 			// 400 bad Request
 			return ResponseEntity.badRequest().build(); 
 		}
 	}
+	
+	
+	// 채팅방 메시지 불러오기
+	@GetMapping("/chatbot/{roomId}/messages")
+	public ResponseEntity<List<ChatMessageResponse>> getMessage(@PathVariable long roomId){
+		List<ChatMessageResponse> list = chatbotService.getMessage(roomId);
+		
+		return ResponseEntity.ok().body(list);
+	}
+	
+	
+
+	// 채팅방 메시지지 저장
+	@PostMapping("/chatbot/{roomId}/message")
+//	@CrossOrigin(origins="http://localhost:5173")
+	public ResponseEntity<Long> saveMessage(
+			@PathVariable Long roomId,
+            @RequestBody ChatMessageSave req
+			) {
+		req.setRoomId(roomId);
+        int result = chatbotService.saveMessage(req);
+
+        if (result > 0) {
+            URI location = URI.create("/chat/" + roomId);
+            return ResponseEntity.created(location).build();
+        } else {
+            return ResponseEntity.badRequest().build();
+        }
+	}
+	
+	
 }

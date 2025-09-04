@@ -23,4 +23,26 @@
 		WHERE USER_ID = #{userId}
 	</select>
 	
+	
+	<select id="getMessage" resultType="com.kh.mbtix.chatbot.model.dto.ChatMessageDto$ChatMessageResponse">
+		SELECT *
+		FROM CHAT_MESSAGE
+		WHERE ROOM_ID = #{roomId}
+		ORDER BY CREATED_AT ASC
+	</select>
+	
+	<insert id="saveMessage">
+		<selectKey keyProperty="messageId" resultType="int" order="BEFORE">
+			SELECT CHAT_MESSAGE_SEQ.NEXTVAL FROM DUAL
+		</selectKey>
+		INSERT INTO CHAT_MESSAGE
+		VALUES(
+			#{messageId},
+			#{roomId},
+			#{sender},
+			#{content},
+			SYSDATE
+		)
+	</insert>
+	
 </mapper>

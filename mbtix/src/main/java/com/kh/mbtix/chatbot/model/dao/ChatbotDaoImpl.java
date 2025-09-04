@@ -6,6 +6,8 @@ import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import com.kh.mbtix.chatbot.model.dto.ChatMessageDto.ChatMessageResponse;
+import com.kh.mbtix.chatbot.model.dto.ChatMessageDto.ChatMessageSave;
 import com.kh.mbtix.chatbot.model.dto.ChatbotRoom.ChatbotRoomResponse;
 import com.kh.mbtix.chatbot.model.dto.ChatbotRoom.CreateChatbotRoom;
 
@@ -27,6 +29,16 @@ public class ChatbotDaoImpl implements ChatbotDao {
 	@Override
 	public List<ChatbotRoomResponse> selectChatbotList(long userId) {
 		return session.selectList("chatbot.selectChatbotList", userId);
+	}
+
+	@Override
+	public List<ChatMessageResponse> getMessage(long roomId) {
+		return session.selectList("chatbot.getMessage", roomId);
+	}
+
+	@Override
+	public int saveMessage(ChatMessageSave req) {
+		return session.insert("chatbot.saveMessage", req);
 	}
 
 }
