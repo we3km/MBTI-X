@@ -122,5 +122,20 @@ public class AuthDto {
 	    private String email;
 	    private String code;
 	}
+	
+	@Data
+	@NoArgsConstructor
+	@AllArgsConstructor
+	@Builder
+	public static class SocialSignupRequest {
+	    private String provider;        // kakao / naver
+	    private String providerUserId;  // 소셜 고유 ID
+	    private String accessToken;     // 소셜 accessToken (선택)
+	    private String email;           // 소셜 계정 이메일
+	    private String nickname;        // 닉네임
+	    private String name;            // 이름
+	    private String mbtiId;            // MBTI (필수)
+	    private String loginId;         // 우리 서비스 로그인 ID (필수)
+	}
 
 }

@@ -19,6 +19,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import com.kh.mbtix.security.filter.JWTAutenticationFilter;
 import com.kh.mbtix.security.model.handler.OAuth2SuccessHandler;
 //import com.kh.mbtix.security.model.service.OAuth2Service;
+import com.kh.mbtix.security.model.service.OAuth2Service;
 
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +32,7 @@ public class SecurityConfig {
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http,
 			JWTAutenticationFilter jwtFilter,
-//			OAuth2Service oauth2Service,
+			OAuth2Service oauth2Service,
 			OAuth2SuccessHandler oauth2SuccessHandler
 			) throws Exception {
 		http
@@ -53,17 +54,17 @@ public class SecurityConfig {
 						management -> 
 						management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				
-//				.oauth2Login( oauth -> oauth
-//						// 인증정보를 바탕으로 자동 회원가입
-//						// 요청처리 완료후 , accesToken과 refreshToken을 사용자에게 전달.
-//						.userInfoEndpoint(u -> u.userService(oauth2Service))
-//						.successHandler(oauth2SuccessHandler)
-//				)
+				.oauth2Login( oauth -> oauth
+						// 인증정보를 바탕으로 자동 회원가입
+						// 요청처리 완료후 , accesToken과 refreshToken을 사용자에게 전달.
+						.userInfoEndpoint(u -> u.userService(oauth2Service))
+						.successHandler(oauth2SuccessHandler)
+				)
 				.authorizeHttpRequests(auth -> 
 					auth
 					.requestMatchers("/auth/login", "/auth/signup", "/auth/logout","/auth/refresh",
 							 "/auth/checkId", "/auth/checkNickname","/auth/send-code","/auth/verify-code",
-							 "/auth/checkemail"
+							 "/auth/checkemail","/auth/social-signup"
 							 
 							).permitAll()
 					.requestMatchers("/oauth2/**","/login**","/error").permitAll()

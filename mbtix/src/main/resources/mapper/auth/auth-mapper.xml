@@ -74,6 +74,57 @@
     WHERE U.LOGIN_ID = #{loginId}
     </select>
     
+	<select id="findUserByEmail" resultType="com.kh.mbtix.security.model.dto.AuthDto$User">
+    SELECT *
+    FROM USERS
+    WHERE EMAIL = #{email}
+	</select>
 	
+		
+	 <select id="findUserIdentities" parameterType="map"
+            resultType="com.kh.mbtix.security.model.dto.AuthDto$UserIdentities">
+        SELECT *
+        FROM USER_IDENTITIES
+        WHERE PROVIDER = #{provider}
+          AND PROVIDER_USER_ID = #{providerUserId}
+    </select>
+	
+	<insert id="insertIdentities">
+		INSERT INTO USER_IDENTITIES (
+            ID,
+            USER_ID,
+            ACCESS_TOKEN,
+            PROVIDER,
+            PROVIDER_USER_ID
+        ) VALUES (
+            SEQ_USER_IDENTITIES_ID.NEXTVAL,
+            #{userId},
+            #{accessToken},
+            #{provider},
+            #{providerUserId}
+        )
+	</insert>
+	
+	  <update id="updateUserIdentities"
+            parameterType="com.kh.mbtix.security.model.dto.AuthDto$UserIdentities">
+        UPDATE USER_IDENTITIES
+        SET USER_ID = #{userId},
+            ACCESS_TOKEN = #{accessToken}
+        WHERE PROVIDER = #{provider}
+          AND PROVIDER_USER_ID = #{providerUserId}
+    </update>
+	
+	<insert id="insertRole">
+		<foreach collection="roles" item="role">
+        INSERT INTO USER_AUTHORITY(USER_ID, AUTHORITY)
+        VALUES (#{userId}, #{role})
+    </foreach>
+	</insert>
+	
+	<select id="getKakaoAccessToken" resultType="string">
+        SELECT ACCESS_TOKEN
+        FROM USER_IDENTITIES
+        WHERE USER_ID = #{userId}
+    </select>
 	  
 </mapper>

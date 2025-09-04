@@ -1,6 +1,7 @@
 package com.kh.mbtix.security.model.service;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -15,6 +16,7 @@ import com.kh.mbtix.security.model.dto.AuthDto.SignupRequest;
 import com.kh.mbtix.security.model.dto.AuthDto.User;
 import com.kh.mbtix.security.model.dto.AuthDto.UserAuthority;
 import com.kh.mbtix.security.model.dto.AuthDto.UserCredential;
+import com.kh.mbtix.security.model.dto.AuthDto.UserIdentities;
 import com.kh.mbtix.security.model.provider.JWTProvider;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -191,9 +193,58 @@ public class AuthService {
 	public boolean isEmailAvailable(String email) {
 		return authDao.findByEmail(email) == null; 
 	}
+
+
+	public void insertUser(User user) {
+		authDao.insertUser(user);
+	}
+
+
+	public void updateUserIdentities(UserIdentities identities) {
+		authDao.updateUserIdentities(identities);
+	}
+
+
+	public UserIdentities findUserIdentities(String provider, String providerUserId) {
+		
+		return authDao.findUserIdentities(provider,providerUserId);
+		
+	}
+
+
+	public void insertUserIdentities(UserIdentities identities) {
+		authDao.insertIdentities(identities);
+	}
+
+
+	public void insertUserRole(UserAuthority auth) {
+		authDao.insertRole(auth);
+	}
+
+
+	public User findUserByUserId(Long userId) {
+		String accessToken = authDao.getKakaoAccessToken(userId);
+		Map<String,Object> userInfo = service.getUserInfo(accessToken);
+		
+		Map<String, Object> kakao_account= (Map<String,Object>)userInfo.get("kakao_account");
+		Map<String, Object> profile2 = (Map<String,Object>)kakao_account.get("profile");
+		String nickname =(String)(profile2.get("nickname"));
+		String profile = (String)(profile2.get("profile_image_url"));
+		String email = (String)userInfo.get("email");
+		
+		User user = User.builder()
+				.name(nickname)
+				.email(email)
+				.roles(List.of("ROLE_USER"))
+				.build();
+		
+		return user;
+	}
+	
+	
+}
 	
 
-	}
 	
 	
 
