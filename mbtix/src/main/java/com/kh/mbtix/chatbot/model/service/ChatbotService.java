@@ -18,5 +18,4 @@ public interface ChatbotService {
 	List<ChatMessageResponse> getMessage(long roomId);
 
 	int saveMessage(ChatMessageSave req);
-
 }

@@ -1,7 +1,9 @@
 package com.kh.mbtix.chatbot.controller;
 
 import java.net.URI;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
 import com.kh.mbtix.chatbot.model.dto.ChatMessageDto.ChatMessageResponse;
 import com.kh.mbtix.chatbot.model.dto.ChatMessageDto.ChatMessageSave;
@@ -29,6 +32,8 @@ public class ChatbotController {
 
 	private final ChatbotService chatbotService;
 	private final JWTProvider jwtTokenProvider;
+    private final RestTemplate restTemplate;
+
 	
 	//
 	@GetMapping("/chatbot/rooms/{userId}")
@@ -47,7 +52,24 @@ public class ChatbotController {
 				@RequestBody CreateChatbotRoom room
 			) {
 		int result = chatbotService.createChatbot(room);
+		
 		if(result > 0) {
+            // 2. FastAPI에 LLM 초기 메시지 생성 요청
+            String fastapiUrl = "http://localhost:8000/initial_message";
+            Map<String, String> requestBody = new HashMap<>();
+            requestBody.put("mbti", room.getBotMbti());
+
+            // LLM이 생성한 자기소개 메시지를 받아옴
+            ResponseEntity<Map> response = restTemplate.postForEntity(fastapiUrl, requestBody, Map.class);
+            String initialMessageContent = (String) response.getBody().get("message");
+
+            // 3. 받아온 메시지를 DB에 저장 (새로운 서비스 메소드 추가 필요)
+            ChatMessageSave initialMessage = new ChatMessageSave(0, room.getRoomId(), "bot", initialMessageContent);
+            chatbotService.saveMessage(initialMessage);
+			
+			
+			
+			
 			// Post 요청의 경우 응답데이터 header에 이동할 URI 정보를 적어주는 것이 규칙
 			URI location = URI.create("/chat");
 			// 201 Created
