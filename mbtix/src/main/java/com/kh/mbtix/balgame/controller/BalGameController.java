@@ -16,7 +16,7 @@ import com.kh.mbtix.balgame.model.service.BalGameService;
 
 
 	@RestController
-	@RequestMapping("/balance")
+	@RequestMapping("/api/balance")
 	public class BalGameController {
 	  private final BalGameService svc;
 	  public BalGameController(BalGameService svc){ this.svc = svc; }
@@ -26,12 +26,13 @@ import com.kh.mbtix.balgame.model.service.BalGameService;
 	  
 	  /**
 	     * 오늘의 밸런스게임 조회 API
-	     * GET /api/balance/today
+	     
 	     * - 오늘 날짜 & IS_ACTIVE=Y 인 게임을 조회
 	     * - 옵션(A/B) 리스트와 함께 내려줌
 	     */
 
 	  @GetMapping("/today")
+	  
 	  public ResponseEntity<?> today(){
 	    var res = svc.getToday(currentUserId());
 	    return res==null ? ResponseEntity.noContent().build() : ResponseEntity.ok(res);

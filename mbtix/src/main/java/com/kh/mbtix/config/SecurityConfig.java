@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -59,15 +60,18 @@ public class SecurityConfig {
 //						.userInfoEndpoint(u -> u.userService(oauth2Service))
 //						.successHandler(oauth2SuccessHandler)
 //				)
-				.authorizeHttpRequests(auth -> 
+				.authorizeHttpRequests(auth -> // "/api/balance/**" 테스트용 끝나면 지우기
 					auth
-					.requestMatchers("/auth/login", "/auth/signup", "/auth/logout","/auth/refresh",
-							 "/auth/checkId", "/auth/checkNickname","/auth/send-code","/auth/verify-code",
-							 "/auth/checkemail"
-							 
-							).permitAll()
+					.requestMatchers("/api/balance/**").permitAll()
+					.requestMatchers("/api/auth/**").permitAll() 
+//					.requestMatchers("/api/balance/**","/auth/login", "/auth/signup", "/auth/logout","/auth/refresh",
+//							 "/auth/checkId", "/auth/checkNickname","/auth/send-code","/auth/verify-code",
+//							 "/auth/checkemail"
+//							 
+//							).permitAll()
 					.requestMatchers("/oauth2/**","/login**","/error").permitAll()
-					.requestMatchers("/**").authenticated()
+					.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+					.anyRequest().authenticated() 
 				);
 		http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 		
@@ -83,7 +87,7 @@ public class SecurityConfig {
 		config.setAllowedOrigins(List.of("http://localhost:5173"));
 
 		// 허용 메서드
-		config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE"));
+		config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
 		config.setAllowedHeaders(List.of("*"));
 		config.setExposedHeaders(List.of("Location","Authorization","Set-Cookie"));
 		config.setAllowCredentials(true); // 세션,쿠키 허용
