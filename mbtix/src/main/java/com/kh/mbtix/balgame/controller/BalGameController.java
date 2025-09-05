@@ -14,12 +14,12 @@ import com.kh.mbtix.balgame.model.dto.BalGameDtos.PastListRes;
 import com.kh.mbtix.balgame.model.dto.BalGameDtos.StatsRes;
 import com.kh.mbtix.balgame.model.service.BalGameService;
 
-public class BalGameController {
+
 	@RestController
 	@RequestMapping("/balance")
-	public class BalController {
+	public class BalGameController {
 	  private final BalGameService svc;
-	  public BalController(BalGameService svc){ this.svc = svc; }
+	  public BalGameController(BalGameService svc){ this.svc = svc; }
 
 	  // (예시) 인증 필터에서 userId 주입되었다고 가정
 	  private long currentUserId(){ return 1001L; }
@@ -85,4 +85,4 @@ public class BalGameController {
 	    return svc.stats(gameId);
 	  }
 	}
-}
+
