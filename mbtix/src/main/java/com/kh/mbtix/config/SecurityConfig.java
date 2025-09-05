@@ -107,13 +107,4 @@ public class SecurityConfig {
 	
 	
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 }
