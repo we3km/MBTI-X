@@ -1,4 +1,62 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="BalGame">
+
+<!-- 오늘의 게임 1개 가져오기 -->
+  <select id="selectTodayGame" resultType="map">
+    SELECT g.GAME_ID,
+           g.TITLE,
+           g.START_AT,
+           g.IS_ACTIVE,
+           o.OPTION_ID,
+           o.LABEL,
+           o.TEXT_CONTENT,
+           o.IMAGE_URL
+    FROM BAL_GAME g
+      JOIN BAL_OPTION o ON g.GAME_ID = o.GAME_ID
+    WHERE g.IS_ACTIVE = 'Y'
+    ORDER BY g.START_AT DESC
+    FETCH FIRST 1 ROWS ONLY
+  </select>
+
+  <!-- 지난 게임 목록 (페이징) -->
+  <select id="selectPastGamesPaged" resultType="map">
+    SELECT g.GAME_ID,
+           g.TITLE,
+           TO_CHAR(g.START_AT,'YYYY-MM-DD') AS START_AT
+    FROM BAL_GAME g
+    WHERE g.IS_ACTIVE = 'N'
+       OR TRUNC(g.START_AT) &lt; TRUNC(SYSDATE)
+    ORDER BY g.START_AT DESC, g.GAME_ID DESC
+    OFFSET #{offset} ROWS FETCH NEXT #{size} ROWS ONLY
+  </select>
+
+  <!-- 특정 게임의 투표 결과 (총합) -->
+  <select id="selectVoteStats" resultType="map">
+    SELECT v.OPTION_ID,
+           o.LABEL,
+           COUNT(*) AS TOTAL
+    FROM BAL_VOTE v
+      JOIN BAL_OPTION o ON v.OPTION_ID = o.OPTION_ID
+    WHERE v.GAME_ID = #{gameId}
+    GROUP BY v.OPTION_ID, o.LABEL
+  </select>
+
+  <!-- 특정 게임의 MBTI별 투표 통계 -->
+  <select id="selectVoteStatsByMbti" resultType="map">
+    SELECT v.OPTION_ID,
+           o.LABEL,
+           v.SNAP_MBTI,
+           COUNT(*) AS TOTAL
+    FROM BAL_VOTE v
+      JOIN BAL_OPTION o ON v.OPTION_ID = o.OPTION_ID
+    WHERE v.GAME_ID = #{gameId}
+    GROUP BY v.OPTION_ID, o.LABEL, v.SNAP_MBTI
+  </select>
+
+  <!-- 투표 등록 -->
+  <insert id="insertVote">
+    INSERT INTO BAL_VOTE (GAME_ID, OPTION_ID, USER_NO, SNAP_MBTI, CREATED_AT)
+    VALUES (#{gameId}, #{optionId}, #{userNo}, #{snapMbti}, SYSDATE)
+  </insert>
 </mapper>
