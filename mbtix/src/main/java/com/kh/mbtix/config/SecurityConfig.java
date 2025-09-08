@@ -60,7 +60,7 @@ public class SecurityConfig {
 					auth
 					.requestMatchers("/auth/login", "/auth/signup", "/auth/logout","/auth/refresh",
 							 "/auth/checkId", "/auth/checkNickname","/auth/send-code","/auth/verify-code",
-							 "/auth/checkemail","/chatbot/**"
+							 "/auth/checkemail"
 							).permitAll()
 					.requestMatchers("/oauth2/**","/login**","/error").permitAll()
 					.requestMatchers("/**").authenticated()

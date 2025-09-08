@@ -58,7 +58,10 @@ public class ChatbotController {
             String fastapiUrl = "http://localhost:8000/initial_message";
             Map<String, String> requestBody = new HashMap<>();
             requestBody.put("mbti", room.getBotMbti());
-
+            
+            String nickname = chatbotService.getNickName(room.getUserId());
+            requestBody.put("nickname", nickname);
+            
             // LLM이 생성한 자기소개 메시지를 받아옴
             ResponseEntity<Map> response = restTemplate.postForEntity(fastapiUrl, requestBody, Map.class);
             String initialMessageContent = (String) response.getBody().get("message");

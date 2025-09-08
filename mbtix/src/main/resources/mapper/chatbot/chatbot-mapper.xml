@@ -45,4 +45,10 @@
 		)
 	</insert>
 	
+	<select id="getNickName" resultType="String">
+		SELECT NICKNAME
+		FROM USERS
+		WHERE USER_ID = #{userId}
+	</select>
+	
 </mapper>

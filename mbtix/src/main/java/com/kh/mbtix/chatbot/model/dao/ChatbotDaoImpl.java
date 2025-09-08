@@ -41,4 +41,9 @@ public class ChatbotDaoImpl implements ChatbotDao {
 		return session.insert("chatbot.saveMessage", req);
 	}
 
+	@Override
+	public String getNickName(long userId) {
+		return session.selectOne("chatbot.getNickName", userId);
+	}
+
 }

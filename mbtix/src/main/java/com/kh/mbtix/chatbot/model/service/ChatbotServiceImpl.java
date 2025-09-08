@@ -39,4 +39,9 @@ public class ChatbotServiceImpl implements ChatbotService {
 		return chatbotDao.saveMessage(req);
 	}
 
+	@Override
+	public String getNickName(long userId) {
+		return chatbotDao.getNickName(userId);
+	}
+
 }

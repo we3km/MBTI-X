@@ -17,4 +17,6 @@ public interface ChatbotDao {
 
 	int saveMessage(ChatMessageSave req);
 
+	String getNickName(long userId);
+
 }
