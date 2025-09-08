@@ -1,46 +1,47 @@
 package com.kh.mbtix.balgame.model.dto;
 
-import java.util.List;
 import java.util.Map;
+import java.util.List;
 
-public final class BalGameDtos {
-    private BalGameDtos() {} // 인스턴스화 방지
+public class BalGameDtos {
 
-public record GameDto(Long gameId, String title, String startAt, String isActive) {}
+    // ====== 공용 DTO ======
+    public record GameDto(Long gameId, String title, String startAt, String isActive) {}
 
-public record OptionDto(
-    Long optionId,
-    Long gameId,
-    String label,
-    String textContent,
-    String imageUrl
-) {}
+    public record OptionDto(Long optionId, Long gameId, String label, String textContent) {}
 
-public record TodayGameRes(
-    Long gameId,
-    String title,
-    List<OptionBrief> options,
-    String myVote
-) {
-    // ⬇️ 내부 record (중첩)
-    public record OptionBrief(String label, String text) {}
-}
+    // 오늘의 게임 응답
+    public record TodayGameRes(
+            Long gameId,
+            String title,
+            List<OptionBrief> options,
+            String myVote
+    ) {
+        public record OptionBrief(String label, String text) {}
+    }
 
-public record PastListRes(
-    List<PastCard> content,
-    int page,
-    int size,
-    int totalPages
-) {
-    public record PastCard(Long gameId, String title, String startAt) {}
-}
+    // 투표 요청 DTO
+    public record VoteReq(Long gameId, Long optionId, Long userId) {}
+    
+    // 투표 응답
+    public record VoteRes(Long voteId, Long gameId, Long optionId, Long userId, String snapMbti) {}
 
-public record StatsRes(
-    Long gameId,
-    String title,
-    long totalVotes,
-    Map<String,OptStat> options
-) {
-    public record OptStat(long total, double ratio, Map<String,Long> mbti) {}
-}
+    // 지난 게임 목록
+    public record PastListRes(
+            List<PastCard> content,
+            int page,
+            int size,
+            int totalPages
+    ) {
+        public record PastCard(Long gameId, String title, String startAt) {}
+    }
+
+    // 통계 
+    public record StatsRes(
+    		Long gameId,
+    	    long totalVotes,
+    	    Map<String, OptStat> options
+    ) {
+    	public record OptStat(long cnt, double ratio) {}
+    }
 }

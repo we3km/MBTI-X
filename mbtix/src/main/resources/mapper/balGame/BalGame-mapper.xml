@@ -16,14 +16,14 @@
     </constructor>
   </resultMap>
 
-  <!-- BalGameDtos.OptionDto(Long optionId, Long gameId, String label, String textContent, String imageUrl) -->
+  <!-- BalGameDtos.OptionDto(Long optionId, Long gameId, String label, String textContent) -->
   <resultMap id="OptionDtoMap" type="com.kh.mbtix.balgame.model.dto.BalGameDtos$OptionDto">
     <constructor>
       <arg column="OPTION_ID"    javaType="long"/>
       <arg column="GAME_ID"      javaType="long"/>
       <arg column="LABEL"        javaType="string"/>
       <arg column="TEXT_CONTENT" javaType="string"/>
-      <arg column="IMAGE_URL"    javaType="string"/>
+     
     </constructor>
   </resultMap>
 
@@ -60,8 +60,8 @@
       o.OPTION_ID     AS OPTION_ID,
       o.BAL_ID        AS GAME_ID,
       o.LABEL         AS LABEL,
-      o.TEXT_CONTENT  AS TEXT_CONTENT,
-      o.IMAGE_URL     AS IMAGE_URL
+      o.TEXT_CONTENT  AS TEXT_CONTENT
+      
     FROM BAL_OPTION o
     WHERE o.BAL_ID = #{gameId}
     ORDER BY o.LABEL
@@ -88,18 +88,17 @@
        OR TRUNC(g.CREATE_DATE) &lt; TRUNC(SYSDATE)
   </select>
 
-  <!-- 옵션별 총 투표수/비율 (통계용 Map) -->
-  <select id="selectOptionTotals" parameterType="long" resultType="map">
-    SELECT
-      o.LABEL AS LABEL,
-      COUNT(*) AS CNT,
-      RATIO_TO_REPORT(COUNT(*)) OVER () AS PCT
-    FROM BAL_VOTE v
-    JOIN BAL_OPTION o ON v.OPTION_ID = o.OPTION_ID
-    WHERE v.BAL_ID = #{gameId}
-    GROUP BY o.LABEL
-    ORDER BY o.LABEL
-  </select>
+  <!-- 특정 게임의 옵션별 총 투표수 -->
+<select id="selectOptionVoteCounts" parameterType="long" resultType="map">
+   SELECT
+    o.LABEL AS LABEL,
+    COUNT(*) AS CNT
+  FROM BAL_VOTE v
+  JOIN BAL_OPTION o ON v.OPTION_ID = o.OPTION_ID
+  WHERE v.BAL_ID = #{gameId}
+  GROUP BY o.LABEL
+  ORDER BY o.LABEL
+</select>
 
   <!-- 옵션별 MBTI 분포 (통계용 Map) -->
   <select id="selectOptionMbti" parameterType="long" resultType="map">
@@ -115,22 +114,32 @@
     ORDER BY o.LABEL, MBTI
   </select>
 
-  <!-- 유저 MBTI 코드 (스냅샷용) -->
+  <!-- 유저 MBTI 코드 (스냅샷용) 
   <select id="selectUserMbtiCode" parameterType="long" resultType="string">
-    SELECT MBTI_CODE
-    FROM MEMBER
+    SELECT MBTI_ID
+    FROM USERS
     WHERE USER_ID = #{userId}
+  </select> -->
+  
+  <!-- 유저가 이미 투표했는지 확인 -->
+  <select id="hasUserVoted" resultType="int">
+	SELECT COUNT(*)
+	FROM BAL_VOTE
+	WHERE BAL_ID = #{gameId}
+	AND USER_ID = #{userId}
   </select>
-
-  <!-- =========================
-       INSERTs
-       ========================= -->
+  <!-- 유저 MBTI 조회 -->
+<select id="selectUserMbtiCode" parameterType="long" resultType="string">
+  SELECT m.MBTI_NAME
+  FROM USERS u
+  JOIN MBTI m ON u.MBTI_ID = m.MBTI_ID
+  WHERE u.USER_ID = #{userId}
+</select>
 
   <!-- 투표 등록 -->
-  <!-- 인터페이스 시그니처: (Long gameId, Long optionId, Long userId, String snapMbti) -->
-  <insert id="insertVote">
-    INSERT INTO BAL_VOTE (BAL_ID, OPTION_ID, USER_ID, SNAP_MBTI, CREATED_AT)
-    VALUES (#{gameId}, #{optionId}, #{userId}, #{snapMbti}, SYSDATE)
-  </insert>
+<insert id="insertVote">
+  INSERT INTO BAL_VOTE (VOTE_ID, BAL_ID, OPTION_ID, USER_ID, SNAP_MBTI)
+  VALUES (BAL_VOTE_SEQ.NEXTVAL, #{gameId}, #{optionId}, #{userId}, #{snapMbti})
+</insert>
 
 </mapper>

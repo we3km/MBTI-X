@@ -12,17 +12,19 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.kh.mbtix.balgame.model.dto.BalGameDtos.PastListRes;
 import com.kh.mbtix.balgame.model.dto.BalGameDtos.StatsRes;
+import com.kh.mbtix.balgame.model.dto.BalGameDtos.VoteReq;
 import com.kh.mbtix.balgame.model.service.BalGameService;
+
+import lombok.RequiredArgsConstructor;
 
 
 	@RestController
-	@RequestMapping("/api/balance")
+	@RequestMapping("/balance")
+	@RequiredArgsConstructor
 	public class BalGameController {
 	  private final BalGameService svc;
-	  public BalGameController(BalGameService svc){ this.svc = svc; }
-
 	  // (예시) 인증 필터에서 userId 주입되었다고 가정
-	  private long currentUserId(){ return 1001L; }
+	  private long currentUserId(){ return 1L; }
 	  
 	  /**
 	     * 오늘의 밸런스게임 조회 API
@@ -60,16 +62,19 @@ import com.kh.mbtix.balgame.model.service.BalGameService;
 	     */
 
 	  @PostMapping("/{gameId}/vote")
-	  public ResponseEntity<?> vote(@PathVariable long gameId, @RequestBody VoteReq req){
-	    try {
-	      svc.vote(gameId, req.option(), currentUserId());
-	      return ResponseEntity.noContent().build();
-	    } catch (IllegalStateException e){
-	      if ("ALREADY_VOTED".equals(e.getMessage()))
-	        return ResponseEntity.status(HttpStatus.CONFLICT).body("already_voted");
-	      return ResponseEntity.badRequest().body(e.getMessage());
-	    }
+	  public ResponseEntity<?> vote(@PathVariable long gameId, @RequestBody VoteReq req) {
+	      try {
+	    	  long userId = 1L;
+	          svc.vote(gameId, req.option(), currentUserId()); // req.option() == "A" or "B"
+	          return ResponseEntity.ok("투표 완료");
+	      } catch (IllegalStateException e) {
+	          if ("ALREADY_VOTED".equals(e.getMessage())) {
+	              return ResponseEntity.status(HttpStatus.CONFLICT).body("already_voted");
+	          }
+	          return ResponseEntity.badRequest().body(e.getMessage());
+	      }
 	  }
+
 	  public record VoteReq(String option) {}
 	  
 	  

@@ -6,26 +6,35 @@ import java.util.Map;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import com.kh.mbtix.balgame.model.dto.BalGameDtos.GameDto;
+import com.kh.mbtix.balgame.model.dto.BalGameDtos.OptionDto;
+
 @Mapper
 public interface BalGameMapper {
 	 // game
-	  Map<String,Object> selectTodayGame();
-	  List<Map<String,Object>> selectOptionsByGameId(@Param("gameId") long gameId);
+	 GameDto selectTodayGame();
+	 List<OptionDto> selectOptionsByGameId(Long gameId);
 	  List<Map<String,Object>> selectPastGamesPaged(@Param("offset") int offset, @Param("size") int size);
 	  int countPastGames();
+	  
+	  // 특정 게임에서 유저가 이미 투표했는지 확인
+	  int hasUserVoted(@Param("gameId") Long gameId, @Param("userId") Long userId);
 
-	  // vote insert (회원만)
-	  int insertVote(@Param("gameId") long gameId,
-	                 @Param("optionId") long optionId,
-	                 @Param("userId") long userId,
-	                 @Param("snapMbti") String snapMbti);
+	// 유저 MBTI 코드 조회
+	    String selectUserMbtiCode(Long userId);
+	    
+
+	    // 투표 저장
+	    void insertVote(@Param("gameId") Long gameId,
+	                    @Param("optionId") Long optionId,
+	                    @Param("userId") Long userId,
+	                    @Param("snapMbti") String snapMbti);
 
 	  // stats
-	  List<Map<String,Object>> selectOptionTotals(@Param("gameId") long gameId);
-	  List<Map<String,Object>> selectOptionMbti(@Param("gameId") long gameId);
+	    List<Map<String,Object>> selectOptionVoteCounts(Long gameId);
 
 	  // 유저 MBTI 조회 (스냅샷용)
-	  String selectUserMbtiCode(@Param("userId") long userId);
+//	  String selectUserMbtiCode(@Param("userId") long userId);
 	}
 
 
