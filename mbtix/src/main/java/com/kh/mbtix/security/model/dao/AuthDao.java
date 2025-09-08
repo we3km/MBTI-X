@@ -92,5 +92,32 @@ public class AuthDao {
 		return session.selectOne("auth.getKakaoAccessToken",userId);
 	}
 
+	public User matchName(String name) {
+		return session.selectOne("auth.matchName",name);
+	}
+
+	public User existsByNameAndEmail(String name, String email) {
+		Map<String,Object> params = new HashMap<>();
+		params.put("name", name);
+		params.put("email", email);
+		return session.selectOne("auth.existsByNameAndEmail",params);
+	}
+
+	public User findByNameAndEmail(String name, String email) {
+		Map<String,Object> params = new HashMap<>();
+		params.put("name", name);
+		params.put("email", email);
+		return session.selectOne("auth.findByNameAndEmail",params);
+	}
+
+	public User idmatch(String name, String loginId) {
+		Map<String,Object> params = new HashMap<>();
+		params.put("name", name);
+		params.put("email", loginId);
+		return session.selectOne("auth.idmatch",params);
+	}
+
+
+
 
 }

@@ -126,5 +126,45 @@
         FROM USER_IDENTITIES
         WHERE USER_ID = #{userId}
     </select>
+    
+    <select id="matchName" resultType="com.kh.mbtix.security.model.dto.AuthDto$User">
+    	SELECT * FROM
+    	USERS
+    	WHERE NAME = #{name}
+    </select>
+    
+    <select id="existsByNameAndEmail" resultType="com.kh.mbtix.security.model.dto.AuthDto$User">
+        SELECT *
+        FROM USERS
+        WHERE NAME = #{name}
+          AND EMAIL = #{email}
+    </select>
+    
+    <select id="findByNameAndEmail" parameterType="map" resultType="com.kh.mbtix.security.model.dto.AuthDto$User">
+	 SELECT 
+        U.USER_ID,
+        U.LOGIN_ID,
+        U.EMAIL,
+        U.NICKNAME,
+        U.NAME,
+        U.MBTI_ID,
+        UI.PROVIDER,
+        UA.AUTHORITY
+    FROM USERS U
+    LEFT JOIN USER_AUTHORITY UA 
+        ON U.USER_ID = UA.USER_ID
+  	LEFT JOIN USER_IDENTITIES UI 
+        ON U.USER_ID = UI.USER_ID
+    WHERE U.NAME = #{name}
+      AND U.EMAIL = #{email}
+</select>
+
+<select id="idmatch" resultType="com.kh.mbtix.security.model.dto.AuthDto$User">
+	SELECT *
+        FROM USERS
+        WHERE NAME = #{name}
+          AND LOGIN_ID = #{loginId}
+</select>
+
 	  
 </mapper>

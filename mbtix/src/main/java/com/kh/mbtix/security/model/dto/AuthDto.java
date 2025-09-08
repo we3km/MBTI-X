@@ -18,7 +18,6 @@ public class AuthDto {
 		private String loginId;
 		private String password;
 		private boolean rememberMe;
-		
 	}
 	
 	@Data
@@ -111,6 +110,8 @@ public class AuthDto {
     private String name;      // 이름
     private String nickname;  // 닉네임
     private String mbtiId;
+    private String profileImageUrl;
+    private String provider;
     private List<String> roles;
 	}
 	
@@ -136,6 +137,16 @@ public class AuthDto {
 	    private String name;            // 이름
 	    private String mbtiId;            // MBTI (필수)
 	    private String loginId;         // 우리 서비스 로그인 ID (필수)
+	}
+	
+	@Data
+	@NoArgsConstructor
+	@AllArgsConstructor
+	@Builder
+	public static class FindIdRequest {
+		private String loginId;
+	    private String name;
+	    private String email;
 	}
 
 }

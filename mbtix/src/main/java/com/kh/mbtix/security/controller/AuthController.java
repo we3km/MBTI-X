@@ -268,7 +268,56 @@ public class AuthController {
         }
         return null;
     }
+	
+	@GetMapping("/namematch")
+	public ResponseEntity<Boolean> namemetch(@RequestParam String name){
+		boolean available = service.matchName(name);
+			log.debug("nameMetch({}) -> available={}",name,available);
+			return ResponseEntity.ok(available);
+		}
+	@PostMapping("/send-code-if-match")
+	public ResponseEntity<String> sendCodeIfMatch(
+	        @RequestParam String name,
+	        @RequestParam String email) {
+	    log.debug("sendCodeIfMatch(name={}, email={})", name, email);
 
-		
+	    // 이름 + 이메일 일치 여부 확인
+	    boolean exists = service.existsByNameAndEmail(name, email);
+
+	    if (!exists) {
+	        return ResponseEntity.badRequest().body("이름과 이메일이 일치하지 않습니다.");
+	    }
+
+	    // ✅ 기존 메서드 재사용
+	    emailService.sendVerificationCode(email);
+
+	    return ResponseEntity.ok("인증 코드 전송 완료");
 	}
+	@GetMapping("/find-id")
+	public ResponseEntity<?> findId(
+	        @RequestParam String name,
+	        @RequestParam String email
+	) {
+	    log.debug("findId(name={}, email={})", name, email);
 
+	    try {
+	        String maskedId = service.findId(name, email);
+	        log.info("✅ findId result={}", maskedId);
+	        return ResponseEntity.ok(maskedId); // 마스킹된 아이디 또는 안내 메시지
+	    } catch (IllegalArgumentException e) {
+	        return ResponseEntity.badRequest().body(e.getMessage());
+	    } catch (Exception e) {
+	        log.error("findId error", e);
+	        return ResponseEntity.status(500).body("서버 오류가 발생했습니다.");
+	    }
+	}
+	@GetMapping("/idmatch")
+	public ResponseEntity<Boolean> idmatch(@RequestParam String loginId,
+											@RequestParam String name){
+		boolean available = service.idmatch(loginId,name);
+			log.debug("nameMetch({}) -> available={}",loginId,available);
+			return ResponseEntity.ok(available);
+		}
+}
+	
+	

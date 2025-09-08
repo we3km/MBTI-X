@@ -240,8 +240,47 @@ public class AuthService {
 		
 		return user;
 	}
-	
-	
+
+
+	public boolean matchName(String name) {
+		User user =authDao.matchName(name);
+		return user != null;
+	}
+
+	public boolean existsByNameAndEmail(String name, String email) {
+		User user = authDao.existsByNameAndEmail(name,email);
+		return user !=null ;
+	}
+
+
+	public String findId(String name, String email) {
+	    User user = authDao.findByNameAndEmail(name, email);
+	    if (user == null) {
+	        throw new IllegalArgumentException("일치하는 회원 정보가 없습니다.");
+	    }
+
+	    // 소셜 가입자인 경우 안내 메시지 반환
+	    if (user.getProvider() != null && !user.getProvider().isBlank()) {
+	        return user.getProvider() + " 계정으로 가입된 사용자입니다.";
+	    }
+
+	    // 일반 회원인 경우 아이디 마스킹 처리
+	    String loginId = user.getLoginId();
+	    if (loginId.length() <= 3) {
+	        return loginId.charAt(0) + "***";
+	    } else {
+	        String visible = loginId.substring(0, 3);
+	        return visible + "*".repeat(loginId.length() - 3);
+	    }
+	}
+
+
+	public boolean idmatch(String loginId, String name) {
+		User user = authDao.idmatch(name,loginId);
+		return user !=null ;
+	}
+
+
 }
 	
 
