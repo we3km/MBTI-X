@@ -2,6 +2,7 @@ package com.kh.mbtix.security.model.provider;
 
 import java.security.Key;
 import java.util.Date;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -28,10 +29,12 @@ public class JWTProvider {
 		this.key = Keys.hmacShaKeyFor(keyBytes);
 		this.refreshKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(refreshSecretBase64));
 	}
-	public String createAccessToken(Long id, int minutes) {
+	
+	public String createAccessToken(Long id, List<String> roles, int minutes) {
 		Date now = new Date();
 		return Jwts.builder()
 				.setSubject(String.valueOf(id)) // 페이로드에 저장할 id
+				.claim("roles", roles)
 				.setIssuedAt(now) // 토큰 발행시간
 				.setExpiration(new Date(now.getTime()+ (1000L * 60 * minutes))) // 만료 시간
 				.signWith(key, SignatureAlgorithm.HS256) // 서명에 사용할 키값과, 알고리즘
@@ -56,6 +59,17 @@ public class JWTProvider {
 					.getSubject()
 				);
 	}
+	
+	@SuppressWarnings("unchecked")
+	public List<String> getRoles(String token) {
+		return Jwts.parserBuilder()
+				.setSigningKey(key)
+				.build()
+				.parseClaimsJws(token)
+				.getBody()
+				.get("roles", List.class);
+	}
+	
 	public Long parseRefresh(String token) {
 		return Long.valueOf(
 				Jwts.parserBuilder()
@@ -68,5 +82,4 @@ public class JWTProvider {
 	}
 	
 	
-
 }

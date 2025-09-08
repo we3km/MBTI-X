@@ -93,10 +93,12 @@ public class AuthService {
 
 		
 		user = authDao.findUserByUserId(user.getUserId());
+		String accessToken = jwt.createAccessToken(user.getUserId(), user.getRoles(), 30);
+		String refreshToken = jwt.createRefreshToken(user.getUserId(), 7);
 		
 		return AuthResult.builder()
-//				.accessToken(accessToken)
-//				.refreshToken(refreshToken)
+				.accessToken(accessToken)
+				.refreshToken(refreshToken)
 				.user(user)
 				.build();
 		
@@ -127,7 +129,7 @@ public class AuthService {
 			throw new BadCredentialsException("비밀번호 오류");
 		}
 		
-		String acessToken = jwt.createAccessToken(user.getUserId(), 30);
+		String acessToken = jwt.createAccessToken(user.getUserId(), user.getRoles(), 30);
 		String refreshToken = jwt.createRefreshToken(user.getUserId(), 7);
 		
 		User userNoPassword = User.builder()
@@ -151,7 +153,7 @@ public class AuthService {
 		Long userId = jwt.parseRefresh(refreshCookie);
 		User user = authDao.findUserByUserId(userId);
 		
-		String accessToken =jwt.createAccessToken(userId, 30);
+		String accessToken =jwt.createAccessToken(userId, user.getRoles(), 30);
 		
 		return AuthResult.builder()
 				.accessToken(accessToken)
@@ -160,7 +162,7 @@ public class AuthService {
 	}
 
 	public String resolveAccessToken(HttpServletRequest request) {
-		String bearerToken = request.getHeader("Authroiztion");
+		String bearerToken = request.getHeader("Authroization");
 		if(bearerToken != null && bearerToken.startsWith("Bearer ")) {
 			return bearerToken.substring(7);
 		}

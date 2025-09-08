@@ -2,10 +2,14 @@ package com.kh.mbtix.security.model.handler;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -36,7 +40,12 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 		
 		Long id = (Long) oauthUser.getUserId();
 		
-		String accessToken = jwt.createAccessToken(id, 30);
+		Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
+		List<String> roles = authorities.stream()
+				.map(GrantedAuthority::getAuthority)
+				.collect(Collectors.toList());
+		
+		String accessToken = jwt.createAccessToken(id, roles, 30);
 		String refreshToken = jwt.createRefreshToken(id, 7);
 		
 		ResponseCookie cookie = ResponseCookie.from(AuthController.REFRESH_COOKIE,refreshToken)

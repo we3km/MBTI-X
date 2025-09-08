@@ -2,6 +2,7 @@ package com.kh.mbtix.security.filter;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -36,14 +37,19 @@ public class JWTAutenticationFilter extends OncePerRequestFilter {
 					//2) 토큰에서 userId추출
 					String token = header.substring(7).trim();
 					Long userId = jwt.getUserId(token);
+					List<String> roles = jwt.getRoles(token);
 					
-					log.debug("userId : {}", userId);
+					List<SimpleGrantedAuthority> authorities = roles.stream()
+							.map(SimpleGrantedAuthority::new)
+							.collect(Collectors.toList());
+									
 					UsernamePasswordAuthenticationToken authToken
-					= new UsernamePasswordAuthenticationToken(userId, null , List.of(new SimpleGrantedAuthority("ROLE_USER")) 
-					);
+					= new UsernamePasswordAuthenticationToken(userId, null , authorities);
 					
 					//인증처리 끝
 					SecurityContextHolder.getContext().setAuthentication(authToken);
+					log.debug("userId: {} -> roles: {} 권한 처리 완료", userId, roles);
+					
 					}catch(ExpiredJwtException e) {
 						SecurityContextHolder.clearContext();
 						response.sendError(HttpServletResponse.SC_UNAUTHORIZED);//401상태

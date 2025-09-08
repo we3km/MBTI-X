@@ -71,6 +71,8 @@ public class SecurityConfig {
                     .requestMatchers("/admin/**").hasRole("ADMIN")
                     // FAQ는 GET 요청만 허용
                     .requestMatchers(HttpMethod.GET, "/faqs/**").permitAll()
+                    // 알림 허용
+                    .requestMatchers("/alarms/**").authenticated()
                     // 그 외 모든 경로는 인증 필요
                     .anyRequest().authenticated()
                 );

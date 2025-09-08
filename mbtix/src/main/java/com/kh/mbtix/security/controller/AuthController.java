@@ -81,8 +81,6 @@ public class AuthController {
 	    	return ResponseEntity.ok(available);
 	    }
 	
-	
-	
 	    @PostMapping("/signup")
 	    public ResponseEntity<?> signUp(@RequestBody SignupRequest srq) {
 	    	log.debug("agree1={}, agree2={}, agree3={}", srq.isAgree1(), srq.isAgree2(), srq.isAgree3());

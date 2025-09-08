@@ -8,8 +8,10 @@ import org.springframework.transaction.annotation.Transactional;
 import com.kh.mbtix.admin.model.dao.AdminDao;
 import com.kh.mbtix.admin.model.vo.BanInfo;
 import com.kh.mbtix.admin.model.vo.Report;
+import com.kh.mbtix.admin.model.vo.UserDetailDTO;
 import com.kh.mbtix.common.model.vo.PageInfo;
 import com.kh.mbtix.common.model.vo.PageResponse;
+import com.kh.mbtix.security.model.dto.AuthDto.UserAuthority;
 import com.kh.mbtix.user.model.vo.UserEntity;
 
 @Service
@@ -64,4 +66,56 @@ public class AdminServiceImpl implements AdminService {
         
         return false;
     }
+    
+    @Override
+    public UserDetailDTO selectUserDetail(int userId) {
+        UserDetailDTO userDetail = new UserDetailDTO();
+        
+        // 각 DAO 메소드 호출 및 DTO에 설정
+        userDetail.setUserInfo(adminDao.selectUserInfo(userId));
+        userDetail.setBanHistory(adminDao.selectBanHistory(userId));
+        userDetail.setReportsMade(adminDao.selectReportsMade(userId));
+        userDetail.setReportsReceived(adminDao.selectReportsReceived(userId));
+        
+        return userDetail;
+    }
+    
+    // 관리자가 직접 제재
+    @Override
+    @Transactional
+    public boolean banUserDirectly(int userId, int banDuration, String reason, int adminUserId) {
+    	BanInfo banInfo = new BanInfo();
+    	banInfo.setUserId(userId);
+    	banInfo.setReson(reason);
+    	banInfo.setAdminUserNum(String.valueOf(adminUserId));
+    	
+    	if(banDuration == -1) { // 영정 처리
+    		banInfo.setReleasaeDate(9999);
+    	} else {
+    		banInfo.setReleasaeDate(banDuration);
+    	}
+    	
+    	int result = adminDao.banUser(banInfo);
+    	return result > 0;
+    }
+    
+    @Override
+    @Transactional
+    public boolean updateUserRole(int userId, String newRole) {
+    	UserAuthority userAuthority = new UserAuthority();
+    	userAuthority.setUserId((long) userId);
+    	userAuthority.setRoles(List.of(newRole));
+    	
+    	int result = adminDao.updateUserRole(userAuthority);
+    	return result > 0;
+    }
+    
+    @Override
+    @Transactional
+    public boolean unbanUser(int userId) {
+    	int result = adminDao.unbanUser(userId);
+    	return result > 0;
+    }
+    
+    
 }
