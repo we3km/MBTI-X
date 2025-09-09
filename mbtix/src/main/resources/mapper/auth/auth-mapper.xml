@@ -163,8 +163,62 @@
 	SELECT *
         FROM USERS
         WHERE NAME = #{name}
-          AND LOGIN_ID = #{loginId}
+        AND LOGIN_ID = #{loginId}
 </select>
+
+<select id="existsByNameAndloginIdAnmdEmail" resultType="com.kh.mbtix.security.model.dto.AuthDto$User" >
+	SELECT *
+	FROM USERS
+	WHERE NAME = #{name}
+	AND LOGIN_ID = #{loginId}
+	AND EMAIL = #{email
+	}
+</select>
+
+<select id="findProvider" parameterType="map" resultType="com.kh.mbtix.security.model.dto.AuthDto$User">
+	 SELECT 
+        U.USER_ID,
+        U.LOGIN_ID,
+        U.EMAIL,
+        U.NICKNAME,
+        U.NAME,
+        U.MBTI_ID,
+        UI.PROVIDER,
+        UA.AUTHORITY
+    FROM USERS U
+    LEFT JOIN USER_AUTHORITY UA 
+        ON U.USER_ID = UA.USER_ID
+  	LEFT JOIN USER_IDENTITIES UI 
+        ON U.USER_ID = UI.USER_ID
+    WHERE U.NAME = #{name}
+      AND U.EMAIL = #{email}
+</select>
+
+<select id="findByNameLoginIdEmail" parameterType="map" resultType="com.kh.mbtix.security.model.dto.AuthDto$User">
+	 SELECT 
+        U.USER_ID,
+        U.LOGIN_ID,
+        U.EMAIL,
+        U.NICKNAME,
+        U.NAME,
+        U.MBTI_ID,
+        UI.PROVIDER,
+        UA.AUTHORITY
+    FROM USERS U
+    LEFT JOIN USER_AUTHORITY UA 
+        ON U.USER_ID = UA.USER_ID
+  	LEFT JOIN USER_IDENTITIES UI 
+        ON U.USER_ID = UI.USER_ID
+    WHERE U.NAME = #{name}
+    AND U.LOGIN_ID = #{loginId}
+      AND U.EMAIL = #{email}
+</select>
+
+<update id="updatePassword">
+	UPDATE USER_CREDENTIALS
+    SET PASSWORD = #{encodedPw}
+    WHERE USER_ID = #{userId}
+</update>
 
 	  
 </mapper>

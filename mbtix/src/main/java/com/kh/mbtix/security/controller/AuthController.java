@@ -9,6 +9,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -275,6 +276,8 @@ public class AuthController {
 			log.debug("nameMetch({}) -> available={}",name,available);
 			return ResponseEntity.ok(available);
 		}
+	
+	
 	@PostMapping("/send-code-if-match")
 	public ResponseEntity<String> sendCodeIfMatch(
 	        @RequestParam String name,
@@ -293,6 +296,8 @@ public class AuthController {
 
 	    return ResponseEntity.ok("인증 코드 전송 완료");
 	}
+	
+	
 	@GetMapping("/find-id")
 	public ResponseEntity<?> findId(
 	        @RequestParam String name,
@@ -311,13 +316,80 @@ public class AuthController {
 	        return ResponseEntity.status(500).body("서버 오류가 발생했습니다.");
 	    }
 	}
+	
 	@GetMapping("/idmatch")
-	public ResponseEntity<Boolean> idmatch(@RequestParam String loginId,
-											@RequestParam String name){
-		boolean available = service.idmatch(loginId,name);
-			log.debug("nameMetch({}) -> available={}",loginId,available);
+	public ResponseEntity<Boolean> idmatch(@RequestParam String name,
+											@RequestParam String loginId){
+		boolean available = service.idmatch(name,loginId);
+			log.debug("namematch({}) idMatch({}) -> available={}",name,loginId,available);
 			return ResponseEntity.ok(available);
 		}
+	
+	
+	@PostMapping("/pw-send-code")
+	public ResponseEntity<String> pwUpdateIfMatch(
+	        @RequestParam String name,
+	        @RequestParam String loginId,
+	        @RequestParam String email
+	) {
+	    log.debug("sendCodeIfMatch(name={}, loginId={}, email={})", name, loginId, email);
+
+	    try {
+	        // 1️ 회원 조회
+	        User user = service.findByNameLoginIdEmail(name, loginId, email);
+	        if (user == null) {
+	            return ResponseEntity.badRequest().body("일치하는 회원 정보가 없습니다.");
+	        }
+
+	        // 2️ 소셜 로그인 계정 여부 체크
+	        if (user.getProvider() != null && !user.getProvider().isBlank()) {
+	            // provider 값을 사람이 알아보기 쉽게 표시
+	            String providerName = switch (user.getProvider().toLowerCase()) {
+	                case "kakao" -> "카카오";
+	                case "google" -> "구글";
+	                case "naver" -> "네이버";
+	                default -> user.getProvider();
+	            };
+
+	            return ResponseEntity.badRequest().body(
+	                providerName + " 계정으로 가입된 사용자입니다. 비밀번호 변경이 불가능합니다."
+	            );
+	        }
+
+	        // 3️ 이메일 인증 코드 발송
+	        emailService.sendVerificationCode(email);
+	        return ResponseEntity.ok("인증 코드 전송 완료");
+
+	    } catch (Exception e) {
+	        log.error("pw-send-code error", e);
+	        return ResponseEntity.status(500).body("서버 오류가 발생했습니다.");
+	    }
+	}
+
+	
+	@PutMapping("/updatePW")
+	public ResponseEntity<?> updatePW(
+			@RequestParam String name,
+			@RequestParam String loginId,
+			@RequestParam String email,
+			@RequestParam String password
+			){
+		log.debug("findId(name={}, loginId={} , email={} , )", name, loginId, email);
+		
+		try {
+	        String result = service.updatePw(name, loginId, email, password);
+	        return ResponseEntity.ok(result);
+	    } catch (IllegalArgumentException e) {
+	        // 비즈니스 로직에서 던진 예외 처리 (예: 소셜 로그인 계정은 비번 변경 불가)
+	        return ResponseEntity.badRequest().body(e.getMessage());
+	    } catch (Exception e) {
+	        log.error("❌ updatePW error", e);
+	        return ResponseEntity.status(500).body("서버 오류가 발생했습니다.");
+	    }
+		
+	}
+	 
 }
+
 	
 	

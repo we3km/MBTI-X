@@ -267,18 +267,43 @@ public class AuthService {
 	    // 일반 회원인 경우 아이디 마스킹 처리
 	    String loginId = user.getLoginId();
 	    if (loginId.length() <= 3) {
-	        return loginId.charAt(0) + "***";
+	        // 3글자 이하라면 첫 글자 + 나머지 마스킹
+	        return loginId.charAt(0) + "*".repeat(loginId.length() - 1);
 	    } else {
-	        String visible = loginId.substring(0, 3);
-	        return visible + "*".repeat(loginId.length() - 3);
+	        String start = loginId.substring(0, 3);  // 앞 3자리
+	        String end = loginId.substring(loginId.length() - 1); // 맨 끝 1자리
+	        int maskLength = loginId.length() - 4;  // 가운데 부분 길이
+	        return start + "*".repeat(maskLength) + end;
 	    }
 	}
 
 
-	public boolean idmatch(String loginId, String name) {
+	public boolean idmatch(String name, String loginId) {
 		User user = authDao.idmatch(name,loginId);
 		return user !=null ;
 	}
+	
+	public User findByNameLoginIdEmail(String name, String loginId, String email) {
+
+		return authDao.findByNameLoginIdEmail(name, loginId, email);
+	}
+
+
+	public String updatePw(String name, String loginId, String email, String password) {
+		User user = authDao.findProvider(name,email);
+		log.info("user={}", user);
+		if (user == null) {
+			throw new IllegalArgumentException("일치하는 회원 정보가 없습니다.");
+		}
+		
+		String encodedPw = encoder.encode(password);
+		authDao.updatePassword(user.getUserId(), encodedPw);
+		
+		return "비밀번호가 성공적으로 변경되었습니다.";
+	}
+
+
+	
 
 
 }
