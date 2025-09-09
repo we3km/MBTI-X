@@ -58,10 +58,14 @@ public class ChatbotController {
             String fastapiUrl = "http://localhost:8000/initial_message";
             Map<String, String> requestBody = new HashMap<>();
             requestBody.put("mbti", room.getBotMbti());
-            
+            requestBody.put("botName", room.getBotName());
             String nickname = chatbotService.getNickName(room.getUserId());
             requestBody.put("nickname", nickname);
-            
+
+            requestBody.put("gender", room.getGender());
+            requestBody.put("talkStyle", room.getTalkStyle());
+            requestBody.put( "age", Integer.toString( room.getAge() ) );
+            requestBody.put("features", room.getFeatures());
             // LLM이 생성한 자기소개 메시지를 받아옴
             ResponseEntity<Map> response = restTemplate.postForEntity(fastapiUrl, requestBody, Map.class);
             String initialMessageContent = (String) response.getBody().get("message");
@@ -69,9 +73,6 @@ public class ChatbotController {
             // 3. 받아온 메시지를 DB에 저장 (새로운 서비스 메소드 추가 필요)
             ChatMessageSave initialMessage = new ChatMessageSave(0, room.getRoomId(), "bot", initialMessageContent);
             chatbotService.saveMessage(initialMessage);
-			
-			
-			
 			
 			// Post 요청의 경우 응답데이터 header에 이동할 URI 정보를 적어주는 것이 규칙
 			URI location = URI.create("/chat");

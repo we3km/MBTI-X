@@ -15,6 +15,10 @@ public class ChatbotRoom {
 		private long userId;
 		private String botMbti;
 		private String botName;	
+		private String gender;
+		private String talkStyle;
+		private int age;
+		private String features;
 	}
 	
 	@Data

@@ -12,7 +12,12 @@
 			#{userId},
 			#{botMbti},
 			#{botName},
-			SYSDATE
+			SYSDATE,
+			#{gender},
+			#{talkStyle},
+			'Y',
+			#{age},
+			#{features}
 		)
 	</insert>
 	
