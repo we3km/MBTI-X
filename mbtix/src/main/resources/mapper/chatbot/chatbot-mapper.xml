@@ -26,6 +26,7 @@
 		SELECT *
 		FROM CHATBOT_ROOM
 		WHERE USER_ID = #{userId}
+		ORDER BY CREATED_AT ASC
 	</select>
 	
 	

@@ -30,5 +30,10 @@ public class ChatbotRoom {
 		private String botMbti;
 		private String botName;
 		private Date createdAt;
+		private String gender;
+		private String talkStyle;
+		private int age;
+		private String features;
 	}
+	
 }
