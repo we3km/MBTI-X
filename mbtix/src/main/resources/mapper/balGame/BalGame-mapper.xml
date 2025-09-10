@@ -165,13 +165,6 @@
 	  WHERE ACTIVE = 'Y'
 	</update>
 	
-	
-		<!-- 유저 MBTI 코드 (스냅샷용) 
-	  <select id="selectUserMbtiCode" parameterType="long" resultType="string">
-	    SELECT MBTI_ID
-	    FROM USERS
-	    WHERE USER_ID = #{userId}
-	  </select> -->
 	  
 	  <!-- BAL_GAME insert -->
 <insert id="insertGame" parameterType="string">
@@ -179,7 +172,7 @@
   VALUES (#{title}, SYSDATE)
 </insert>
 
-<!-- BAL_ID는 자동 생성되므로 selectKey 불필요 -->
+
 
 <!-- BAL_OPTION insert -->
 <insert id="insertOption">
