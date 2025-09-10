@@ -17,7 +17,7 @@ public class BalGameDtos {
             List<OptionBrief> options,
             String myVote
     ) {
-        public record OptionBrief(String label, String text) {}
+        public record OptionBrief(String label, String textContent, long votes) {}
     }
 
     // 투표 요청 DTO
@@ -33,15 +33,31 @@ public class BalGameDtos {
             int size,
             int totalPages
     ) {
-        public record PastCard(Long gameId, String title, String startAt) {}
+    	public record PastCard(Long gameId, String title, String startAt) {}
     }
 
     // 통계 
     public record StatsRes(
     		Long gameId,
     	    long totalVotes,
-    	    Map<String, OptStat> options
+    	    Map<String, OptStat> options,
+    	    Map<String, Map<String, MbtiStat>> mbti 
     ) {
     	public record OptStat(long cnt, double ratio) {}
+    	 public record MbtiStat(long cnt, double ratio) {}
     }
+    
+    // 게임 생성
+ // 요청 DTO
+    public record CreateGameReq(
+        String title,
+        String optionAText,
+        String optionBText
+    ) {}
+
+    // 응답 DTO
+    public record CreateGameRes(
+        Long gameId,
+        String title
+    ) {}
 }
