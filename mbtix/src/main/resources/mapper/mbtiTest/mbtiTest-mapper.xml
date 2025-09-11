@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="MbtiMapper">
+
+<!-- 질문 목록 -->
+    <select id="findAllQuestions" resultType="com.kh.mbtix.test.model.dto.MbtiModelDto$Question">
+        SELECT Q_ID AS id,
+               QUESTION,
+               A_TYPE AS aType,
+               B_TYPE AS bType
+        FROM MBTI_TEST
+        ORDER BY Q_ID
+    </select>
+
+    <!-- MBTI_ID 조회 -->
+    <select id="findMbtiIdByName" parameterType="string" resultType="long">
+        SELECT MBTI_ID
+        FROM MBTI
+        WHERE MBTI_NAME = #{mbtiName}
+    </select>
+
+    <!-- USERS 업데이트 -->
+    <update id="updateUserMbti" parameterType="map">
+        UPDATE USERS
+        SET MBTI_ID = #{mbtiId}
+        WHERE USER_ID = #{userId}
+    </update>
+
+
+</mapper>
