@@ -3,34 +3,47 @@
 
 <mapper namespace="com.kh.mbtix.cs.model.dao.InquiryDao">
 
-    <select id="findAllInquiries" parameterType="string" resultType="com.kh.mbtix.cs.model.vo.Cs">
-        SELECT
-               C.INQUIRY_ID,
-               C.STATUS,
-               C.INQUIRY_TITLE,
-               U.LOGIN_ID AS "userLoginId",
-               C.CREATED_AT
-          FROM CS C
-          LEFT JOIN USERS U ON (C.USER_ID = U.USER_ID)
-         <if test="status != null and status != ''">
-           WHERE C.STATUS = #{status}
-         </if>
-         ORDER BY C.INQUIRY_ID DESC
+    <select id="findAllInquiries" parameterType="map" resultType="com.kh.mbtix.cs.model.vo.Cs">
+        SELECT *
+          FROM (
+                SELECT ROWNUM AS RNUM, A.*
+                  FROM (
+                        SELECT
+                               C.INQUIRY_ID, C.STATUS, C.INQUIRY_TITLE,
+                               U.LOGIN_ID AS "userLoginId", C.CREATED_AT
+                          FROM CS C
+                          LEFT JOIN USERS U ON (C.USER_ID = U.USER_ID)
+                         <where>
+                            <if test="status != null and status != ''">
+                                C.STATUS = #{status}
+                            </if>
+                         </where>
+                         ORDER BY C.INQUIRY_ID DESC
+                       ) A
+               )
+         WHERE RNUM BETWEEN (#{pi.currentPage} - 1) * #{pi.boardLimit} + 1 AND #{pi.currentPage} * #{pi.boardLimit}
+    </select>
+
+    <select id="selectInquiryListCount" parameterType="map" resultType="_int">
+        SELECT COUNT(*)
+          FROM CS
+        <where>
+            <if test="status != null and status != ''">
+                STATUS = #{status}
+            </if>
+        </where>
     </select>
 
     <select id="findInquiryById" parameterType="_int" resultType="com.kh.mbtix.cs.model.vo.Cs">
         SELECT
-               C.INQUIRY_ID,
-               C.USER_ID,
-               C.INQUIRY_TITLE,
-               C.INQUIRY_CONTENT,
-               C.CREATED_AT,
+               C.INQUIRY_ID, C.USER_ID, C.INQUIRY_TITLE, C.INQUIRY_CONTENT,
+               TO_CHAR(C.CREATED_AT, 'YYYY-MM-DD') AS "createdAt",
                C.ANSWER,
-               C.ANSWER_AT,
-               C.STATUS,
-               C.CS_CATEGORY,
+               TO_CHAR(C.ANSWER_AT, 'YYYY-MM-DD') AS "answerAt",
+               C.STATUS, C.CS_CATEGORY,
                U.LOGIN_ID AS "userLoginId",
-               U.NICKNAME AS "userNickname"
+               U.NICKNAME AS "userNickname",
+               (SELECT MAX(F.FILE_NAME) FROM "FILE" F WHERE F.REF_ID = C.INQUIRY_ID AND F.CATEGORY_ID = 1) AS "fileName"
           FROM CS C
           LEFT JOIN USERS U ON (C.USER_ID = U.USER_ID)
          WHERE C.INQUIRY_ID = #{inquiryId}
@@ -38,56 +51,60 @@
 
     <update id="submitAnswer" parameterType="com.kh.mbtix.cs.model.vo.Cs">
         UPDATE CS
-           SET ANSWER = #{answer},
-               ANSWER_AT = SYSDATE,
-               STATUS = 'Y'
+           SET ANSWER = #{answer}, ANSWER_AT = SYSDATE, STATUS = 'Y'
          WHERE INQUIRY_ID = #{inquiryId}
     </update>
     
-    <select id="findInquiriesByUserId" parameterType="long" resultType="com.kh.mbtix.cs.model.vo.Cs">
-        SELECT
-               INQUIRY_ID,
-               STATUS,
-               INQUIRY_TITLE,
-               CREATED_AT
+    <select id="findInquiriesByUserId" parameterType="map" resultType="com.kh.mbtix.cs.model.vo.Cs">
+        SELECT *
+          FROM (
+                SELECT ROWNUM AS RNUM, A.*
+                  FROM (
+                        SELECT
+                               INQUIRY_ID, STATUS, INQUIRY_TITLE, CREATED_AT
+                          FROM CS
+                         WHERE USER_ID = #{userId}
+                         ORDER BY INQUIRY_ID DESC
+                       ) A
+               )
+         WHERE RNUM BETWEEN (#{pi.currentPage} - 1) * #{pi.boardLimit} + 1 AND #{pi.currentPage} * #{pi.boardLimit}
+	</select>
+
+    <select id="selectUserInquiryListCount" parameterType="long" resultType="_int">
+        SELECT COUNT(*)
           FROM CS
          WHERE USER_ID = #{userId}
-         ORDER BY INQUIRY_ID DESC
-	</select>
+    </select>
 
     <select id="findUserInquiryById" parameterType="com.kh.mbtix.cs.model.vo.Cs" resultType="com.kh.mbtix.cs.model.vo.Cs">
         SELECT
-               INQUIRY_ID,
-               USER_ID,
-               INQUIRY_TITLE,
-               INQUIRY_CONTENT,
-               CREATED_AT,
-               ANSWER,
-               ANSWER_AT,
-               STATUS,
-               CS_CATEGORY
-          FROM CS
-         WHERE INQUIRY_ID = #{inquiryId} AND USER_ID = #{userId}
+               C.INQUIRY_ID, C.USER_ID, C.INQUIRY_TITLE, C.INQUIRY_CONTENT,
+               TO_CHAR(C.CREATED_AT, 'YYYY-MM-DD') as "createdAt", 
+               C.ANSWER, 
+               TO_CHAR(C.ANSWER_AT, 'YYYY-MM-DD') as "answerAt", 
+               C.STATUS, C.CS_CATEGORY,
+               (SELECT MAX(F.FILE_NAME) FROM "FILE" F WHERE F.REF_ID = C.INQUIRY_ID AND F.CATEGORY_ID = 1) as "fileName"
+          FROM CS C
+         WHERE C.INQUIRY_ID = #{inquiryId} AND C.USER_ID = #{userId}
 	</select>
 
     <insert id="createInquiry" parameterType="com.kh.mbtix.cs.model.vo.Cs">
+        <selectKey keyProperty="inquiryId" resultType="_int" order="AFTER">
+            SELECT CS_SEQ.CURRVAL FROM DUAL
+        </selectKey>
         INSERT INTO CS (
-            INQUIRY_ID,
-            USER_ID,
-            INQUIRY_TITLE,
-            INQUIRY_CONTENT,
-            CREATED_AT,
-            STATUS,
-            CS_CATEGORY
+            INQUIRY_ID, USER_ID, INQUIRY_TITLE, INQUIRY_CONTENT, CREATED_AT, STATUS, CS_CATEGORY
         ) VALUES (
-            CS_SEQ.NEXTVAL,
-            #{userId},
-            #{inquiryTitle},
-            #{inquiryContent},
-            SYSDATE,
-            'N',
-            #{csCategory, jdbcType=INTEGER}
+            CS_SEQ.NEXTVAL, #{userId}, #{inquiryTitle}, #{inquiryContent}, SYSDATE, 'N', #{csCategory, jdbcType=INTEGER}
         )
 	</insert>
+    
+    <insert id="insertFile" parameterType="map">
+        INSERT INTO "FILE" (
+            FILE_ID, FILE_NAME, REF_ID, CATEGORY_ID
+        ) VALUES (
+            FILE_SEQ.NEXTVAL, #{fileName}, #{refId}, #{categoryId}
+        )
+    </insert>
     
 </mapper>

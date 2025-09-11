@@ -3,16 +3,23 @@
 
 <mapper namespace="com.kh.mbtix.faq.model.dao.FaqDao">
 
-    <select id="findAllFaqs" resultType="com.kh.mbtix.faq.model.vo.Faq">
-        SELECT
-               FAQ_ID,
-               FAQ_CATEGORY,
-               QUESTION,
-               ANSWER,
-               CREATED_AT
-          FROM FAQ
-         ORDER BY FAQ_ID DESC
-    </select>
+    <select id="findAllFaqs" parameterType="com.kh.mbtix.common.model.vo.PageInfo" resultType="com.kh.mbtix.faq.model.vo.Faq">
+    SELECT *
+      FROM (
+            SELECT ROWNUM AS RNUM, A.*
+              FROM (
+                    SELECT
+                           FAQ_ID,
+                           FAQ_CATEGORY,
+                           QUESTION,
+                           ANSWER,
+                           CREATED_AT
+                      FROM FAQ
+                     ORDER BY FAQ_ID DESC
+                   ) A
+           )
+     WHERE RNUM BETWEEN (#{currentPage} - 1) * #{boardLimit} + 1 AND #{currentPage} * #{boardLimit}
+</select>
 
     <select id="findFaqById" parameterType="_int" resultType="com.kh.mbtix.faq.model.vo.Faq">
         SELECT
@@ -54,5 +61,10 @@
           FROM FAQ
          WHERE FAQ_ID = #{faqId}
     </delete>
+    
+    <select id="selectFaqListCount" resultType="_int">
+        SELECT COUNT(*) FROM FAQ
+    </select>
+
 
 </mapper>

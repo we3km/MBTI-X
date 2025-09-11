@@ -1,5 +1,7 @@
 package com.kh.mbtix.faq.model.service;
 
+import com.kh.mbtix.common.model.vo.PageInfo;
+import com.kh.mbtix.common.model.vo.PageResponse;
 import com.kh.mbtix.faq.model.dao.FaqDao;
 import com.kh.mbtix.faq.model.vo.Faq;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,8 +16,11 @@ public class FaqServiceImpl implements FaqService {
     private FaqDao faqDao;
 
     @Override
-    public List<Faq> findAllFaqs() {
-        return faqDao.findAllFaqs();
+    public PageResponse<Faq> findAllFaqs(int currentPage) {
+    	int listCount = faqDao.selectFaqListCount();
+    	PageInfo pi = new PageInfo(listCount, currentPage, 10, 10);
+    	List<Faq> list = faqDao.findAllFaqs(pi);
+    	return new PageResponse<>(pi, list);
     }
 
     @Override
@@ -37,4 +42,6 @@ public class FaqServiceImpl implements FaqService {
     public int deleteFaq(int faqId) {
         return faqDao.deleteFaq(faqId);
     }
+    
+    
 }

@@ -73,6 +73,8 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.GET, "/faqs/**").permitAll()
                     // 알림 허용
                     .requestMatchers("/alarms/**").authenticated()
+                    // 업로드된 파일에 대한 접근 허용
+                    .requestMatchers("/uploads/**").permitAll()
                     // 그 외 모든 경로는 인증 필요
                     .anyRequest().authenticated()
                 );

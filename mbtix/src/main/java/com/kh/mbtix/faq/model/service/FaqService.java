@@ -1,11 +1,12 @@
 package com.kh.mbtix.faq.model.service;
 
+import com.kh.mbtix.common.model.vo.PageResponse;
 import com.kh.mbtix.faq.model.vo.Faq;
 import java.util.List;
 
 public interface FaqService {
 
-    List<Faq> findAllFaqs();
+    PageResponse<Faq> findAllFaqs(int currentPage);
 
     Faq findFaqById(int faqId);
 

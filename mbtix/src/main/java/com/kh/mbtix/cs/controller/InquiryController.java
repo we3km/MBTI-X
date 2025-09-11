@@ -1,5 +1,6 @@
 package com.kh.mbtix.cs.controller;
 
+import com.kh.mbtix.common.model.vo.PageResponse;
 import com.kh.mbtix.cs.model.service.InquiryService;
 import com.kh.mbtix.cs.model.vo.Cs;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,10 +19,13 @@ public class InquiryController {
 
     // 목록 조회
     @GetMapping
-    public ResponseEntity<List<Cs>> getInquiryList(@RequestParam(value = "status", required = false) String status) {
-        List<Cs> list = inquiryService.findAllInquiries(status);
-        return ResponseEntity.ok(list);
+    public ResponseEntity<PageResponse<Cs>> getInquiryList(
+    		@RequestParam(value = "status", required = false) String status,
+    		@RequestParam(value = "cpage", defaultValue = "1") int currentPage) {
+    	PageResponse<Cs> response = inquiryService.findAllInquiries(status, currentPage);
+    	return ResponseEntity.ok(response);
     }
+    
 
     // 상세 조회
     @GetMapping("/{inquiryId}")

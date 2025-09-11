@@ -18,5 +18,6 @@ public class Cs {
 	
 	private String userLoginId;
 	private String userNickname;
+	private String fileName;
 
 }
