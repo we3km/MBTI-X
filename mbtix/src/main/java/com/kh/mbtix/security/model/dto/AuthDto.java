@@ -111,9 +111,11 @@ public class AuthDto {
     private String name;      // 이름
     private String nickname;  // 닉네임
     private String mbtiId;
+    private String mbtiName;
     private String profileFileName;
     private String profileImageUrl;
     private String provider;
+    private int point;
     private List<String> roles;
 	}
 	

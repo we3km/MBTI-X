@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="mypage">
+
+	<resultMap id="UserResult" type="com.kh.mbtix.security.model.dto.AuthDto$User" autoMapping="true">
+        <id property="userId" column="USER_ID" />
+        <result property="loginId" column="LOGIN_ID"/>
+        <result property="email" column="EMAIL"/>
+        <result property="nickname" column="NICKNAME"/>
+        <result property="name" column="NAME"/>
+        <result property="mbtiId" column="MBTI_ID"/>
+        <result property="mbtiName" column="MBTI_NAME"/>
+        <result property="password" column="PASSWORD"/>
+        <result property="point" column="POINT" />
+        <result property="profileFileName" column="PROFILE_FILE_NAME"/>
+        <collection property="roles" ofType="java.lang.String" javaType="java.util.List">
+            <result column="AUTHORITY"/>
+        </collection>
+    </resultMap>
+	
+	<update id="minusPoint" parameterType="map">
+        UPDATE USERS
+        SET POINT = POINT - #{i}
+        WHERE USER_ID = #{userId}
+    </update>
+	 
+	 <update id="updateNickname" parameterType="map">
+        UPDATE USERS
+        SET NICKNAME = #{newNickname}
+        WHERE USER_ID = #{userId}
+    </update>
+	  
+	  <select id="findUserByUserId" parameterType="long"
+            resultMap="UserResult">
+        SELECT U.USER_ID,
+               U.LOGIN_ID,
+               U.EMAIL,
+               U.NICKNAME,
+               U.NAME,
+               U.MBTI_ID,
+               U.POINT,
+               UA.AUTHORITY,
+               F.FILE_NAME AS PROFILE_FILE_NAME,
+               M.MBTI_NAME
+        FROM USERS U
+        LEFT JOIN USER_AUTHORITY UA ON U.USER_ID = UA.USER_ID
+        LEFT JOIN MBTI M ON U.MBTI_ID = M.MBTI_ID
+        LEFT JOIN "FILE" F 
+               ON U.USER_ID = F.REF_ID
+              AND F.CATEGORY_ID = 4
+        WHERE U.USER_ID = #{userId}
+    </select>
+    
+    <select id="findUserById" parameterType="long" resultMap="UserResult">
+        SELECT 
+            U.USER_ID,
+            U.LOGIN_ID,
+            U.EMAIL,
+            U.NICKNAME,
+            U.NAME,
+            U.MBTI_ID,
+            C.PASSWORD,
+            U.POINT,
+            UA.AUTHORITY,
+            F.FILE_NAME AS PROFILE_FILE_NAME
+        FROM USERS U
+        LEFT JOIN USER_CREDENTIALS C 
+            ON C.USER_ID = U.USER_ID
+        LEFT JOIN MBTI M 
+            ON U.MBTI_ID = M.MBTI_ID
+        LEFT JOIN "FILE" F 
+            ON U.USER_ID = F.REF_ID 
+           AND F.CATEGORY_ID = 4
+        LEFT JOIN USER_AUTHORITY UA 
+            ON U.USER_ID = UA.USER_ID
+        WHERE U.USER_ID = #{userId}
+    </select>
+    
+    <update id="updatePassword" parameterType="com.kh.mbtix.security.model.dto.AuthDto$User">
+        UPDATE USER_CREDENTIALS
+        SET PASSWORD = #{password}
+        WHERE USER_ID = #{userId}
+    </update>
+
+
+	  
+</mapper>

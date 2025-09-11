@@ -152,6 +152,8 @@ public class AuthService {
 				.roles(user.getRoles())
 				.email(user.getEmail())
 				.mbtiId(user.getMbtiId())
+				.point(user.getPoint())
+				.mbtiName(user.getMbtiName())
 				.profileFileName(user.getProfileFileName())
 				
 				.build();
