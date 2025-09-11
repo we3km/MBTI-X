@@ -27,7 +27,6 @@ import lombok.RequiredArgsConstructor;
 public class SecurityConfig {
 
 	@Bean
-
 	public SecurityFilterChain filterChain(HttpSecurity http,
 			JWTAutenticationFilter jwtFilter,
 			OAuth2Service oauth2Service,

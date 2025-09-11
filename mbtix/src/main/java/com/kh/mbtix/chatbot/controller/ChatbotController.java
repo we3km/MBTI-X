@@ -71,7 +71,7 @@ public class ChatbotController {
             String initialMessageContent = (String) response.getBody().get("message");
 
             // 3. 받아온 메시지를 DB에 저장 (새로운 서비스 메소드 추가 필요)
-            ChatMessageSave initialMessage = new ChatMessageSave(0, room.getRoomId(), "bot", initialMessageContent);
+            ChatMessageSave initialMessage = new ChatMessageSave(0, room.getRoomId(), "bot", initialMessageContent,"text", null);
             chatbotService.saveMessage(initialMessage);
 			
 			// Post 요청의 경우 응답데이터 header에 이동할 URI 정보를 적어주는 것이 규칙
@@ -104,6 +104,7 @@ public class ChatbotController {
 			) {
 		req.setRoomId(roomId);
         int result = chatbotService.saveMessage(req);
+
 
         if (result > 0) {
             URI location = URI.create("/chat/" + roomId);
