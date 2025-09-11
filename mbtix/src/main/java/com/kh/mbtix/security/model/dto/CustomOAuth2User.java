@@ -14,6 +14,7 @@ public class CustomOAuth2User extends DefaultOAuth2User {
     private final String email;
     private final String name;
     private final String nickname;
+    private final String profileFileName;
     private final String profileImageUrl;
     private final String provider;
     private final String providerUserId;
@@ -27,6 +28,7 @@ public class CustomOAuth2User extends DefaultOAuth2User {
             String email,
             String name,
             String nickname,
+            String profileFileName,
             String profileImageUrl,
             String provider,
             String providerUserId
@@ -37,6 +39,7 @@ public class CustomOAuth2User extends DefaultOAuth2User {
         this.email = email;
         this.name = name;
         this.nickname = nickname;
+        this.profileFileName = profileFileName;
         this.profileImageUrl = profileImageUrl;
         this.provider = provider;
         this.providerUserId = providerUserId;

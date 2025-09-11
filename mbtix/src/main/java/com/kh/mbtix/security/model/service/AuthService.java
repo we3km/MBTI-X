@@ -10,8 +10,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PostMapping;
 
+import com.kh.mbtix.common.MbtiUtils;
 import com.kh.mbtix.security.model.dao.AuthDao;
 import com.kh.mbtix.security.model.dto.AuthDto.AuthResult;
+import com.kh.mbtix.security.model.dto.AuthDto.FileVO;
 import com.kh.mbtix.security.model.dto.AuthDto.SignupRequest;
 import com.kh.mbtix.security.model.dto.AuthDto.User;
 import com.kh.mbtix.security.model.dto.AuthDto.UserAuthority;
@@ -35,9 +37,11 @@ public class AuthService {
 	
 	
 	@Transactional
-	public AuthResult signUp(String loginId, String email, String name, String nickname, String password, String mbti) {
+	public AuthResult signUp(String loginId, String email, String name, String nickname, String password, String mbtiId) {
 		
-		 // 1️⃣ 필수 입력값 체크
+
+		
+		 // 1️ 필수 입력값 체크
         if (loginId == null || loginId.isBlank()) {
             throw new IllegalArgumentException("아이디는 필수 입력입니다.");
         }
@@ -50,7 +54,7 @@ public class AuthService {
         if (password == null || password.isBlank() || password.length() < 8) {
             throw new IllegalArgumentException("비밀번호는 최소 8자리 이상이어야 합니다.");
         }
-        if (mbti == null || mbti.isBlank()) {
+        if (mbtiId == null || mbtiId.isBlank()) {
         	throw new IllegalArgumentException("mbti는 필수 입력입니다.");
         }
 
@@ -74,9 +78,10 @@ public class AuthService {
                 .email(email)
                 .nickname(nickname)
                 .name(name)
-                .mbtiId(mbti)
+                .mbtiId(mbtiId)
                 .build();
         authDao.insertUser(user);
+        System.out.println("생성된 유저 ID = " + user.getUserId());
         user.setUserId(user.getUserId()); // selectKey 결과 반영
 		
 		// user_credentials 테이블 
@@ -93,15 +98,19 @@ public class AuthService {
 				.build();
 		authDao.insertUserRole(auth);
 		
-		// 토큰 발급
-//		String accessToken = jwt.createAccessToken(user.getUserId(), 30);
-//		String refreshToken = jwt.createRefreshToken(user.getUserId(), 7);
+
+		 String fileName = MbtiUtils.getProfileFileName(mbtiId);
+
+		    FileVO file = FileVO.builder()
+		            .fileName(fileName)     // "istp.jpg"
+		            .refId(user.getUserId())// USER_ID
+		            .categoryId(4)          // 프로필
+		            .build();
+		    authDao.insertProfile(file);
 		
 		user = authDao.findUserByUserId(user.getUserId());
 		
 		return AuthResult.builder()
-//				.accessToken(accessToken)
-//				.refreshToken(refreshToken)
 				.user(user)
 				.build();
 		
@@ -143,6 +152,8 @@ public class AuthService {
 				.roles(user.getRoles())
 				.email(user.getEmail())
 				.mbtiId(user.getMbtiId())
+				.profileFileName(user.getProfileFileName())
+				
 				.build();
 		return AuthResult.builder()
 				.accessToken(acessToken)
@@ -223,22 +234,7 @@ public class AuthService {
 
 
 	public User findUserByUserId(Long userId) {
-		String accessToken = authDao.getKakaoAccessToken(userId);
-		Map<String,Object> userInfo = service.getUserInfo(accessToken);
-		
-		Map<String, Object> kakao_account= (Map<String,Object>)userInfo.get("kakao_account");
-		Map<String, Object> profile2 = (Map<String,Object>)kakao_account.get("profile");
-		String nickname =(String)(profile2.get("nickname"));
-		String profile = (String)(profile2.get("profile_image_url"));
-		String email = (String)userInfo.get("email");
-		
-		User user = User.builder()
-				.name(nickname)
-				.email(email)
-				.roles(List.of("ROLE_USER"))
-				.build();
-		
-		return user;
+		return authDao.findUserByUserId(userId);
 	}
 
 
@@ -300,6 +296,12 @@ public class AuthService {
 		authDao.updatePassword(user.getUserId(), encodedPw);
 		
 		return "비밀번호가 성공적으로 변경되었습니다.";
+	}
+
+
+	public void insertProfile(FileVO file) {
+		authDao.insertProfile(file);
+		
 	}
 
 

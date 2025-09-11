@@ -71,7 +71,6 @@ public class OAuth2Service implements OAuth2UserService<OAuth2UserRequest, OAuth
 			}
 		}
 
-		// DB에서 기존 유저 조회 (이메일 기준 → provider 기준 순으로)
 		User user = null;
 		if (email != null) {
 			user = authDao.findUserByEmail(email);
@@ -82,11 +81,11 @@ public class OAuth2Service implements OAuth2UserService<OAuth2UserRequest, OAuth
 			return new CustomOAuth2User(oAuth2User.getAuthorities(), attributes, "id", null, // 아직 DB userId 없음
 					true, // 신규 유저
 					email, name != null ? name : nickname, // name이 없으면 nickname 사용
-					nickname, profileImageUrl, provider, providerUserId);
+					nickname, profileImageUrl,null, provider, providerUserId);
 		} else {
 			// 기존 회원
 			return new CustomOAuth2User(oAuth2User.getAuthorities(), attributes, "id", user.getUserId(), false,
-					user.getEmail(), user.getName(), user.getNickname(), user.getProfileImageUrl(), provider,
+					user.getEmail(), user.getName(), user.getNickname(), user.getProfileImageUrl(),user.getProfileFileName(), provider,
 					providerUserId);
 		}
 	}

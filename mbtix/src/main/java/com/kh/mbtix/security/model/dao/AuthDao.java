@@ -8,6 +8,7 @@ import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.stereotype.Repository;
 
 import com.kh.mbtix.security.model.dto.AuthDto;
+import com.kh.mbtix.security.model.dto.AuthDto.FileVO;
 import com.kh.mbtix.security.model.dto.AuthDto.User;
 import com.kh.mbtix.security.model.dto.AuthDto.UserAuthority;
 import com.kh.mbtix.security.model.dto.AuthDto.UserCredential;
@@ -145,6 +146,11 @@ public class AuthDao {
 		params.put("loginId", loginId);
 		params.put("email", email);		
 		return session.selectOne("auth.findByNameLoginIdEmail",params);
+	}
+
+	public void insertProfile(FileVO file) {
+		log.debug(">>> insertProfile DAO 호출 file={}", file);
+		session.insert("auth.insertProfile",file);
 	}
 
 

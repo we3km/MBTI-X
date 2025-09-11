@@ -1,6 +1,7 @@
 package com.kh.mbtix.security.model.dto;
 
 import java.util.List;
+import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -51,7 +52,7 @@ public class AuthDto {
 	    private String email;     // 이메일
 	    private String name;      // 이름
 	    private String nickname;  // 닉네임
-	    private String profile;   // 프로필 이미지 URL
+	    private String profilename;   // 프로필 이미지 URL
 	    private String mbtiId;
 	    private String verificationCode;
 	    
@@ -110,6 +111,7 @@ public class AuthDto {
     private String name;      // 이름
     private String nickname;  // 닉네임
     private String mbtiId;
+    private String profileFileName;
     private String profileImageUrl;
     private String provider;
     private List<String> roles;
@@ -148,5 +150,15 @@ public class AuthDto {
 	    private String name;
 	    private String email;
 	}
-
+	
+	@Data
+	@NoArgsConstructor
+	@AllArgsConstructor
+	@Builder
+	public static class FileVO {
+	    private Long fileId;      // FILE_ID (PK)
+	    private String fileName;  // 파일 이름 (ex: istp.png)
+	    private Long refId;       // 참조 ID (USER_ID, BOARD_ID 등)
+	    private Integer categoryId; // 파일 카테고리 (4 = 프로필)
+	}
 }

@@ -16,8 +16,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+
+import com.kh.mbtix.common.MbtiUtils;
 import com.kh.mbtix.config.SecurityConfig;
 import com.kh.mbtix.security.model.dto.AuthDto.AuthResult;
+import com.kh.mbtix.security.model.dto.AuthDto.FileVO;
 import com.kh.mbtix.security.model.dto.AuthDto.LoginRequest;
 import com.kh.mbtix.security.model.dto.AuthDto.SignupRequest;
 import com.kh.mbtix.security.model.dto.AuthDto.SocialSignupRequest;
@@ -217,6 +220,16 @@ public class AuthController {
 	            .roles(List.of("ROLE_USER"))
 	            .build();
 	    service.insertUserRole(auth);
+	    
+	    String fileName = MbtiUtils.getProfileFileName(req.getMbtiId()); // 예: "ENTP.JPG"
+	    FileVO file = FileVO.builder()
+	            .fileName(fileName)
+	            .refId(user.getUserId()) // USER_ID 참조
+	            .categoryId(4)           // 4 = 프로필
+	            .build();
+	    service.insertProfile(file);
+	    
+	    user.setProfileFileName(fileName);
 
 	    // 4️⃣ JWT 발급
 	    String accessToken = jwt.createAccessToken(user.getUserId(), 30);   // 30분
@@ -229,6 +242,7 @@ public class AuthController {
 	            .path("/")
 	            .maxAge(Duration.ofDays(7))
 	            .build();
+	    
 
 	    // 5️⃣ 응답 반환
 	    AuthResult result = AuthResult.builder()
@@ -259,9 +273,10 @@ public class AuthController {
 		if(user == null) {
 			return ResponseEntity.notFound().build();
 		}
-		return ResponseEntity.ok().build();
+		return ResponseEntity.ok(user);
 		
 	}
+	
 	public String resolveAccessToken(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
