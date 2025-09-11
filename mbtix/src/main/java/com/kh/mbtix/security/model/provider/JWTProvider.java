@@ -30,11 +30,10 @@ public class JWTProvider {
 		this.refreshKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(refreshSecretBase64));
 	}
 	
-	public String createAccessToken(Long id, List<String> roles, int minutes) {
+	public String createAccessToken(Long id, int minutes) {
 		Date now = new Date();
 		return Jwts.builder()
 				.setSubject(String.valueOf(id)) // 페이로드에 저장할 id
-				.claim("roles", roles)
 				.setIssuedAt(now) // 토큰 발행시간
 				.setExpiration(new Date(now.getTime()+ (1000L * 60 * minutes))) // 만료 시간
 				.signWith(key, SignatureAlgorithm.HS256) // 서명에 사용할 키값과, 알고리즘
