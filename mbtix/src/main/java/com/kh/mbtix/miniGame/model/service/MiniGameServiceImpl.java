@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.kh.mbtix.miniGame.model.dao.MiniGameDao;
+import com.kh.mbtix.miniGame.model.dto.GameRoom;
+import com.kh.mbtix.miniGame.model.dto.Gamer;
 import com.kh.mbtix.miniGame.model.dto.Quiz;
 
 @Service
@@ -38,5 +40,30 @@ public class MiniGameServiceImpl implements MiniGameService {
 	@Override
 	public String getQuizTitle() {
 		return dao.getQuizTitle();
+	}
+
+	@Override
+	public List<GameRoom> selectGameRoomList() {
+		return dao.selectGameRoomList();
+	}
+
+	@Override
+	public int createGameRoom(Map<String, Object> map) {
+		return dao.createGameRoom(map);
+	}
+
+	@Override
+	public List<Gamer> selectGamers(int roomId) {
+		return dao.selectGamers(roomId);
+	}
+
+	@Override
+	public void leaveRoom(Map<String, Object> map) {
+		dao.leaveRoom(map);
+	}
+
+	@Override
+	public void joinGameRoom(Map<String, Object> map) {
+		dao.joinGameRoom(map);
 	}
 }

@@ -28,29 +28,18 @@ public class JWTAutenticationFilter extends OncePerRequestFilter {
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {
-		String path = request.getRequestURI();
-		// =========================== 테스트용: 요청 인증 생략 ===========================
-//		if (request.getRequestURI().startsWith("/speedquiz")) {
-//			filterChain.doFilter(request, response);
-//			return;
-//		}
-//		if (request.getRequestURI().startsWith("/point")) {
-//			filterChain.doFilter(request, response);
-//			return;
-//		}
-//		if (request.getRequestURI().startsWith("/rank")) {
-//			filterChain.doFilter(request, response);
-//			return;
-//		}
-//		if (request.getRequestURI().startsWith("/getUserMBTI")) {
-//			filterChain.doFilter(request, response);
-//			return;
-//		}
-//		
+		//
+
+		String path = request.getServletPath();
+
+		// 1) /api/ws/** 요청은 JWT 인증 건너뛰기
+		if (path.startsWith("/api/ws/")) {
+			filterChain.doFilter(request, response);
+			return;
+		}
 		
-		// 기존 JWT 인증임
-		// 1) 요청 header에서 Authorization 추출
 		String header = request.getHeader("Authorization");
+
 		if (header != null && header.startsWith("Bearer ")) {
 
 			try {

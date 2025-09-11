@@ -46,20 +46,15 @@ public class SecurityConfig {
 
 				// 서버에서 인증상태를 관리하지 않게 하는 설정.
 				.sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-
-//				.oauth2Login( oauth -> oauth
-//						// 인증정보를 바탕으로 자동 회원가입
-//						// 요청처리 완료후 , accesToken과 refreshToken을 사용자에게 전달.
-//						.userInfoEndpoint(u -> u.userService(oauth2Service))
-//						.successHandler(oauth2SuccessHandler)
-//				)
 				.authorizeHttpRequests(auth -> auth.requestMatchers("/auth/login", "/auth/signup", "/auth/logout",
 						"/auth/refresh", "/auth/checkId", "/auth/checkNickname", "/auth/send-code", "/auth/verify-code",
-						"/oauth2/**", "/login**", "/error", 
-						"/speedquiz", "/point" , "/rank", "/getUserMBTI" , "/getQuizTitle"// 여기에 추가
-				).permitAll().requestMatchers("/**").authenticated());
+						"/auth/checkemail","/speedquiz", "/point" , "/rank", "/getUserMBTI"						
+				).permitAll()
+						.requestMatchers("/oauth2/**", "/login**", "/error").permitAll()
+						.requestMatchers("/ws/**", "/api/ws/**", "/topic/**", "/app/**").permitAll()
+						.requestMatchers("/**").authenticated());
 		http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
-
+		
 		return http.build();
 	}
 
@@ -69,12 +64,17 @@ public class SecurityConfig {
 		CorsConfiguration config = new CorsConfiguration();
 
 		// 허용 Origin설정
-		config.setAllowedOrigins(List.of("http://localhost:5173"));
+		config.setAllowedOrigins(List.of(
+			    "http://localhost:5173",
+			    "http://192.168.10.230:5173" // LAN IP 허용
+			));
 
 		// 허용 메서드
 		config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE"));
 		config.setAllowedHeaders(List.of("*"));
-		config.setExposedHeaders(List.of("Location", "Authorization"));
+
+		config.setExposedHeaders(List.of("Location", "Authorization", "Set-Cookie"));
+
 		config.setAllowCredentials(true); // 세션,쿠키 허용
 		config.setMaxAge(3600L); // 요청정보 캐싱시간
 
@@ -93,6 +93,6 @@ public class SecurityConfig {
 	@Bean
 	public RestTemplate restTemplate() {
 		return new RestTemplate();
-	}
 
+	}
 }

@@ -56,6 +56,81 @@
 		FROM BAL_GAME
 		WHERE CREATE_DATE = '2025/09/01'
 	</select>	
+	
+	
+	<!-- =========================== 온라인 게임 =========================== -->
+	<!-- 게임방 리스트 불러오기 -->
+	<!-- 내가 만든 방은 안 볼러옴 WHERE USER_ID != #{userId} -->
+	<select id="selectGameRoomList" parameterType="int" resultType="GameRoom">
+		SELECT 
+		    GR.ROOM_ID, 
+		    GR.ROOM_NAME, 
+		    GR.USER_ID AS CREATOR_ID, 
+		    GR.STATUS,
+		    U.NICKNAME,
+		    M.MBTI_NAME
+		FROM GAME_ROOM GR
+		LEFT JOIN USERS U ON GR.USER_ID = U.USER_ID
+		LEFT JOIN MBTI M ON M.MBTI_ID = U.MBTI_ID
+		ORDER BY ROOM_ID DESC
+	</select>
+	
+	<!-- 게임방 생성 -->
+	<insert id="createGameRoom" parameterType="map" useGeneratedKeys="true" keyProperty="roomId">
+	    <selectKey keyProperty="roomId" resultType="int" order="BEFORE">
+	        SELECT GAME_ROOM_SEQ.NEXTVAL FROM DUAL
+	    </selectKey>
+	    INSERT INTO GAME_ROOM 
+	        (ROOM_ID, ROOM_NAME, USER_ID, STATUS, PLAYER_COUNT)
+	    VALUES 
+	        (#{roomId}, #{roomName}, #{userId}, 'Y', 1)
+	</insert>
+		
+	<!-- 이전에 들어왔던 방이면 검사후 입장 -->	
+	<insert id="joinGameRoom" parameterType="map">
+	    MERGE INTO GAME_PARTICIPANT t
+		USING (SELECT #{roomId} AS ROOM_ID, #{userId} AS USER_ID FROM dual) s
+		ON (t.ROOM_ID = s.ROOM_ID AND t.USER_ID = s.USER_ID)
+		WHEN MATCHED THEN
+		  UPDATE SET t.STATUS = 'Y'
+		WHEN NOT MATCHED THEN
+		  INSERT (ROOM_ID, USER_ID, STATUS)
+		  VALUES (s.ROOM_ID, s.USER_ID, 'Y')
+	</insert>	
+	
+	<!-- 게임방에 들어와있는 사람들 정보 가져오기 -->
+	<select id="selectGamers" parameterType="int" resultType="Gamer">
+		SELECT 
+		    GP.USER_ID,
+		    U.NICKNAME,
+		    M.MBTI_NAME
+		FROM GAME_PARTICIPANT GP
+		LEFT JOIN GAME_ROOM GR ON GR.ROOM_ID = GP.ROOM_ID
+		LEFT JOIN USERS U ON GP.USER_ID = U.USER_ID
+		LEFT JOIN MBTI M ON M.MBTI_ID = U.MBTI_ID
+		WHERE GP.ROOM_ID = #{roomId} AND GP.STATUS = 'Y'
+	</select>
+	
+	<!--SELECT 
+		    GR.ROOM_ID, 
+		    GR.USER_ID AS CREATOR_ID, 
+		    GR.STATUS,
+		    GP.USER_ID,
+		    U.NICKNAME,
+		    M.MBTI_NAME
+		FROM GAME_PARTICIPANT GP
+		LEFT JOIN GAME_ROOM GR ON GR.ROOM_ID = GP.ROOM_ID
+		LEFT JOIN USERS U ON GP.USER_ID = U.USER_ID
+		LEFT JOIN MBTI M ON M.MBTI_ID = U.MBTI_ID
+		WHERE GP.ROOM_ID = #{roomId} AND GP.STATUS = 'Y'-->
+	
+	<!-- 게임방 나가기 -->
+	<update id="leaveRoom" parameterType="map">
+		UPDATE GAME_PARTICIPANT
+		SET STATUS = 'N'
+		WHERE ROOM_ID = #{roomId} 
+		AND USER_ID = #{userId}
+	</update>
 
 </mapper>
 
