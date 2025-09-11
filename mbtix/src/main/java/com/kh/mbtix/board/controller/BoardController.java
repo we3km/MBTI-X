@@ -3,9 +3,13 @@ package com.kh.mbtix.board.controller;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.ibatis.javassist.expr.Instanceof;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -16,6 +20,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.kh.mbtix.board.model.service.BoardService;
 import com.kh.mbtix.board.model.vo.Board;
+import com.kh.mbtix.board.model.vo.Board.BoardRequest;
+import com.kh.mbtix.board.model.vo.BoardComment;
+import com.kh.mbtix.board.model.vo.Report;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -69,9 +76,16 @@ public class BoardController {
 	 *  - 유저번호는 로그인기능 추가후 수정 필요.
 	 * */
 	@PostMapping
-	public ResponseEntity<Void> insertBoard(@RequestBody Board b){
+	public ResponseEntity<Void> insertBoard(@ModelAttribute BoardRequest request){
+		
+		Board b = Board.builder()
+	            .title(request.getTitle())
+	            .content(request.getContent())
+	            .categoryId(request.getCategoryId())
+	            .mbtiName(request.getMbtiName())
+	            .build();
 		log.debug("board : {}", b);
-		int result = service.insertBoard(b);
+		int result = service.insertBoard(b , request.getImages());
 		
 		// 등록 성공
 		if(result > 0) {
@@ -79,8 +93,43 @@ public class BoardController {
 		}else {
 			return ResponseEntity.badRequest().build(); // 응답상태 400
 		}
-		
 	}
+	
+	@PostMapping("/report") // /board/report
+	public ResponseEntity<Void> insertReport(@RequestBody Report r){
+		int result = service.insertReport(r);
+		
+		// 등록 성공
+		if(result > 0) {
+			return ResponseEntity.noContent().build(); //응답상태 204(요청은 성공, body에는 데이터 없는 상태)
+		}else {
+			return ResponseEntity.badRequest().build(); // 응답상태 400
+		}
+	}
+	
+	@GetMapping("/{boardId}/comments")
+    public List<BoardComment> getComments(@PathVariable int boardId) {
+        return service.getComments(boardId);
+    }
+	
+	/**
+	 * 
+	 * USER_ID, CONTENT, BOARD_ID
+	 *  - USER_ID -> 로그인한 사용자 ID
+	 *  - CONTENT, BOARD_ID -> 사용자가 작성한 댓글 내용과, 댓글이 작성된 게시글 번호 
+	 *  */
+    @PostMapping("/comments")
+    public BoardComment addComment(@RequestBody BoardComment comment) {
+    	Object userId =  SecurityContextHolder.getContext().getAuthentication().getPrincipal(); // 사용자 userId
+    	if(userId.getClass().equals(Long.class)) {
+    		comment.setUserId((Long)userId);
+    	}
+    	
+        service.insertComment(comment);
+        return comment;
+    }
+	
+	
 	
 //	@GetMapping("/{boardId}")
 //	public ResponseEntity<Board> ListBoard(@PathVariable int boardId) {

@@ -1,5 +1,6 @@
 package com.kh.mbtix.board.model.dao;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -7,6 +8,8 @@ import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.stereotype.Repository;
 
 import com.kh.mbtix.board.model.vo.Board;
+import com.kh.mbtix.board.model.vo.BoardComment;
+import com.kh.mbtix.board.model.vo.Report;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +39,22 @@ public class BoardDao {
 
 	public void inserMbtiBoard(Board b) {
 		template.insert("board.insertMbtiBoard", b);
+	}
+
+	public int insertReport(Report r) {
+		return template.insert("board.insertReport", r);
+	}
+	
+	public int insertComment(BoardComment comment) {
+	    return template.insert("board.insertComment", comment);
+	}
+
+	public void insertBoardImage(HashMap<String, Object> map) {		
+		 template.insert("board.insertBoardImage", map);
+	}
+
+	public List<BoardComment> getComments(int boardId) {
+		return  template.selectList("board.getComments", boardId);
 	}
 
 }

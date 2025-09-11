@@ -63,10 +63,11 @@ public class SecurityConfig {
 					auth
 					.requestMatchers("/auth/login", "/auth/signup", "/auth/logout","/auth/refresh",
 							 "/auth/checkId", "/auth/checkNickname","/auth/send-code","/auth/verify-code",
-							 "/auth/checkemail"
+							 "/auth/checkemail","/board/**"
 							 
 							).permitAll()
 					.requestMatchers("/oauth2/**","/login**","/error").permitAll()
+					.requestMatchers("/uploads/**").permitAll()
 					.requestMatchers("/**").authenticated()
 				);
 		http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
