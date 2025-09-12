@@ -18,8 +18,6 @@ public class ChatMessageDto {
 		private String sender;
 		private String content;
 		private Date createdAt;
-		private String messageType;    // "text" | "image" | "file"
-        private String fileUrl; 
 	}
 	
 	@Data
@@ -30,7 +28,5 @@ public class ChatMessageDto {
 		private long roomId;
 		private String sender;
 		private String content;
-        private String messageType;
-        private String fileUrl;
 	}
 }
