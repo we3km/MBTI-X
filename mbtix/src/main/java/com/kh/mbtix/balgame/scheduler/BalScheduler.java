@@ -1,5 +1,7 @@
 package com.kh.mbtix.balgame.scheduler;
 
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,5 +26,9 @@ public class BalScheduler {
         mapper.activateNewGame();
 
         System.out.println("[스케줄러] 자정 배치 실행: 오늘의 게임 교체 완료");
+    }
+    @EventListener(ApplicationReadyEvent.class)
+    public void onStartup() {
+        resetDailyGame(); // ✅ 서버 시작 시 한 번 실행
     }
 }

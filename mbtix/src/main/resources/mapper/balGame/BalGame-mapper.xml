@@ -160,9 +160,10 @@
   
   <!-- 오늘의 게임 비활성화 -->
 	<update id="deactivateTodayGame">
-	  UPDATE BAL_GAME
-	  SET ACTIVE = 'N'
-	  WHERE ACTIVE = 'Y'
+	 UPDATE BAL_GAME
+  SET ACTIVE = 'N'
+  WHERE CREATE_DATE &lt; TRUNC(SYSDATE)
+    AND ACTIVE = 'Y'
 	</update>
 	
 	  

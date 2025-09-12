@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="BalCommentMapper">
+
+	<select id="selectCommentsByBal" parameterType="long"
+	          resultType="com.kh.mbtix.balComment.model.dto.BalCommentDto$BalComment">
+		 SELECT 
+      c.COMMENT_ID AS commentId,
+      c.BAL_ID     AS balId,
+      c.USER_ID    AS userId,
+      u.NICKNAME   AS userName,
+      m.MBTI_NAME  AS mbti,            <!-- ✅ MBTI 이름 -->
+      c.CONTENT    AS content,
+      TO_CHAR(c.CREATE_AT,'HH24:MI') AS createAt
+  FROM BAL_COMMENT c
+  JOIN USERS u ON c.USER_ID = u.USER_ID
+  LEFT JOIN MBTI m ON u.MBTI_ID = m.MBTI_ID  <!-- ✅ MBTI 테이블 조인 -->
+  WHERE c.BAL_ID = #{balId}
+  ORDER BY c.CREATE_AT DESC	</select>
+	  
+	<insert id="insertComment" parameterType="map">
+	  INSERT INTO BAL_COMMENT (COMMENT_ID, BAL_ID, USER_ID, CONTENT)
+	  VALUES (SEQ_BAL_COMMENT.NEXTVAL, #{balId}, #{userId}, #{content})
+	</insert>
+
+	<delete id="deleteComment" parameterType="map">
+	  DELETE FROM BAL_COMMENT
+	  WHERE COMMENT_ID = #{commentId}
+	    AND USER_ID = #{userId}
+	</delete>
+
+</mapper>

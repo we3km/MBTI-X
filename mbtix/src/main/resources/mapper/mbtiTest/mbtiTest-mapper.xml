@@ -4,12 +4,9 @@
 
 <!-- 질문 목록 -->
     <select id="findAllQuestions" resultType="com.kh.mbtix.test.model.dto.MbtiModelDto$Question">
-        SELECT Q_ID AS id,
-               QUESTION,
-               A_TYPE AS aType,
-               B_TYPE AS bType
-        FROM MBTI_TEST
-        ORDER BY Q_ID
+        SELECT Q_ID AS id, QUESTION AS question, A_TYPE AS aType, B_TYPE AS bType
+  FROM MBTI_TEST
+  ORDER BY Q_ID
     </select>
 
     <!-- MBTI_ID 조회 -->
