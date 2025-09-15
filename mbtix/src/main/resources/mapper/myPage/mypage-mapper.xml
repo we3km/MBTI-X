@@ -8,6 +8,7 @@
         <result property="email" column="EMAIL"/>
         <result property="nickname" column="NICKNAME"/>
         <result property="name" column="NAME"/>
+        <result property="profileType" column="PROFILE_TYPE"/>
         <result property="mbtiId" column="MBTI_ID"/>
         <result property="mbtiName" column="MBTI_NAME"/>
         <result property="password" column="PASSWORD"/>
@@ -39,6 +40,7 @@
                U.NAME,
                U.MBTI_ID,
                U.POINT,
+               U.PROFILE_TYPE,
                UA.AUTHORITY,
                F.FILE_NAME AS PROFILE_FILE_NAME,
                M.MBTI_NAME
@@ -59,6 +61,7 @@
             U.NICKNAME,
             U.NAME,
             U.MBTI_ID,
+            U.PROFILE_TYPE,
             C.PASSWORD,
             U.POINT,
             UA.AUTHORITY,
@@ -81,6 +84,42 @@
         SET PASSWORD = #{password}
         WHERE USER_ID = #{userId}
     </update>
+    
+    <update id="updateProfileImg">
+    	UPDATE "FILE"
+    	SET FILE_NAME = #{savedFileName}
+    	WHERE REF_ID = #{userId}
+    </update>
+    
+    <update id="updateProfileType">
+    	UPDATE USERS
+    	SET POINT = POINT - #{i},
+    		PROFILE_TYPE = 'UPLOAD'
+    	WHERE USER_ID = #{userId}
+    </update>
+    
+    <select id="getScore" parameterType="long" resultType="com.kh.mbtix.mypage.model.dto.MyPageDto$GameScore">
+    SELECT 
+        MAX(CASE WHEN GAME_CODE = 1 THEN SCORE END) AS quizScore,
+        MAX(CASE WHEN GAME_CODE = 2 THEN SCORE END) AS reactionScore,
+        MAX(CASE WHEN GAME_CODE = 3 THEN SCORE END) AS findDiffScore
+    FROM GAME_SCORE
+    WHERE USER_ID = #{userId}
+</select>
+
+<select id="getBoardList" parameterType="long"
+        resultType="com.kh.mbtix.mypage.model.dto.MyPageDto$MyBoard">
+    SELECT 
+        B.BOARD_ID   AS boardId,
+        B.TITLE      AS boardTitle,
+        U.NICKNAME   AS nickName,
+        TO_CHAR(B.CREATED_AT, 'YYYY-MM-DD') AS createdAt, 
+        B."VIEW"     AS viewCount        
+    FROM BOARD B
+    LEFT JOIN USERS U ON U.USER_ID = B.USER_ID
+    WHERE B.USER_ID = #{userId}
+    ORDER BY B.CREATED_AT DESC
+</select>
 
 
 	  

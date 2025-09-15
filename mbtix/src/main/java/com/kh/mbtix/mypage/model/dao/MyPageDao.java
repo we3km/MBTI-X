@@ -1,11 +1,14 @@
 package com.kh.mbtix.mypage.model.dao;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.stereotype.Repository;
 
+import com.kh.mbtix.mypage.model.dto.MyPageDto.GameScore;
+import com.kh.mbtix.mypage.model.dto.MyPageDto.MyBoard;
 import com.kh.mbtix.security.model.dto.AuthDto.User;
 
 import lombok.RequiredArgsConstructor;
@@ -45,6 +48,33 @@ public class MyPageDao {
 
 	public void updatePassword(User user) {
 		session.update("mypage.updatePassword",user);
+	}
+
+	public void updateProfileImg(Long userId, String savedFileName) {
+		Map<String, Object> params = new HashMap<>();
+		params.put("userId", userId);
+		params.put("savedFileName", savedFileName);
+		session.update("mypage.updateProfileImg",params);
+	}
+
+	public void updateProfileType(Long userId, int i) {
+		Map<String, Object> params = new HashMap<>();
+	    params.put("userId", userId);
+	    params.put("i", i);
+	    session.update("mypage.updateProfileType",params);
+		
+	}
+
+	public GameScore getScore(Long userId) {
+		return session.selectOne("mypage.getScore",userId);
+	}
+
+	public MyBoard getBoard(Long userId) {
+		return session.selectOne("mypage.getBoard",userId);
+	}
+
+	public List<MyBoard> getBoardList(Long userId) {
+		return session.selectList("mypage.getBoardList",userId);
 	}
 
 }

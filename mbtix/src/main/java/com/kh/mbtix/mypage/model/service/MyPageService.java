@@ -1,8 +1,12 @@
 package com.kh.mbtix.mypage.model.service;
+import java.util.List;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.kh.mbtix.mypage.model.dao.MyPageDao;
+import com.kh.mbtix.mypage.model.dto.MyPageDto.GameScore;
+import com.kh.mbtix.mypage.model.dto.MyPageDto.MyBoard;
 import com.kh.mbtix.security.model.dto.AuthDto.User;
 
 import lombok.RequiredArgsConstructor;
@@ -54,4 +58,25 @@ public class MyPageService {
 	        // 업데이트된 사용자 다시 조회해서 반환 (옵션)
 	        return dao.findUserById(userId);
 	    }
+
+		public User updateProfileImage(Long userId, String savedFileName) {
+			
+			User user = dao.findUserById(userId);
+			if (user == null) {
+		           throw new IllegalArgumentException("해당 ID의 사용자가 존재하지 않습니다. userId=" + userId);
+		       }
+			
+			dao.updateProfileImg(userId,savedFileName);
+			dao.updateProfileType(userId,500);
+			
+			return dao.findUserById(userId);
+		}
+
+		public GameScore getScore(Long userId) {
+			return dao.getScore(userId);
+		}
+
+		public List<MyBoard> getBoardList(Long userId) {
+			return dao.getBoardList(userId);
+		}
 }

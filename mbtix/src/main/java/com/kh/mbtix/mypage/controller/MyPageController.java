@@ -2,11 +2,27 @@ package com.kh.mbtix.mypage.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
+
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.MediaType;
+
+import com.kh.mbtix.mypage.model.dto.MyPageDto.GameScore;
+import com.kh.mbtix.mypage.model.dto.MyPageDto.MyBoard;
 import com.kh.mbtix.mypage.model.service.MyPageService;
+import com.kh.mbtix.mypage.model.service.ProfileFileService;
 import com.kh.mbtix.security.model.dto.AuthDto.User;
 
 import lombok.RequiredArgsConstructor;
@@ -18,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 public class MyPageController {
 	
 	private final MyPageService service;
+	private final ProfileFileService fileService;
 	
 	@PutMapping("/updateNick")
 	public ResponseEntity<User> updateNick(@RequestParam String newNickname, Long userId,Long point){
@@ -52,4 +69,53 @@ public class MyPageController {
 			return ResponseEntity.badRequest().build();
 		}
 	}
-}
+	    @PutMapping("/updateProfileImg")
+	    public ResponseEntity<User> updateProfileImg(
+	            @RequestParam Long userId,
+	            @RequestPart("file") MultipartFile file) {
+
+	        // 1. 파일 저장 (UUID 파일명으로)
+	        String savedFileName = fileService.saveProfile(file);
+
+	        // 2. DB 업데이트 (포인트 차감 + 프로필 파일명 변경)
+	        User updatedUser = service.updateProfileImage(userId, savedFileName);
+
+	        // 3. 응답 반환
+	        return ResponseEntity.ok(updatedUser);
+	    }
+	    @GetMapping("/profile/images/{fileName}")
+	    public ResponseEntity<Resource> getProfileImage(@PathVariable String fileName) {
+	        try {
+	        	Path filePath = Paths.get(System.getProperty("user.dir"), "upload", "profile", fileName);
+	            Resource resource = new UrlResource(filePath.toUri());
+
+	            if (!resource.exists()) {
+	                return ResponseEntity.notFound().build();
+	            }
+
+	            String contentType = Files.probeContentType(filePath);
+	            if (contentType == null) {
+	                contentType = "application/octet-stream";
+	            }
+
+	            return ResponseEntity.ok()
+	                    .contentType(MediaType.parseMediaType(contentType))
+	                    .body(resource);
+
+	        } catch (Exception e) {
+	            e.printStackTrace(); // 로그 남기기
+	            return ResponseEntity.internalServerError().build();
+	        }
+	    }
+	    @GetMapping("/score/{userId}")
+	    public ResponseEntity<GameScore> getScore(@PathVariable Long userId) {
+	        GameScore score = service.getScore(userId);
+	        return ResponseEntity.ok(score);
+	    }
+	    
+	    @GetMapping("/myBoard/{userId}")
+	    public ResponseEntity<List<MyBoard>> getBoard(@PathVariable Long userId){
+	    	List<MyBoard> boards = service.getBoardList(userId);
+	    	return ResponseEntity.ok(boards);
+	    }
+	}

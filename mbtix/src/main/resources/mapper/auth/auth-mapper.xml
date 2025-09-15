@@ -8,9 +8,11 @@
         <result property="email" column="EMAIL"/>
         <result property="nickname" column="NICKNAME"/>
         <result property="name" column="NAME"/>
+        <result property="profileType" column="PROFILE_TYPE"/>
         <result property="mbtiId" column="MBTI_ID"/>
         <result property="mbtiName" column="MBTI_NAME"/>
         <result property="point" column="POINT" />
+        <result property="provider" column="PROVIDER"/>
         <result property="profileFileName" column="PROFILE_FILE_NAME"/>
         <collection property="roles" ofType="java.lang.String" javaType="java.util.List">
             <result column="AUTHORITY"/>
@@ -63,23 +65,26 @@
     
     <select id="findUserByUserId" parameterType="long" resultMap="UserResult">
         SELECT U.USER_ID, U.LOGIN_ID, U.EMAIL, U.NICKNAME, U.NAME, U.MBTI_ID, U.POINT,
-               UA.AUTHORITY, F.FILE_NAME  AS PROFILE_FILE_NAME, M.MBTI_NAME
+               UA.AUTHORITY, F.FILE_NAME  AS PROFILE_FILE_NAME, M.MBTI_NAME,U.PROFILE_TYPE,
+               UI.PROVIDER
         FROM USERS U
         LEFT JOIN USER_AUTHORITY UA ON U.USER_ID = UA.USER_ID
         LEFT JOIN MBTI M ON U.MBTI_ID = M.MBTI_ID
         LEFT JOIN "FILE" F ON U.USER_ID = REF_ID
+        LEFT JOIN USER_IDENTITIES UI ON U.USER_ID = UI.USER_ID
         AND CATEGORY_ID = 4
         WHERE U.USER_ID = #{userId}
     </select>
     
     <select id="findByLoginpassword" resultMap="UserResult">
-    SELECT U.USER_ID, U.LOGIN_ID, U.EMAIL, U.NICKNAME, U.NAME,
+    SELECT U.USER_ID, U.LOGIN_ID, U.EMAIL, U.NICKNAME,U.PROFILE_TYPE AS PROFILE_TYPE,
     	   U.MBTI_ID, C.PASSWORD,U.POINT, UA.AUTHORITY, F.FILE_NAME AS PROFILE_FILE_NAME,
-    	   M.MBTI_NAME
+    	   M.MBTI_NAME, UI.PROVIDER
     FROM USERS U
     LEFT JOIN USER_CREDENTIALS C ON C.USER_ID = U.USER_ID
     LEFT JOIN MBTI M ON U.MBTI_ID = M.MBTI_ID
-    LEFT JOIN "FILE" F ON U.USER_ID = F.REF_ID 
+    LEFT JOIN "FILE" F ON U.USER_ID = F.REF_ID
+    LEFT JOIN USER_IDENTITIES UI ON U.USER_ID = UI.USER_ID
     AND F.CATEGORY_ID = 4
     JOIN USER_AUTHORITY UA ON U.USER_ID = UA.USER_ID
     WHERE U.LOGIN_ID = #{loginId}
