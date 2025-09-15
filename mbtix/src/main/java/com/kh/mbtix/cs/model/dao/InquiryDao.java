@@ -21,5 +21,6 @@ public interface InquiryDao {
     
     Cs findUserInquiryById(Cs cs);
     int createInquiry(Cs cs);
+    int deleteInquiry(Cs cs);
     int insertFile(Map<String, Object> fileInfo);
 }

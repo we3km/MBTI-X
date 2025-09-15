@@ -83,6 +83,17 @@ public class InquiryServiceImpl implements InquiryService {
         cs.setInquiryId(inquiryId);
         return inquiryDao.findUserInquiryById(cs);
     }
+    
+    // 문의 삭제 기능
+    @Override
+    public int deleteInquiry(Long userId, int inquiryId) {
+    	Cs cs = new Cs();
+    	cs.setUserId(userId.intValue());
+    	cs.setInquiryId(inquiryId);
+    	return inquiryDao.deleteInquiry(cs);
+    }
+    
+    
 
     @Override
     @Transactional

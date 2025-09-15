@@ -52,10 +52,10 @@ public class AdminServiceImpl implements AdminService {
             banInfo.setReson(report.getReportCategoryName());
             banInfo.setAdminUserNum(String.valueOf(adminUserNum));
             
-            if (banDuration == -1) {
-                banInfo.setReleasaeDate(9999);
+            if (banDuration == -1) { // 영정처리
+                banInfo.setRelesaeDate(9999);
             } else {
-                banInfo.setReleasaeDate(banDuration);
+                banInfo.setRelesaeDate(banDuration);
             }
 
             int banResult = adminDao.banUser(banInfo);
@@ -90,9 +90,9 @@ public class AdminServiceImpl implements AdminService {
     	banInfo.setAdminUserNum(String.valueOf(adminUserId));
     	
     	if(banDuration == -1) { // 영정 처리
-    		banInfo.setReleasaeDate(9999);
+    		banInfo.setRelesaeDate(9999);
     	} else {
-    		banInfo.setReleasaeDate(banDuration);
+    		banInfo.setRelesaeDate(banDuration);
     	}
     	
     	int result = adminDao.banUser(banInfo);

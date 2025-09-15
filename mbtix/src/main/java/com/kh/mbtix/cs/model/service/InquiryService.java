@@ -10,10 +10,13 @@ public interface InquiryService {
 	// 관리자
     PageResponse<Cs> findAllInquiries(String status, int currentPage);
     Cs findInquiryById(int inquiryId);
+    
     int submitAnswer(int inquiryId, String answer);
         
     // 사용자
     PageResponse<Cs> findInquiriesByUserId(Long userId, int currentPage);
     Cs findUserInquiryById(Long userId, int inquiryId);
+    
     int createInquiry(Cs cs, MultipartFile file);
+    int deleteInquiry(Long userId, int inquiryId);
 }

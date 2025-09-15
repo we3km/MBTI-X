@@ -30,24 +30,28 @@ public class JWTProvider {
 		this.refreshKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(refreshSecretBase64));
 	}
 	
-	public String createAccessToken(Long id, int minutes) {
+	// [수정] 메소드에 List<String> roles 파라미터를 추가합니다.
+	public String createAccessToken(Long id, List<String> roles, int minutes) {
 		Date now = new Date();
 		return Jwts.builder()
-				.setSubject(String.valueOf(id)) // 페이로드에 저장할 id
-				.setIssuedAt(now) // 토큰 발행시간
-				.setExpiration(new Date(now.getTime()+ (1000L * 60 * minutes))) // 만료 시간
-				.signWith(key, SignatureAlgorithm.HS256) // 서명에 사용할 키값과, 알고리즘
+				.setSubject(String.valueOf(id))
+				.claim("roles", roles) // [수정] 토큰에 roles 정보를 추가합니다.
+				.setIssuedAt(now)
+				.setExpiration(new Date(now.getTime()+ (1000L * 60 * minutes)))
+				.signWith(key, SignatureAlgorithm.HS256)
 				.compact();
 	}
+    
 	public String createRefreshToken(Long id, int i) {
 		Date now = new Date();
 		return Jwts.builder()
-				.setSubject(String.valueOf(id)) // 페이로드에 저장할 id
-				.setIssuedAt(now) // 토큰 발행시간
-				.setExpiration(new Date(System.currentTimeMillis() +(1000 * 60 * 60 * 24 * i) )) // 만료 시간
-				.signWith(refreshKey, SignatureAlgorithm.HS256) // 서명에 사용할 키값과, 알고리즘
+				.setSubject(String.valueOf(id))
+				.setIssuedAt(now)
+				.setExpiration(new Date(System.currentTimeMillis() +(1000 * 60 * 60 * 24 * i) ))
+				.signWith(refreshKey, SignatureAlgorithm.HS256)
 				.compact();
 	}
+    
 	public Long getUserId(String token) {
 		return Long.valueOf(
 				Jwts.parserBuilder()
@@ -79,6 +83,4 @@ public class JWTProvider {
 					.getSubject()
 				);
 	}
-	
-	
 }

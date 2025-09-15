@@ -107,4 +107,11 @@
         )
     </insert>
     
+    <delete id="deleteInquiry" parameterType="com.kh.mbtix.cs.model.vo.Cs">
+    	DELETE
+          FROM CS
+         WHERE INQUIRY_ID = #{inquiryId}
+           AND USER_ID = #{userId}
+    </delete>
+    
 </mapper>

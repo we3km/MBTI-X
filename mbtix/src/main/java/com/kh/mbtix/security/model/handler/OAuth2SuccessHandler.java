@@ -2,10 +2,13 @@ package com.kh.mbtix.security.model.handler;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -34,7 +37,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
         CustomOAuth2User oauthUser = (CustomOAuth2User) authentication.getPrincipal();
 
-        // ✅ 신규 회원 → 소셜 회원가입 페이지로
+        // ✅ 신규 회원 처리
         if (oauthUser.isNewUser()) {
             String redirect = UriComponentsBuilder
                     .fromUriString("http://localhost:5173/social-signup")
@@ -52,10 +55,17 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
             return;
         }
 
-        // ✅ 기존 회원 → JWT 발급 + RefreshToken 쿠키 저장 후 메인 페이지로
+        // ✅ 기존 회원 → JWT 발급
         Long id = oauthUser.getUserId();
-        String accessToken = jwt.createAccessToken(id, 30);   // 30분
-        String refreshToken = jwt.createRefreshToken(id, 7);  // 7일
+        
+        // [수정] 로그인 성공한 사용자의 권한 정보를 가져옵니다.
+        List<String> roles = oauthUser.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
+        
+        // [수정] 토큰 생성 시 위에서 가져온 roles 정보를 함께 전달합니다.
+        String accessToken = jwt.createAccessToken(id, roles, 30);
+        String refreshToken = jwt.createRefreshToken(id, 7);
 
         ResponseCookie cookie = ResponseCookie.from(AuthController.REFRESH_COOKIE, refreshToken)
                 .httpOnly(true)
@@ -72,5 +82,3 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         return;
     }
 }
-
-

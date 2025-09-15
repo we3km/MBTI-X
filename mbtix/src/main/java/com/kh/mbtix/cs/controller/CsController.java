@@ -4,6 +4,7 @@ import com.kh.mbtix.common.model.vo.PageResponse;
 import com.kh.mbtix.cs.model.service.InquiryService;
 import com.kh.mbtix.cs.model.vo.Cs;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -48,4 +49,20 @@ public class CsController {
         
         return ResponseEntity.status(201).body(inquiry);
     }
+    
+    // 내 문의 삭제
+    @DeleteMapping("/{inquiryId}")
+    public ResponseEntity<Void> deleteMyInquiry(
+    		@AuthenticationPrincipal Long userId,
+    		@PathVariable("inquiryId") int inquiryId) {
+    	
+    	int result = inquiryService.deleteInquiry(userId, inquiryId);
+    	
+    	if (result > 0) {
+    		return ResponseEntity.ok().build(); // 성공시 200
+    	} else {
+    		return ResponseEntity.status(HttpStatus.FORBIDDEN).build(); // 403
+    	}
+    }
+    
 }

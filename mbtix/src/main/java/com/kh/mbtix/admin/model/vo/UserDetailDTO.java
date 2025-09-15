@@ -33,7 +33,7 @@ public class UserDetailDTO {
         private int bannedId;
         private String reson;
         private String penaltyDate;
-        private String releasaeDate;
+        private String relesaeDate;
     }
 
     @Getter

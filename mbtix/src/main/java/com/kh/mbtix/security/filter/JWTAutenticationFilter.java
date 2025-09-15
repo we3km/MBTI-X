@@ -1,6 +1,8 @@
+// security/filter/JWTAutenticationFilter.java
 package com.kh.mbtix.security.filter;
 
 import java.io.IOException;
+import java.util.Collections; // [추가]
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,34 +31,37 @@ public class JWTAutenticationFilter extends OncePerRequestFilter {
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {
-		//1) 요청 header에서 Authorization 추출
-				String header  = request.getHeader("Authorization");
-				if(header != null && header.startsWith("Bearer ")) {
-					
-					try {
-					//2) 토큰에서 userId추출
-					String token = header.substring(7).trim();
-					Long userId = jwt.getUserId(token);
-					List<String> roles = jwt.getRoles(token);
-					
-					List<SimpleGrantedAuthority> authorities = roles.stream()
+		String header  = request.getHeader("Authorization");
+		if(header != null && header.startsWith("Bearer ")) {
+			
+			try {
+				String token = header.substring(7).trim();
+				Long userId = jwt.getUserId(token);
+				List<String> roles = jwt.getRoles(token);
+				
+				// [수정] roles가 null일 경우를 대비한 방어 코드
+				List<SimpleGrantedAuthority> authorities;
+				if (roles == null) {
+					authorities = Collections.emptyList();
+				} else {
+					authorities = roles.stream()
 							.map(SimpleGrantedAuthority::new)
 							.collect(Collectors.toList());
-									
-					UsernamePasswordAuthenticationToken authToken
-					= new UsernamePasswordAuthenticationToken(userId, null , authorities);
-					
-					//인증처리 끝
-					SecurityContextHolder.getContext().setAuthentication(authToken);
-					log.debug("userId: {} -> roles: {} 권한 처리 완료", userId, roles);
-					
-					}catch(ExpiredJwtException e) {
-						SecurityContextHolder.clearContext();
-						response.sendError(HttpServletResponse.SC_UNAUTHORIZED);//401상태
-						return;
-					}
 				}
+									
+				UsernamePasswordAuthenticationToken authToken
+				= new UsernamePasswordAuthenticationToken(userId, null , authorities);
 				
-				filterChain.doFilter(request, response);
+				SecurityContextHolder.getContext().setAuthentication(authToken);
+				log.debug("userId: {} -> roles: {} 권한 처리 완료", userId, roles);
+				
+			} catch(ExpiredJwtException e) {
+				SecurityContextHolder.clearContext();
+				response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+				return;
+			}
+		}
+		
+		filterChain.doFilter(request, response);
 	}
 }

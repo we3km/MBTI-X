@@ -73,6 +73,8 @@ public class SecurityConfig {
 							 
 							 
 							).permitAll()
+					// cs경로
+					.requestMatchers("/cs/**").authenticated()
 					// 관리자 페이지 허용
                     .requestMatchers("/admin/**").hasRole("ADMIN")
                     // FAQ는 GET 요청만 허용

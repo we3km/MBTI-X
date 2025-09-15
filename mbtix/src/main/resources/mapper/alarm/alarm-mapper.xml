@@ -3,57 +3,49 @@
 
 <mapper namespace="com.kh.mbtix.alarm.model.dao.AlarmDao">
 
+    <resultMap id="alarmResultMap" type="com.kh.mbtix.alarm.model.vo.Alarm">
+        <id property="alarmId" column="ALARM_ID" />
+        <result property="receiverId" column="RECEIVER_ID" />
+        <result property="content" column="CONTENT" />
+        <result property="refId" column="REF_ID" />
+        <result property="type" column="TYPE" />
+        <result property="createdAt" column="CREATED_AT" />
+        <result property="isRead" column="IS READ" />
+    </resultMap>
+
     <insert id="insertAlarm" parameterType="com.kh.mbtix.alarm.model.vo.Alarm">
         INSERT INTO ALARM (
-            ALARM_ID,
-            RECEIVER_ID,
-            CONTENT,
-            REF_ID,
-            TYPE,
-            CREATED_AT,
-            "IS READ"
+            ALARM_ID, RECEIVER_ID, CONTENT, REF_ID, TYPE, CREATED_AT, "IS READ"
         ) VALUES (
-            ALARM_SEQ.NEXTVAL,
-            #{receiverId},
-            #{content},
-            #{refId},
-            #{type},
-            SYSDATE,
-            'N'
+            ALARM_SEQ.NEXTVAL, #{receiverId}, #{content}, #{refId}, #{type}, SYSDATE, 'N'
         )
     </insert>
     
-    <select id="findAlarmsByUserId" parameterType="long" resultType="com.kh.mbtix.alarm.model.vo.Alarm">
-    SELECT
-           ALARM_ID,
-           RECEIVER_ID,
-           CONTENT,
-           REF_ID,
-           TYPE,
-           CREATED_AT,
-           "IS READ"
-      FROM ALARM
-     WHERE RECEIVER_ID = #{userId}
-     ORDER BY ALARM_ID DESC
+    <select id="findAlarmsByUserId" parameterType="long" resultMap="alarmResultMap">
+        SELECT
+               ALARM_ID, RECEIVER_ID, CONTENT, REF_ID, TYPE, CREATED_AT, "IS READ"
+          FROM ALARM
+         WHERE RECEIVER_ID = #{userId}
+         ORDER BY ALARM_ID DESC
 	</select>
 
 	<update id="markAsRead" parameterType="com.kh.mbtix.alarm.model.vo.Alarm">
-    UPDATE ALARM
-       SET "IS READ" = 'Y'
-     WHERE ALARM_ID = #{alarmId}
-       AND RECEIVER_ID = #{receiverId}
+        UPDATE ALARM
+           SET "IS READ" = 'Y'
+         WHERE ALARM_ID = #{alarmId}
+           AND RECEIVER_ID = #{receiverId}
 	</update>
 	
 	<update id="markAllAsRead" parameterType="long">
 		UPDATE ALARM
-		SET "IS READ" = 'Y'
-		WHERE RECEIVER_ID = #{userId}
-		AND "IS READ" = 'N'
+		   SET "IS READ" = 'Y'
+		 WHERE RECEIVER_ID = #{userId}
+		   AND "IS READ" = 'N'
 	</update>
 	
 	<delete id="deleteAllAlarms" parameterType="long">
 		DELETE FROM ALARM
-		WHERE RECEIVER_ID = #{userId}
+		 WHERE RECEIVER_ID = #{userId}
 	</delete>
 	
 </mapper>

@@ -16,5 +16,5 @@ public class UserEntity {
     private String isQuit;
     private int point;
     private String statusName;
-    private Date releasaeDate;
+    private Date relesaeDate;
 }

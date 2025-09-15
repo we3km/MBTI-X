@@ -10,6 +10,7 @@
         <result property="name" column="NAME"/>
         <result property="mbtiId" column="MBTI_ID"/>
         <result property="profileFileName" column="PROFILE_FILE_NAME"/>
+        <result property="relesaeDate" column="relesaeDate"/>
         <collection property="roles" ofType="java.lang.String" javaType="java.util.List">
             <result column="AUTHORITY"/>
         </collection>
@@ -72,7 +73,10 @@
     <select id="findByLoginpassword" resultMap="UserResult">
 
     SELECT U.USER_ID, U.LOGIN_ID, U.EMAIL, U.NICKNAME, U.NAME,
-    	   U.MBTI_ID, C.PASSWORD, UA.AUTHORITY, F.FILE_NAME AS PROFILE_FILE_NAME
+    	   U.MBTI_ID, C.PASSWORD, UA.AUTHORITY, F.FILE_NAME AS PROFILE_FILE_NAME,
+    	   (SELECT TO_CHAR(MAX(B.RELESAE_DATE), 'YYYY-MM-DD HH24:MI:SS')
+    	   FROM BANNED_USER B
+    	   WHERE B.USER_ID = U.USER_ID) AS "relesaeDate"
 
     FROM USERS U
     LEFT JOIN USER_CREDENTIALS C ON C.USER_ID = U.USER_ID

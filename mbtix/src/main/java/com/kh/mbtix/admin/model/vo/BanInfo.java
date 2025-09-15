@@ -10,7 +10,7 @@ public class BanInfo {
 	private String reson;
 	private String isBanned;
 	private Date penaltyDate;
-	private int releasaeDate;
+	private Integer relesaeDate;
 	private String adminUserNum;
 
 }
