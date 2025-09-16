@@ -17,18 +17,21 @@
 			#{talkStyle},
 			'Y',
 			#{age},
-			#{features}
-		)
+			#{features},
+            #{botProfileImageUrl} )
 	</insert>
 	
-	
+	<update id="updateChatbotProfileImage"> UPDATE CHATBOT_ROOM
+        SET BOT_PROFILE_IMAGE_URL = #{botProfileImageUrl}
+        WHERE ROOM_ID = #{roomId}
+    </update>
+
 	<select id="selectChatbotList" resultType="com.kh.mbtix.chatbot.model.dto.ChatbotRoom$ChatbotRoomResponse">
 		SELECT *
 		FROM CHATBOT_ROOM
 		WHERE USER_ID = #{userId}
 		ORDER BY CREATED_AT ASC
 	</select>
-	
 	
 	<select id="getMessage" resultType="com.kh.mbtix.chatbot.model.dto.ChatMessageDto$ChatMessageResponse">
 		SELECT *
@@ -38,23 +41,18 @@
 	</select>
 	
 	<insert id="saveMessage">
-		<selectKey keyProperty="messageId" resultType="int" order="BEFORE">
-			SELECT CHAT_MESSAGE_SEQ.NEXTVAL FROM DUAL
-		</selectKey>
-		INSERT INTO CHAT_MESSAGE
-		VALUES(
-			#{messageId},
+		INSERT INTO CHAT_MESSAGE(
+			MESSAGE_ID,
+			ROOM_ID,
+			SENDER,
+			CONTENT,
+			CREATED_AT
+		) VALUES (
+			CHAT_MESSAGE_SEQ.NEXTVAL,
 			#{roomId},
 			#{sender},
 			#{content},
 			SYSDATE
 		)
 	</insert>
-	
-	<select id="getNickName" resultType="String">
-		SELECT NICKNAME
-		FROM USERS
-		WHERE USER_ID = #{userId}
-	</select>
-	
 </mapper>

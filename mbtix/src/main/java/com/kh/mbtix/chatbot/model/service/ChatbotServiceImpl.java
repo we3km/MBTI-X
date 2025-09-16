@@ -44,4 +44,10 @@ public class ChatbotServiceImpl implements ChatbotService {
 		return chatbotDao.getNickName(userId);
 	}
 
+	@Override
+	public void updateChatbotProfileImage(long roomId, String savedImageUrl) {
+		chatbotDao.updateChatbotProfileImage(roomId, savedImageUrl);
+		
+	}
+
 }

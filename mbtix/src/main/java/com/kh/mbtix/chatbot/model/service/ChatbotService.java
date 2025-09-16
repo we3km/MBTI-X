@@ -3,6 +3,7 @@ package com.kh.mbtix.chatbot.model.service;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.kh.mbtix.chatbot.model.dto.ChatMessageDto.ChatMessageResponse;
 import com.kh.mbtix.chatbot.model.dto.ChatMessageDto.ChatMessageSave;
@@ -20,4 +21,6 @@ public interface ChatbotService {
 	int saveMessage(ChatMessageSave req);
 
 	String getNickName(long userId);
+
+	void updateChatbotProfileImage(long roomId, String savedImageUrl);
 }

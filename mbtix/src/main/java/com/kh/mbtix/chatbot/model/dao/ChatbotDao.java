@@ -19,4 +19,8 @@ public interface ChatbotDao {
 
 	String getNickName(long userId);
 
+	void updateChatbotProfileImage(long roomId, String savedImageUrl);
+	
+	
+
 }

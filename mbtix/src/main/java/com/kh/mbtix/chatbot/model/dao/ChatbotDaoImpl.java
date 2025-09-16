@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import com.kh.mbtix.chatbot.model.dto.ChatMessageDto.ChatMessageResponse;
 import com.kh.mbtix.chatbot.model.dto.ChatMessageDto.ChatMessageSave;
+import com.kh.mbtix.chatbot.model.dto.ChatbotRoom.ChatbotProfileUpdate;
 import com.kh.mbtix.chatbot.model.dto.ChatbotRoom.ChatbotRoomResponse;
 import com.kh.mbtix.chatbot.model.dto.ChatbotRoom.CreateChatbotRoom;
 
@@ -45,5 +46,14 @@ public class ChatbotDaoImpl implements ChatbotDao {
 	public String getNickName(long userId) {
 		return session.selectOne("chatbot.getNickName", userId);
 	}
+
+	@Override
+	public void updateChatbotProfileImage(long roomId, String savedImageUrl) {
+		ChatbotProfileUpdate update = new ChatbotProfileUpdate(roomId, savedImageUrl);
+		
+		session.update("chatbot.updateChatbotProfileImage", update);
+		
+	}
+
 
 }
