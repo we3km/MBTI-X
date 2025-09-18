@@ -23,4 +23,9 @@ public interface InquiryDao {
     int createInquiry(Cs cs);
     int deleteInquiry(Cs cs);
     int insertFile(Map<String, Object> fileInfo);
+    int hideInquiryByAdmin(int inquiryId);
+    
+    // 문의 자동 삭제
+    List<Cs> findOldInquiriesForDeletion();
+    void permanentlyDeleteInquiryById(int inquiryId);
 }

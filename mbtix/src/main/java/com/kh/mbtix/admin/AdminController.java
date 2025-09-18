@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kh.mbtix.admin.model.service.AdminService;
+import com.kh.mbtix.admin.model.vo.DashboardStatsDTO;
 import com.kh.mbtix.admin.model.vo.Report;
 import com.kh.mbtix.admin.model.vo.UserDetailDTO;
 import com.kh.mbtix.common.model.vo.PageResponse;
@@ -29,13 +30,23 @@ public class AdminController {
     @Autowired
     private AdminService adminService;
 
+    // 대시보드 통계 조회 메소드
+    @GetMapping("/dashboard/stats")
+    public ResponseEntity<DashboardStatsDTO> getDashboardStats() {
+        DashboardStatsDTO stats = adminService.getDashboardStats();
+        return ResponseEntity.ok(stats);
+    }
+
     // 회원 목록 조회
     @GetMapping("/users")
     public ResponseEntity<PageResponse<UserEntity>> getAllUsers(
-            @RequestParam(value="cpage", defaultValue="1") int currentPage) {
+            @RequestParam(value="cpage", defaultValue="1") int currentPage,
+            @RequestParam(value="searchType", required=false) String searchType,
+            @RequestParam(value="keyword", required=false) String keyword,
+            @RequestParam(value="status", required=false) String status) {
         
         try {
-            PageResponse<UserEntity> response = adminService.selectAllUsers(currentPage);
+            PageResponse<UserEntity> response = adminService.selectAllUsers(currentPage, searchType, keyword, status);
             
             if (response.getList().isEmpty()) {
                 return ResponseEntity.noContent().build();

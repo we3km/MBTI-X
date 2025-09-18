@@ -10,14 +10,14 @@
                   FROM (
                         SELECT
                                C.INQUIRY_ID, C.STATUS, C.INQUIRY_TITLE,
-                               U.LOGIN_ID AS "userLoginId", C.CREATED_AT
+                               U.LOGIN_ID AS "userLoginId", C.CREATED_AT, C.DELETED_BY_USER
                           FROM CS C
                           LEFT JOIN USERS U ON (C.USER_ID = U.USER_ID)
                          <where>
                             <if test="status != null and status != ''">
                                 C.STATUS = #{status}
                             </if>
-                         </where>
+                         AND C.HIDDEN_BY_ADMIN = 'N' </where>
                          ORDER BY C.INQUIRY_ID DESC
                        ) A
                )
@@ -64,7 +64,7 @@
                                INQUIRY_ID, STATUS, INQUIRY_TITLE, CREATED_AT
                           FROM CS
                          WHERE USER_ID = #{userId}
-                         ORDER BY INQUIRY_ID DESC
+                          AND DELETED_BY_USER = 'N' ORDER BY INQUIRY_ID DESC
                        ) A
                )
          WHERE RNUM BETWEEN (#{pi.currentPage} - 1) * #{pi.boardLimit} + 1 AND #{pi.currentPage} * #{pi.boardLimit}
@@ -107,11 +107,37 @@
         )
     </insert>
     
-    <delete id="deleteInquiry" parameterType="com.kh.mbtix.cs.model.vo.Cs">
-    	DELETE
-          FROM CS
+    <update id="deleteInquiry" parameterType="com.kh.mbtix.cs.model.vo.Cs">
+    	UPDATE CS
+          SET DELETED_BY_USER = 'Y'
          WHERE INQUIRY_ID = #{inquiryId}
            AND USER_ID = #{userId}
-    </delete>
+    </update>
     
+    <update id="hideInquiryByAdmin" parameterType="_int">
+    	UPDATE CS
+    	SET HIDDEN_BY_ADMIN = 'Y'
+    	WHERE INQUIRY_ID = #{inquiryId}
+    </update>
+    
+    <select id="findOldInquiriesForDeletion" resultType="com.kh.mbtix.cs.model.vo.Cs">
+    SELECT
+           C.INQUIRY_ID,
+           F.FILE_NAME
+      FROM CS C
+      LEFT JOIN "FILE" F ON (C.INQUIRY_ID = F.REF_ID AND F.CATEGORY_ID = 1)
+      WHERE (C.DELETED_BY_USER = 'Y' OR C.HIDDEN_BY_ADMIN = 'Y')
+       AND <![CDATA[ C.CREATED_AT < SYSDATE - 365 ]]>
+	</select>
+
+	<delete id="permanentlyDeleteInquiryById" parameterType="_int">
+    BEGIN
+        -- FILE 테이블에서 먼저 삭제
+        DELETE FROM "FILE" WHERE REF_ID = #{inquiryId} AND CATEGORY_ID = 1;
+        -- CS 테이블에서 삭제
+        DELETE FROM CS WHERE INQUIRY_ID = #{inquiryId};
+    END;
+	</delete>
+
+        
 </mapper>

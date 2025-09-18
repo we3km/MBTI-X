@@ -19,5 +19,8 @@ public class Cs {
 	private String userLoginId;
 	private String userNickname;
 	private String fileName;
+	
+	private String deletedByUser;
+	private String hiddenByAdmin;
 
 }

@@ -4,10 +4,11 @@ import com.kh.mbtix.admin.model.vo.Report;
 import com.kh.mbtix.admin.model.vo.UserDetailDTO;
 import com.kh.mbtix.common.model.vo.PageResponse;
 import com.kh.mbtix.user.model.vo.UserEntity;
+import com.kh.mbtix.admin.model.vo.DashboardStatsDTO;
 
 public interface AdminService {
     
-    PageResponse<UserEntity> selectAllUsers(int currentPage);
+	PageResponse<UserEntity> selectAllUsers(int currentPage, String searchType, String keyword, String status);
     
     PageResponse<Report> selectAllReports(int currentPage);
     
@@ -22,4 +23,6 @@ public interface AdminService {
     boolean updateUserRole(int userId, String newRole);
     
     boolean unbanUser(int userId);
+    
+    DashboardStatsDTO getDashboardStats();
 }

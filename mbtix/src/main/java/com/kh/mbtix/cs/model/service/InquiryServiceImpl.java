@@ -19,6 +19,9 @@ import com.kh.mbtix.common.model.vo.PageResponse;
 import com.kh.mbtix.cs.model.dao.InquiryDao;
 import com.kh.mbtix.cs.model.vo.Cs;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class InquiryServiceImpl implements InquiryService {
 	   
@@ -94,7 +97,6 @@ public class InquiryServiceImpl implements InquiryService {
     }
     
     
-
     @Override
     @Transactional
     public int createInquiry(Cs cs, MultipartFile file) {
@@ -131,4 +133,42 @@ public class InquiryServiceImpl implements InquiryService {
         
         return result;
     }
+    
+    // 사용자 문의 삭제(숨김)
+    @Override
+    public int hideInquiry(int inquiryId) {
+    	return inquiryDao.hideInquiryByAdmin(inquiryId);
+    }
+    
+    // 사용자 문의 삭제
+    @Override
+    @Transactional
+    public void permanentlyDeleteOldInquiries() {
+        // 1. 영구 삭제 대상 문의 목록 조회 (첨부 파일 이름 포함)
+        List<Cs> targets = inquiryDao.findOldInquiriesForDeletion();
+        if (targets.isEmpty()) {
+            log.info("삭제할 오래된 문의 데이터가 없습니다.");
+            return;
+        }
+
+        String projectRootPath = System.getProperty("user.dir");
+        String uploadPath = projectRootPath + "/uploads/cs/";
+
+        // 2. 각 문의에 대해 파일 삭제 후 DB 기록 삭제
+        for (Cs inquiry : targets) {
+            if (inquiry.getFileName() != null && !inquiry.getFileName().isEmpty()) {
+                File fileToDelete = new File(uploadPath + inquiry.getFileName());
+                if (fileToDelete.exists()) {
+                    if (fileToDelete.delete()) {
+                        log.info("파일 삭제 성공: " + inquiry.getFileName());
+                    } else {
+                        log.warn("파일 삭제 실패: " + inquiry.getFileName());
+                    }
+                }
+            }
+            inquiryDao.permanentlyDeleteInquiryById(inquiry.getInquiryId());
+        }
+        log.info("총 " + targets.size() + "개의 오래된 문의 데이터가 영구 삭제되었습니다.");
+    }
+    
 }

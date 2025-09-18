@@ -1,12 +1,16 @@
 package com.kh.mbtix.admin.model.service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kh.mbtix.admin.model.dao.AdminDao;
 import com.kh.mbtix.admin.model.vo.BanInfo;
+import com.kh.mbtix.admin.model.vo.DashboardStatsDTO;
 import com.kh.mbtix.admin.model.vo.Report;
 import com.kh.mbtix.admin.model.vo.UserDetailDTO;
 import com.kh.mbtix.common.model.vo.PageInfo;
@@ -21,10 +25,21 @@ public class AdminServiceImpl implements AdminService {
     private AdminDao adminDao;
 
     @Override
-    public PageResponse<UserEntity> selectAllUsers(int currentPage) {
-        int listCount = adminDao.selectListCount();
+    public PageResponse<UserEntity> selectAllUsers(
+    	int currentPage, String searchType, String keyword, String status) {
+    	
+    	Map<String, Object> param = new HashMap<>();
+        param.put("searchType", searchType);
+        param.put("keyword", keyword);
+        param.put("status", status);
+    	
+    	int listCount = adminDao.selectListCount(param);
+        
         PageInfo pi = new PageInfo(listCount, currentPage, 10, 10);
-        List<UserEntity> list = adminDao.selectAllUsers(pi);
+        param.put("pi", pi);
+        
+        List<UserEntity> list = adminDao.selectAllUsers(param);
+        
         return new PageResponse<>(pi, list);
     }
     
@@ -115,6 +130,11 @@ public class AdminServiceImpl implements AdminService {
     public boolean unbanUser(int userId) {
     	int result = adminDao.unbanUser(userId);
     	return result > 0;
+    }
+    
+    @Override
+    public DashboardStatsDTO getDashboardStats() {
+    	return adminDao.selectDashboardStats();
     }
     
     

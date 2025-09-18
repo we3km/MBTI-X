@@ -19,4 +19,9 @@ public interface InquiryService {
     
     int createInquiry(Cs cs, MultipartFile file);
     int deleteInquiry(Long userId, int inquiryId);
+    int hideInquiry(int inquiryId);
+    
+    // 문의 데이터 청소
+    void permanentlyDeleteOldInquiries();
+    
 }

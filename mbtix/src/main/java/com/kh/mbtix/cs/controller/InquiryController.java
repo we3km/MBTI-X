@@ -48,4 +48,14 @@ public class InquiryController {
             return ResponseEntity.status(500).body("답변 등록에 실패했습니다.");
         }
     }
+    
+    // 문의 삭제(숨김) 처리
+    @DeleteMapping("/{inquiryId}")
+    public ResponseEntity<Void> hideInquiry(@PathVariable("inquiryId") int inquiryId) {
+    	int result = inquiryService.hideInquiry(inquiryId);
+    	return result > 0 ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
+    }
+    
+    
+    
 }

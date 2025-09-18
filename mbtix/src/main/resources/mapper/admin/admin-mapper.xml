@@ -16,7 +16,7 @@
         </collection>
     </resultMap>
 
-	<select id="selectAllUsers" parameterType="com.kh.mbtix.common.model.vo.PageInfo" resultType="com.kh.mbtix.user.model.vo.UserEntity">
+	<select id="selectAllUsers" parameterType="map" resultType="com.kh.mbtix.user.model.vo.UserEntity">
     SELECT *
       FROM (
             SELECT ROWNUM AS RNUM, A.*
@@ -28,21 +28,68 @@
                              WHEN U.IS_QUIT = 'Y' THEN '탈퇴'
                              ELSE '활동중'
                            END AS "statusName",
-                           CASE
-                             WHEN B.BANNED_ID IS NOT NULL AND B.RELESAE_DATE > SYSDATE THEN B.RELESAE_DATE
-                             ELSE NULL
-                           END AS "relesaeDate"
+                           B.RELESAE_DATE
                       FROM USERS U
                       LEFT JOIN BANNED_USER B ON U.USER_ID = B.USER_ID
                       AND B.BANNED_ID = (SELECT MAX(BANNED_ID) FROM BANNED_USER WHERE USER_ID = U.USER_ID)
+                    
+                    <where>
+                        <if test="keyword != null and keyword != ''">
+                            <if test="searchType == 'nickname'">
+                                AND U.NICKNAME LIKE '%' || #{keyword} || '%'
+                            </if>
+                            <if test="searchType == 'loginId'">
+                                AND U.LOGIN_ID LIKE '%' || #{keyword} || '%'
+                            </if>
+                        </if>
+                        <if test="status != null and status != ''">
+                            <choose>
+                                <when test="status == 'active'">
+                                    AND U.IS_QUIT = 'N'
+                                    AND (B.BANNED_ID IS NULL OR B.RELESAE_DATE &lt;= SYSDATE)
+                                </when>
+                                <when test="status == 'banned'">
+                                    AND B.BANNED_ID IS NOT NULL AND B.RELESAE_DATE > SYSDATE
+                                </when>
+                                <when test="status == 'withdrawn'">
+                                    AND U.IS_QUIT = 'Y'
+                                </when>
+                            </choose>
+                        </if>
+                    </where>
                      ORDER BY U.USER_ID DESC
                    ) A
            )
-     WHERE RNUM BETWEEN (#{currentPage} - 1) * #{boardLimit} + 1 AND #{currentPage} * #{boardLimit}
+     WHERE RNUM BETWEEN (#{pi.currentPage} - 1) * #{pi.boardLimit} + 1 AND #{pi.currentPage} * #{pi.boardLimit}
 	</select>
     
     <select id="selectListCount" resultType="_int">
-    	SELECT COUNT(*) FROM USERS
+    	SELECT COUNT(*)
+    	FROM USERS U
+    	<where>
+        <if test="keyword != null and keyword != ''">
+            <if test="searchType == 'nickname'">
+                AND U.NICKNAME LIKE '%' || #{keyword} || '%'
+            </if>
+            <if test="searchType == 'loginId'">
+                AND U.LOGIN_ID LIKE '%' || #{keyword} || '%'
+            </if>
+        </if>
+        <if test="status != null and status != ''">
+            <choose>
+                <when test="status == 'active'">
+                    AND U.IS_QUIT = 'N'
+                    AND NOT EXISTS (SELECT 1 FROM BANNED_USER B WHERE B.USER_ID = U.USER_ID AND B.RELESAE_DATE > SYSDATE)
+                </when>
+                <when test="status == 'banned'">
+                    AND EXISTS (SELECT 1 FROM BANNED_USER B WHERE B.USER_ID = U.USER_ID AND B.RELESAE_DATE > SYSDATE)
+                </when>
+                <when test="status == 'withdrawn'">
+                    AND U.IS_QUIT = 'Y'
+                </when>
+            </choose>
+        </if>
+    </where>
     </select>
     
     <select id="selectReportListCount" resultType="_int">
@@ -164,6 +211,14 @@
          WHERE USER_ID = #{userId}
      )
 	</update>
-    
-    
+	
+	<select id="selectDashboardStats" resultType="com.kh.mbtix.admin.model.vo.DashboardStatsDTO">
+		SELECT
+        	(SELECT COUNT(*) FROM USERS WHERE TRUNC(CREATED_AT) = TRUNC(SYSDATE)) AS newUsersToday,
+        	(SELECT COUNT(*) FROM CS WHERE STATUS = 'N' AND HIDDEN_BY_ADMIN = 'N') AS pendingInquiries,
+        	(SELECT COUNT(*) FROM REPORTS WHERE STATUS = 'N') AS pendingReports,
+        	(SELECT COUNT(*) FROM USERS) AS totalUsers
+    	FROM DUAL
+	</select>
+	
 </mapper>
