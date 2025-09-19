@@ -1,23 +1,24 @@
 package com.kh.mbtix.mypage.controller;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.List;
-
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
-import org.springframework.http.MediaType;
 
 import com.kh.mbtix.mypage.model.dto.MyPageDto.GameScore;
 import com.kh.mbtix.mypage.model.dto.MyPageDto.MyBoard;
@@ -69,6 +70,7 @@ public class MyPageController {
 			return ResponseEntity.badRequest().build();
 		}
 	}
+	
 	    @PutMapping("/updateProfileImg")
 	    public ResponseEntity<User> updateProfileImg(
 	            @RequestParam Long userId,
@@ -82,6 +84,8 @@ public class MyPageController {
 
 	        // 3. 응답 반환
 	        return ResponseEntity.ok(updatedUser);
+	        
+	        
 	    }
 	    @GetMapping("/profile/images/{fileName}")
 	    public ResponseEntity<Resource> getProfileImage(@PathVariable String fileName) {
@@ -118,4 +122,20 @@ public class MyPageController {
 	    	List<MyBoard> boards = service.getBoardList(userId);
 	    	return ResponseEntity.ok(boards);
 	    }
+	    
+	    @PutMapping("/deductMbtiPoint")
+	    public ResponseEntity<?> requestMbtiRetest(@RequestParam Long userId) {
+	        Map<String, Object> response = new HashMap<>();
+	        Integer Point = service.deductMbtiPoint(userId);
+
+	        if (Point != null) {
+	            response.put("success", true);
+	            response.put("point", Point);
+	            return ResponseEntity.ok(response);
+	        } else {
+	            response.put("success", false);
+	            response.put("message", "포인트가 부족합니다.");
+	            return ResponseEntity.badRequest().body(response);
+	        }
 	}
+}

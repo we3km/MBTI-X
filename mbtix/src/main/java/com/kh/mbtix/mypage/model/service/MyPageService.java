@@ -79,4 +79,13 @@ public class MyPageService {
 		public List<MyBoard> getBoardList(Long userId) {
 			return dao.getBoardList(userId);
 		}
+
+		public Integer deductMbtiPoint(Long userId) {
+		    int result = dao.deductMbtiPoint(userId);
+		    if (result > 0) {
+		       User user = dao.findUserById(userId);
+		       return user.getPoint();
+		    }
+		    return null; // 실패
+		}
 }

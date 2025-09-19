@@ -39,8 +39,6 @@ public class AuthService {
 	@Transactional
 	public AuthResult signUp(String loginId, String email, String name, String nickname, String password, String mbtiId) {
 		
-
-		
 		 // 1️ 필수 입력값 체크
         if (loginId == null || loginId.isBlank()) {
             throw new IllegalArgumentException("아이디는 필수 입력입니다.");

@@ -121,6 +121,12 @@
     ORDER BY B.CREATED_AT DESC
 </select>
 
+<update id="deductMbtiPoint">
+	UPDATE USERS
+	SET POINT = POINT - 1000
+	WHERE USER_ID = #{userId}
+</update>
+
 
 	  
 </mapper>

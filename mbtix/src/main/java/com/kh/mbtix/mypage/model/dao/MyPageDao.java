@@ -77,4 +77,10 @@ public class MyPageDao {
 		return session.selectList("mypage.getBoardList",userId);
 	}
 
+	public int deductMbtiPoint(Long userId) {
+		return session.update("mypage.deductMbtiPoint",userId);
+	}
+
+
+
 }

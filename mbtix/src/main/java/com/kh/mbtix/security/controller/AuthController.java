@@ -367,7 +367,7 @@ public class AuthController {
 	            };
 
 	            return ResponseEntity.badRequest().body(
-	                providerName + " 계정으로 가입된 사용자입니다. 비밀번호 변경이 불가능합니다."
+	                providerName + " 계정으로 가입된 사용자입니다.1`"
 	            );
 	        }
 
