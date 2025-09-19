@@ -97,7 +97,7 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
 
         // 허용 Origin설정 - React 개발 서버
-        config.setAllowedOrigins(List.of("http://localhost:5173"));
+        config.setAllowedOrigins(List.of("http://localhost:5174"));
 
         // 허용 메서드
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
