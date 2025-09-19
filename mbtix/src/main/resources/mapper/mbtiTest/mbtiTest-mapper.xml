@@ -22,6 +22,23 @@
         SET MBTI_ID = #{mbtiId}
         WHERE USER_ID = #{userId}
     </update>
+    
+  <select id="selectUserMbtiRatio" parameterType="long" resultType="map">
+  SELECT m.MBTI_NAME,
+         ROUND(COUNT(*) * 100 / total.TOTAL_USERS, 1) AS RATIO
+  FROM USERS u
+  JOIN MBTI m ON u.MBTI_ID = m.MBTI_ID
+  CROSS JOIN (SELECT COUNT(*) AS TOTAL_USERS FROM USERS) total
+  WHERE u.MBTI_ID = (
+      SELECT MBTI_ID FROM USERS WHERE USER_ID = #{_parameter}
+  )
+  GROUP BY m.MBTI_NAME, total.TOTAL_USERS
+</select>
+
+
+
+
+
 
 
 </mapper>

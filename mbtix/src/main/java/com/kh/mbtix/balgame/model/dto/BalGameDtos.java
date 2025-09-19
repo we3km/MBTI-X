@@ -19,6 +19,13 @@ public class BalGameDtos {
     ) {
         public record OptionBrief(String label, String textContent, long votes) {}
     }
+    
+    public record TodayListRes(
+    	    List<TodayGameRes> content,
+    	    int page,
+    	    int size,
+    	    int totalPages
+    	) {}
 
     // 투표 요청 DTO
     public record VoteReq(Long gameId, Long optionId, Long userId) {}
@@ -33,7 +40,7 @@ public class BalGameDtos {
             int size,
             int totalPages
     ) {
-    	public record PastCard(Long gameId, String title, String startAt) {}
+    	public record PastCard(Long gameId, String title, String startAt,  List<Map<String,String>> options) {}
     }
 
     // 통계 

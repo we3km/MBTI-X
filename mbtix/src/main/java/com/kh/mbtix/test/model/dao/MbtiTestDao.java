@@ -7,6 +7,7 @@ import java.util.Map;
 import org.apache.ibatis.session.SqlSession;
 import org.springframework.stereotype.Repository;
 
+import com.kh.mbtix.test.model.dto.MbtiModelDto.MbtiRatioRes;
 import com.kh.mbtix.test.model.dto.MbtiModelDto.Question;
 
 @Repository
@@ -35,4 +36,15 @@ public class MbtiTestDao {
         param.put("mbtiId", mbtiId);
         sqlSession.update("MbtiMapper.updateUserMbti", param);
     }
+    
+ // ✅ 사용자 MBTI 비율 조회
+    public MbtiRatioRes selectUserMbtiRatio(Long userId) {
+        Map<String,Object> map = sqlSession.selectOne("MbtiMapper.selectUserMbtiRatio", userId);
+        if (map == null) return null;
+        return new MbtiRatioRes(
+            (String) map.get("MBTI_NAME"),
+            ((Number) map.get("RATIO")).doubleValue()
+        );
+    }
+
 }

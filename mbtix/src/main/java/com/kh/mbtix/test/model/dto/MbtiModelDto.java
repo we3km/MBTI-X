@@ -38,5 +38,8 @@ public class MbtiModelDto {
 	    private Long userId;
 	    private List<Answer> answers;
 	}
+	
+	public record MbtiRatioRes(String mbtiName, double ratio) {}
+
 
 }

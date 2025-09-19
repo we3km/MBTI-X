@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.kh.mbtix.test.model.dao.MbtiTestDao;
 import com.kh.mbtix.test.model.dto.MbtiModelDto.Answer;
+import com.kh.mbtix.test.model.dto.MbtiModelDto.MbtiRatioRes;
 import com.kh.mbtix.test.model.dto.MbtiModelDto.Question;
 
 @Service
@@ -58,5 +59,10 @@ public class MbtiTestService {
         mbtiDao.updateUserMbti(userId, mbtiId);
 
         return mbti;
+    }
+    
+    public MbtiRatioRes getUserMbtiRatio(Long userId) {
+    	System.out.println("Service 받은 userId = " + userId);
+        return mbtiDao.selectUserMbtiRatio(userId);
     }
 }

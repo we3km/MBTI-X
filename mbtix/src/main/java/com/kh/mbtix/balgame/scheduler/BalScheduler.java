@@ -23,7 +23,7 @@ public class BalScheduler {
         // 1) 기존 오늘의 게임 비활성화
         mapper.deactivateTodayGame();
         // 2) 새로운 게임 하나 활성화
-        mapper.activateNewGame();
+       // mapper.activateNewGame();
 
         System.out.println("[스케줄러] 자정 배치 실행: 오늘의 게임 교체 완료");
     }
