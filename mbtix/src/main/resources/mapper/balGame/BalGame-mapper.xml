@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.kh.mbtix.balgame.mapper.BalGameMapper">
+
+  <!-- ==========================
+       ResultMaps
+  ========================== -->
+  <resultMap id="GameDtoMap" type="com.kh.mbtix.balgame.model.dto.BalGameDtos$GameDto">
+    <constructor>
+      <arg column="GAME_ID"   javaType="long"/>
+      <arg column="TITLE"     javaType="string"/>
+      <arg column="START_AT"  javaType="string"/>
+      <arg column="IS_ACTIVE" javaType="string"/>
+    </constructor>
+  </resultMap>
+
+  <resultMap id="OptionDtoMap" type="com.kh.mbtix.balgame.model.dto.BalGameDtos$OptionDto">
+    <constructor>
+      <arg column="OPTION_ID"    javaType="long"/>
+      <arg column="GAME_ID"      javaType="long"/>
+      <arg column="LABEL"        javaType="string"/>
+      <arg column="TEXT_CONTENT" javaType="string"/>
+    </constructor>
+  </resultMap>
+
+  <!-- ==========================
+       SELECTS
+  ========================== -->
+
+  <!-- 오늘의 게임 -->
+  <select id="selectTodayGamesPaged" resultMap="GameDtoMap">
+    SELECT
+      g.BAL_ID AS GAME_ID,
+      g.TITLE AS TITLE,
+      TO_CHAR(g.CREATE_DATE,'YYYY-MM-DD') AS START_AT,
+      g.ACTIVE AS IS_ACTIVE
+    FROM BAL_GAME g
+    WHERE TRUNC(g.CREATE_DATE)=TRUNC(SYSDATE)
+    ORDER BY g.CREATE_DATE ASC, g.BAL_ID ASC
+    OFFSET #{offset} ROWS FETCH NEXT #{size} ROWS ONLY
+  </select>
+
+  <select id="countTodayGames" resultType="int">
+    SELECT COUNT(*) FROM BAL_GAME WHERE TRUNC(CREATE_DATE)=TRUNC(SYSDATE)
+  </select>
+
+  <!-- 옵션 -->
+  <select id="selectOptionsByGameId" parameterType="long" resultMap="OptionDtoMap">
+    SELECT
+      o.OPTION_ID,
+      o.BAL_ID AS GAME_ID,
+      o.LABEL,
+      o.TEXT_CONTENT
+    FROM BAL_OPTION o
+    WHERE o.BAL_ID = #{gameId}
+    ORDER BY o.LABEL
+  </select>
+
+  <!-- 옵션별 총 투표수 -->
+  <select id="selectOptionVoteCounts" parameterType="long" resultType="map">
+    SELECT o.LABEL AS LABEL, COUNT(*) AS CNT
+    FROM BAL_VOTE v
+    JOIN BAL_OPTION o ON v.OPTION_ID = o.OPTION_ID
+    WHERE v.BAL_ID = #{gameId}
+    GROUP BY o.LABEL
+    ORDER BY o.LABEL
+  </select>
+
+  <!-- 내가 투표한 라벨 -->
+  <select id="selectUserVoteLabel" resultType="string">
+    SELECT o.LABEL
+    FROM BAL_VOTE v
+    JOIN BAL_OPTION o ON v.OPTION_ID = o.OPTION_ID
+    WHERE v.BAL_ID = #{gameId}
+      AND v.USER_ID = #{userId}
+  </select>
+
+  <!-- 옵션별 MBTI 통계 -->
+  <select id="selectOptionMbti" parameterType="long" resultType="map">
+    SELECT
+      o.LABEL,
+      v.SNAP_MBTI AS MBTI,
+      COUNT(*) AS CNT,
+      RATIO_TO_REPORT(COUNT(*)) OVER (PARTITION BY o.LABEL) AS PCT
+    FROM BAL_VOTE v
+    JOIN BAL_OPTION o ON v.OPTION_ID = o.OPTION_ID
+    WHERE v.BAL_ID = #{gameId}
+    GROUP BY o.LABEL, v.SNAP_MBTI
+    ORDER BY o.LABEL, MBTI
+  </select>
+
+  <!-- 과거 게임 (날짜별 페이징) -->
+  <select id="selectPastGamesPaged" resultType="map">
+    SELECT BAL_ID AS GAME_ID,
+           TITLE,
+           TO_CHAR(CREATE_DATE,'YYYY-MM-DD') AS START_AT
+    FROM BAL_GAME
+    WHERE TRUNC(CREATE_DATE)=TO_DATE(#{date},'YYYY-MM-DD')
+    ORDER BY BAL_ID ASC
+    OFFSET #{offset} ROWS FETCH NEXT #{size} ROWS ONLY
+  </select>
+
+  <select id="countPastGames" resultType="int">
+    SELECT COUNT(*) 
+    FROM BAL_GAME
+    WHERE TRUNC(CREATE_DATE)=TO_DATE(#{date},'YYYY-MM-DD')
+  </select>
+
+  <select id="selectPastDates" resultType="string">
+    SELECT DISTINCT TO_CHAR(CREATE_DATE,'YYYY-MM-DD') AS GAME_DATE
+    FROM BAL_GAME
+    WHERE TRUNC(CREATE_DATE) &lt; TRUNC(SYSDATE)
+    ORDER BY GAME_DATE DESC
+  </select>
+
+  <select id="selectPastGamesByDate" resultType="map">
+    SELECT BAL_ID AS GAME_ID,
+           TITLE,
+           TO_CHAR(CREATE_DATE,'YYYY-MM-DD') AS START_AT
+    FROM BAL_GAME
+    WHERE TRUNC(CREATE_DATE)=TO_DATE(#{date},'YYYY-MM-DD')
+    ORDER BY BAL_ID ASC
+  </select>
+
+  <!-- 투표 -->
+  <select id="hasUserVoted" resultType="int">
+    SELECT COUNT(*) FROM BAL_VOTE
+    WHERE BAL_ID = #{gameId}
+      AND USER_ID = #{userId}
+  </select>
+
+  <select id="selectUserMbtiCode" parameterType="long" resultType="string">
+    SELECT m.MBTI_NAME
+    FROM USERS u
+    JOIN MBTI m ON u.MBTI_ID = m.MBTI_ID
+    WHERE u.USER_ID = #{userId}
+  </select>
+
+  <insert id="insertVote">
+    INSERT INTO BAL_VOTE (VOTE_ID, BAL_ID, OPTION_ID, USER_ID, SNAP_MBTI)
+    VALUES (BAL_VOTE_SEQ.NEXTVAL, #{gameId}, #{optionId}, #{userId}, #{snapMbti})
+  </insert>
+
+  <!-- 게임 생성 -->
+  <update id="deactivateAllActiveGames">
+    UPDATE BAL_GAME SET ACTIVE = 'N' WHERE ACTIVE = 'Y'
+  </update>
+
+  <update id="deactivateTodayGame">
+    UPDATE BAL_GAME
+    SET ACTIVE = 'N'
+    WHERE CREATE_DATE &lt; TRUNC(SYSDATE) AND ACTIVE = 'Y'
+  </update>
+
+  <insert id="insertGame" parameterType="string">
+    INSERT INTO BAL_GAME (TITLE, CREATE_DATE)
+    VALUES (#{title}, SYSDATE)
+  </insert>
+
+  <select id="selectLastGameId" resultType="long">
+    SELECT MAX(BAL_ID) FROM BAL_GAME
+  </select>
+
+  <insert id="insertOption">
+    INSERT INTO BAL_OPTION (BAL_ID, LABEL, TEXT_CONTENT)
+    VALUES (#{gameId}, #{label}, #{textContent})
+  </insert>
+
+</mapper>
