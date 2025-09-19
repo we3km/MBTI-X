@@ -12,4 +12,5 @@ public class Gamer {
 	private String nickname;
 	private int points = 0; // 게임 내 초깃값
 	private String mbtiName;
+	private String profile; // 사진 이름
 }

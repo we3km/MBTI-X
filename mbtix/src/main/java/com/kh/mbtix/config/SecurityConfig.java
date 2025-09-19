@@ -18,7 +18,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.kh.mbtix.security.filter.JWTAutenticationFilter;
 import com.kh.mbtix.security.model.handler.OAuth2SuccessHandler;
-//import com.kh.mbtix.security.model.service.OAuth2Service;
+import com.kh.mbtix.security.model.service.OAuth2Service;
 
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -29,9 +29,11 @@ import lombok.RequiredArgsConstructor;
 public class SecurityConfig {
 
 	@Bean
-	public SecurityFilterChain filterChain(HttpSecurity http, JWTAutenticationFilter jwtFilter,
-//			OAuth2Service oauth2Service,
-			OAuth2SuccessHandler oauth2SuccessHandler) throws Exception {
+	public SecurityFilterChain filterChain(HttpSecurity http,
+			JWTAutenticationFilter jwtFilter,
+			OAuth2Service oauth2Service,
+			OAuth2SuccessHandler oauth2SuccessHandler
+			) throws Exception {
 		http
 				// Cors관련 빈객체 등록
 				.cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -45,14 +47,31 @@ public class SecurityConfig {
 				}))
 
 				// 서버에서 인증상태를 관리하지 않게 하는 설정.
-				.sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-				.authorizeHttpRequests(auth -> auth.requestMatchers("/auth/login", "/auth/signup", "/auth/logout",
-						"/auth/refresh", "/auth/checkId", "/auth/checkNickname", "/auth/send-code", "/auth/verify-code",
-						"/auth/checkemail","/speedquiz", "/point" , "/rank", "/getUserMBTI"						
-				).permitAll()
-						.requestMatchers("/oauth2/**", "/login**", "/error").permitAll()
-						.requestMatchers("/ws/**", "/api/ws/**", "/topic/**", "/app/**").permitAll()
-						.requestMatchers("/**").authenticated());
+				.sessionManagement(
+						management -> 
+						management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+				.formLogin(form -> form.disable())
+				
+				.oauth2Login(oauth -> oauth
+					    .userInfoEndpoint(u -> u.userService(oauth2Service))
+					    .successHandler(oauth2SuccessHandler)  // 성공 처리 → 우리가 직접 구현
+					    .failureHandler((req, res, ex) -> {
+					        String redirect = "http://localhost:5173/login?error";
+					        res.sendRedirect(redirect);
+					    })
+					)
+				.authorizeHttpRequests(auth -> 
+					auth
+					.requestMatchers("/auth/login", "/auth/signup", "/auth/logout","/auth/refresh",
+							 "/auth/checkId", "/auth/checkNickname","/auth/send-code","/auth/verify-code",
+							 "/auth/checkemail","/auth/social-signup","/auth/namematch","/auth/send-code-if-match",
+							 "/auth/find-id","/auth/idmatch","/auth/pw-send-code","/auth/updatePW"							 
+							).permitAll()
+					.requestMatchers("/oauth2/**","/login**","/error").permitAll()
+					.requestMatchers("/ws/**", "/api/ws/**", "/topic/**", "/app/**").permitAll()
+					.requestMatchers("/getQuizTitle", "/getUserMBTI").permitAll() // 일반 회원들도 볼 수 있게 해주장 ㅠㅠ
+					.requestMatchers("/**").authenticated()
+				);
 		http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 		
 		return http.build();
@@ -72,7 +91,6 @@ public class SecurityConfig {
 		// 허용 메서드
 		config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE"));
 		config.setAllowedHeaders(List.of("*"));
-
 		config.setExposedHeaders(List.of("Location", "Authorization", "Set-Cookie"));
 
 		config.setAllowCredentials(true); // 세션,쿠키 허용

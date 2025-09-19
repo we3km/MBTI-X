@@ -11,8 +11,7 @@ public class AppConfig {
 
     @Bean
     public ScheduledExecutorService scheduledExecutorService() {
-        // 단일 스레드로 동작하는 스케줄러를 생성합니다.
-        // 여러 게임방의 타이머가 동시에 실행되더라도 순차적으로 처리되어 안전합니다.
+    	// 타이머용 스레드 스케쥴러 (여러 방있으니 병렬적으로 쓰자이)
         return Executors.newSingleThreadScheduledExecutor();
     }
 }

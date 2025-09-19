@@ -24,6 +24,7 @@ public class GameRoom {
 	private String correctAnswer; // 현재 라운드의 정답
 	private List<String> wordsForDrawer; // 출제자에게만 보여줄 단어 3개
 	private int remainingTime; // 현재 타이머의 남은 시간
+	private Gamer captain; // 방장 유저 객체
 
 	// 생성자: 방이 처음 만들어질 때 초기화
 	public GameRoom(int roomId) {
@@ -39,13 +40,4 @@ public class GameRoom {
 			this.remainingTime--;
 		}
 	}
-
-	// 게임방 대기 리스트에서 보여질 것
-	private String roomName; // 방 제목
-	private int creatorId; // 방 생성자 ID
-	private int playerCount; // 현재 인원
-	private String nickname; // 방 생성자 닉네임
-	private String mbtiName; // 방 생성자 mbti
-	private String profile; // 생성자 프로필 (경로 + 프로필 img)
-	private int userId; // 게임방 참여중인 회원들 번호
 }

@@ -46,8 +46,6 @@ public class JWTAutenticationFilter extends OncePerRequestFilter {
 				// 2) 토큰에서 userId추출
 				String token = header.substring(7).trim();
 				Long userId = jwt.getUserId(token);
-
-				log.debug("userId : {}", userId);
 				UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userId, null,
 						List.of(new SimpleGrantedAuthority("ROLE_USER")));
 

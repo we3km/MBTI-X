@@ -28,9 +28,10 @@ public class GameStateMessage {
 
 	// 라운드 정보
 	private Gamer drawer; // 그림 그리는 Gamer
+	private List<String> words; // 묘사할 단어 배열 3가지 무작위 
 	private String answer; // 각 라운드 별 정답
 	private int answerLength; // 정답 길이
 	
 	private List<Gamer> gamers;
-	private int captainId; // 방장 ID
+	private Gamer captain; // 방장
 }

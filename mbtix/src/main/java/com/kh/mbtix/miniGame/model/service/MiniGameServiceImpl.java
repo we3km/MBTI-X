@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.kh.mbtix.miniGame.model.dao.MiniGameDao;
 import com.kh.mbtix.miniGame.model.dto.GameRoom;
+import com.kh.mbtix.miniGame.model.dto.GameRoomInfo;
 import com.kh.mbtix.miniGame.model.dto.Gamer;
 import com.kh.mbtix.miniGame.model.dto.Quiz;
 
@@ -58,12 +59,42 @@ public class MiniGameServiceImpl implements MiniGameService {
 	}
 
 	@Override
-	public void leaveRoom(Map<String, Object> map) {
-		dao.leaveRoom(map);
+	public void joinGameRoom(Map<String, Object> map) {
+		dao.joinGameRoom(map);
 	}
 
 	@Override
-	public void joinGameRoom(Map<String, Object> map) {
-		dao.joinGameRoom(map);
+	public GameRoomInfo selectGameRoomInfo(int roomId) {
+		return dao.selectGameRoomInfo(roomId);
+	}
+
+	@Override
+	public int leaveRoom(Map<String, Object> map) {
+		return dao.leaveRoom(map);
+	}
+
+	@Override
+	public int deleteRoom(int roomId) {
+		return dao.deleteRoom(roomId);
+	}
+
+	@Override
+	public String getGameRoomStatus(Map<String, Object> map) {
+		return dao.getGameRoomStatus(map);
+	}
+
+	@Override
+	public void setGameState(Map<String, Object> map) {
+		dao.setGameState(map);
+	}
+
+	@Override
+	public void changeCaptain(Map<String, Object> captainInfo) {
+		dao.changeCaptain(captainInfo);
+	}
+
+	@Override
+	public List<String> selectCathMindWords() {
+		return dao.selectCathMindWords();
 	}
 }

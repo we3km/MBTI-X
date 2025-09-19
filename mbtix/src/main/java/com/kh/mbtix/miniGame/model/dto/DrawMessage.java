@@ -1,25 +1,10 @@
 package com.kh.mbtix.miniGame.model.dto;
 
-import java.util.List;
 import lombok.Data;
 
 @Data
 public class DrawMessage {
-	private PathDTO path;
-	private boolean isEraser;
-
-	@Data
-	public static class PathDTO {
-		private String id;
-		private String tool;
-		private String strokeColor;
-		private int strokeWidth;
-		private List<Segment> segments;
-	}
-
-	@Data
-	public static class Segment {
-		private int x;
-		private int y;
-	}
+    // Excalidraw의 elements 배열 전체(복잡한 JSON 구조)를
+    // 유연하게 받기 위해 Object 타입으로 선언합니다.
+    private Object data;
 }

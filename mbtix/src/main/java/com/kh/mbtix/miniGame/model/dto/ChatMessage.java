@@ -1,6 +1,9 @@
 package com.kh.mbtix.miniGame.model.dto;
 
+import lombok.Data;
+
+@Data
 public class ChatMessage {
-	String name;
+	int userId;
 	String message;
 }
