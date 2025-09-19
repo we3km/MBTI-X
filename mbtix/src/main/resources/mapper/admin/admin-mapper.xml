@@ -92,33 +92,66 @@
     </where>
     </select>
     
-    <select id="selectReportListCount" resultType="_int">
-    	SELECT COUNT(*) FROM REPORTS
-    </select>
+    <select id="selectReportListCount" parameterType="map" resultType="_int">
+    	SELECT COUNT(*)
+    	FROM REPORTS R
+    <where>
+        <if test="keyword != null and keyword != ''">
+            <if test="searchType == 'reporter'">
+                AND R.USER_ID IN (SELECT USER_ID FROM USERS WHERE NICKNAME LIKE '%' || #{keyword} || '%')
+            </if>
+            <if test="searchType == 'reported'">
+                AND R.TARGET_USER_NUM IN (SELECT USER_ID FROM USERS WHERE NICKNAME LIKE '%' || #{keyword} || '%')
+            </if>
+        </if>
+        <if test="status != null and status != ''">
+            AND R.STATUS = #{status}
+        </if>
+        <if test="category != null and category != ''">
+            AND R.REPORT_CATEGORY = #{category}
+        </if>
+    </where>
+	</select>
     
-	<select id="selectAllReports" parameterType="com.kh.mbtix.common.model.vo.PageInfo" resultType="com.kh.mbtix.admin.model.vo.Report">
-        SELECT *
-          FROM (
-                SELECT ROWNUM AS RNUM, A.*
-                  FROM (
-                        SELECT 
-                               R.REPORT_ID, R.USER_ID, R.TARGET_USER_NUM, R.RESON, R.STATUS, R.CREATED_AT, R.PROCESSED_AT, R.REPORT_CATEGORY,
-                               U1.LOGIN_ID AS "reporterId",
-                               U2.LOGIN_ID AS "reportedId",
-                               U1.NICKNAME AS "reporterNickname",
-                               U2.NICKNAME AS "reportedNickname",
-                               CASE R.REPORT_CATEGORY
-                                    WHEN 1 THEN '욕설 및 어그로' WHEN 2 THEN '음란 및 선정성' WHEN 3 THEN '도배 및 광고'
-                                    WHEN 4 THEN '혐오성 글 게시' ELSE '기타'
-                               END AS "reportCategoryName"
-                          FROM REPORTS R
-                          LEFT JOIN USERS U1 ON (R.USER_ID = U1.USER_ID)
-                          LEFT JOIN USERS U2 ON (R.TARGET_USER_NUM = U2.USER_ID)
-                         ORDER BY R.REPORT_ID DESC
-                       ) A
-               )
-         WHERE RNUM BETWEEN (#{currentPage} - 1) * #{boardLimit} + 1 AND #{currentPage} * #{boardLimit}
-    </select>
+	<select id="selectAllReports" parameterType="map" resultType="com.kh.mbtix.admin.model.vo.Report">
+    SELECT *
+      FROM (
+            SELECT ROWNUM AS RNUM, A.*
+              FROM (
+                    SELECT 
+                           R.REPORT_ID, R.USER_ID, R.TARGET_USER_NUM, R.RESON, R.STATUS, R.CREATED_AT, R.PROCESSED_AT, R.REPORT_CATEGORY,
+                           U1.LOGIN_ID AS "reporterId",
+                           U2.LOGIN_ID AS "reportedId",
+                           U1.NICKNAME AS "reporterNickname",
+                           U2.NICKNAME AS "reportedNickname",
+                           CASE R.REPORT_CATEGORY
+                                WHEN 1 THEN '욕설 및 어그로' WHEN 2 THEN '음란 및 선정성' WHEN 3 THEN '도배 및 광고'
+                                WHEN 4 THEN '혐오성 글 게시' ELSE '기타'
+                           END AS "reportCategoryName"
+                      FROM REPORTS R
+                      LEFT JOIN USERS U1 ON (R.USER_ID = U1.USER_ID)
+                      LEFT JOIN USERS U2 ON (R.TARGET_USER_NUM = U2.USER_ID)
+                    <where>
+                        <if test="keyword != null and keyword != ''">
+                            <if test="searchType == 'reporter'">
+                                AND U1.NICKNAME LIKE '%' || #{keyword} || '%'
+                            </if>
+                            <if test="searchType == 'reported'">
+                                AND U2.NICKNAME LIKE '%' || #{keyword} || '%'
+                            </if>
+                        </if>
+                        <if test="status != null and status != ''">
+                            AND R.STATUS = #{status}
+                        </if>
+                        <if test="category != null and category != ''">
+                            AND R.REPORT_CATEGORY = #{category}
+                        </if>
+                    </where>
+                     ORDER BY R.REPORT_ID DESC
+                   ) A
+           )
+     WHERE RNUM BETWEEN (#{pi.currentPage} - 1) * #{pi.boardLimit} + 1 AND #{pi.currentPage} * #{pi.boardLimit}
+	</select>
         
     <select id="selectReport" parameterType="_int" resultType="com.kh.mbtix.admin.model.vo.Report">
     	SELECT

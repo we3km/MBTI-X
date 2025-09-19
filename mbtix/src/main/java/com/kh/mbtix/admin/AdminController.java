@@ -75,21 +75,23 @@ public class AdminController {
     // 신고 내역 조회
     @GetMapping("/reports")
     public ResponseEntity<PageResponse<Report>> getReportList(
-            @RequestParam(value="cpage", defaultValue="1") int currentPage) {
-    	
+            @RequestParam(value="cpage", defaultValue="1") int currentPage,
+            @RequestParam(value="searchType", required=false) String searchType,
+            @RequestParam(value="keyword", required=false) String keyword,
+            @RequestParam(value="status", required=false) String status,
+            @RequestParam(value="category", required=false) String category) {
+        
         try {
-            PageResponse<Report> response = adminService.selectAllReports(currentPage);
-            
-            if (response.getList().isEmpty()) {
-                return ResponseEntity.noContent().build();
-            }
-            
+            PageResponse<Report> response = adminService.selectAllReports
+            		(currentPage, searchType, keyword, status, category);
+                        
             return ResponseEntity.ok(response);
             
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+    
     
     // 신고 내역 상세 조회
     @GetMapping("/reports/{reportId}")

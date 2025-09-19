@@ -44,11 +44,22 @@ public class AdminServiceImpl implements AdminService {
     }
     
     @Override
-    public PageResponse<Report> selectAllReports(int currentPage) {
-    	int listCount = adminDao.selectReportListCount();
-    	PageInfo pi = new PageInfo(listCount, currentPage, 10, 10);
-    	List<Report> list = adminDao.selectAllReports(pi);
-    	return new PageResponse<>(pi, list);
+    public PageResponse<Report> selectAllReports
+    (int currentPage, String searchType, String keyword, String status, String category) {
+        Map<String, Object> param = new HashMap<>();
+        param.put("searchType", searchType);
+        param.put("keyword", keyword);
+        param.put("status", status);
+        param.put("category", category);
+
+        int listCount = adminDao.selectReportListCount(param);
+        
+        PageInfo pi = new PageInfo(listCount, currentPage, 10, 10);
+        param.put("pi", pi);
+        
+        List<Report> list = adminDao.selectAllReports(param);
+        
+        return new PageResponse<>(pi, list);
     }
     
     @Override

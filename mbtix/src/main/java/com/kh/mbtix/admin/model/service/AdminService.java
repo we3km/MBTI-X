@@ -10,7 +10,7 @@ public interface AdminService {
     
 	PageResponse<UserEntity> selectAllUsers(int currentPage, String searchType, String keyword, String status);
     
-    PageResponse<Report> selectAllReports(int currentPage);
+    PageResponse<Report> selectAllReports(int currentPage, String searchType, String keyword, String status, String category);
     
     Report selectReport(int reportId);
 

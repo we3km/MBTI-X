@@ -18,10 +18,11 @@ public interface AdminDao {
 
     List<UserEntity> selectAllUsers(Map<String, Object> param);
     int selectListCount(Map<String, Object> param);
-    int selectReportListCount();
     
-    List<Report> selectAllReports(PageInfo pi);
+    int selectReportListCount(Map<String, Object> param);
+    List<Report> selectAllReports(Map<String, Object> param);
     Report selectReport(int reportId);
+    
     int banUser(BanInfo banInfo);
     int updateReportStatus(int reportId);
     
