@@ -118,6 +118,8 @@ public class AuthDto {
     private String provider;
     private int point;
     private List<String> roles;
+    private String relesaeDate;
+    
 	}
 	
 	@Data

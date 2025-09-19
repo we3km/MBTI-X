@@ -1,20 +1,19 @@
 package com.kh.mbtix.security.model.service;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PostMapping;
 
 import com.kh.mbtix.common.MbtiUtils;
 import com.kh.mbtix.security.model.dao.AuthDao;
 import com.kh.mbtix.security.model.dto.AuthDto.AuthResult;
 import com.kh.mbtix.security.model.dto.AuthDto.FileVO;
-import com.kh.mbtix.security.model.dto.AuthDto.SignupRequest;
 import com.kh.mbtix.security.model.dto.AuthDto.User;
 import com.kh.mbtix.security.model.dto.AuthDto.UserAuthority;
 import com.kh.mbtix.security.model.dto.AuthDto.UserCredential;
@@ -39,7 +38,6 @@ public class AuthService {
 	@Transactional
 	public AuthResult signUp(String loginId, String email, String name, String nickname, String password, String mbtiId) {
 		
-		 // 1️ 필수 입력값 체크
         if (loginId == null || loginId.isBlank()) {
             throw new IllegalArgumentException("아이디는 필수 입력입니다.");
         }
@@ -79,39 +77,39 @@ public class AuthService {
                 .mbtiId(mbtiId)
                 .build();
         authDao.insertUser(user);
-        System.out.println("생성된 유저 ID = " + user.getUserId());
         user.setUserId(user.getUserId()); // selectKey 결과 반영
 		
-		// user_credentials 테이블 
 		UserCredential cred = UserCredential.builder()
 							.userId(user.getUserId())
 							.password(encoder.encode(password))
 							.build();
 		authDao.insertCred(cred);
 		
-		//user_authority 테이블
 		UserAuthority auth = UserAuthority.builder()
 				.userId(user.getUserId())
 				.roles(List.of("ROLE_USER"))
 				.build();
 		authDao.insertUserRole(auth);
-		
 
-		 String fileName = MbtiUtils.getProfileFileName(mbtiId);
-
-		    FileVO file = FileVO.builder()
-		            .fileName(fileName)     // "istp.jpg"
-		            .refId(user.getUserId())// USER_ID
-		            .categoryId(4)          // 프로필
+		String fileName = MbtiUtils.getProfileFileName(mbtiId);
+		FileVO file = FileVO.builder()
+		            .fileName(fileName)
+		            .refId(user.getUserId())
+		            .categoryId(4)
 		            .build();
-		    authDao.insertProfile(file);
+		authDao.insertProfile(file);
 		
 		user = authDao.findUserByUserId(user.getUserId());
 		
+		// [수정] 회원가입 후 바로 토큰을 생성하여 자동 로그인 처리
+		String accessToken = jwt.createAccessToken(user.getUserId(), user.getRoles(), 30);
+        String refreshToken = jwt.createRefreshToken(user.getUserId(), 7);
+		
 		return AuthResult.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
 				.user(user)
 				.build();
-		
 	}
 
 
@@ -135,11 +133,25 @@ public class AuthService {
 	public AuthResult login(String loginId, String password) {
 		User user = authDao.findByLoginpassword(loginId);
 		
-		if(!encoder.matches(password, user.getPassword())) {
-			throw new BadCredentialsException("비밀번호 오류");
+		if(user == null || !encoder.matches(password, user.getPassword())) {
+			throw new BadCredentialsException("아이디 또는 비밀번호가 올바르지 않습니다.");
 		}
 		
-		String acessToken = jwt.createAccessToken(user.getUserId(), 30);
+		// [추가] 이용 정지 상태 확인 로직
+        if (user.getRelesaeDate() != null) {
+            try {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                Date relesaeDate = sdf.parse(user.getRelesaeDate());
+                
+                if (relesaeDate.after(new Date())) {
+                    throw new BadCredentialsException("이용이 정지된 계정입니다. (만료일: " + user.getRelesaeDate().substring(0, 10) + ")");
+                }
+            } catch (ParseException e) {
+                log.error("정지 날짜 파싱 중 오류 발생", e);
+            }
+        }
+		
+		String accessToken = jwt.createAccessToken(user.getUserId(), user.getRoles(), 30);
 		String refreshToken = jwt.createRefreshToken(user.getUserId(), 7);
 		
 		User userNoPassword = User.builder()
@@ -155,51 +167,32 @@ public class AuthService {
 				.mbtiName(user.getMbtiName())
 				.provider(user.getProvider())
 				.profileFileName(user.getProfileFileName())
-				
 				.build();
 		return AuthResult.builder()
-				.accessToken(acessToken)
+				.accessToken(accessToken)
 				.refreshToken(refreshToken)
 				.user(userNoPassword)
 				.build();
 	}
 
-
 	public AuthResult refreshByCookie(String refreshCookie) {
 		Long userId = jwt.parseRefresh(refreshCookie);
 		User user = authDao.findUserByUserId(userId);
 		
-		String accessToken =jwt.createAccessToken(userId, 30);
+		String accessToken = jwt.createAccessToken(user.getUserId(), user.getRoles(), 30);
 		
 		return AuthResult.builder()
 				.accessToken(accessToken)
 				.user(user)
 				.build();
 	}
-	
-//	@PostMapping("/logout")
-//	public ResponseEntity<Void> logiut(HttpServletRequest request){
-//		
-//		String accessToken = resolveAccessToken(request);
-//		Long userId = jwt.getUserId(accessToken);
-//		
-//		String authAccessToken = service.getauthAccessToken(userId);
-//		
-//		if(authAccessToken != null) {
-//			
-//		}
-//			
-//	}
-
 
 	public String resolveAccessToken(HttpServletRequest request) {
-		String bearerToken = request.getHeader("Authroiztion");
+		String bearerToken = request.getHeader("Authorization");
 		if(bearerToken != null && bearerToken.startsWith("Bearer ")) {
 			return bearerToken.substring(7);
 		}
 		return null;
-		
-	
 	}
 
 
@@ -219,9 +212,7 @@ public class AuthService {
 
 
 	public UserIdentities findUserIdentities(String provider, String providerUserId) {
-		
 		return authDao.findUserIdentities(provider,providerUserId);
-		
 	}
 
 
@@ -257,20 +248,17 @@ public class AuthService {
 	        throw new IllegalArgumentException("일치하는 회원 정보가 없습니다.");
 	    }
 
-	    // 소셜 가입자인 경우 안내 메시지 반환
 	    if (user.getProvider() != null && !user.getProvider().isBlank()) {
 	        return user.getProvider() + " 계정으로 가입된 사용자입니다.";
 	    }
 
-	    // 일반 회원인 경우 아이디 마스킹 처리
 	    String loginId = user.getLoginId();
 	    if (loginId.length() <= 3) {
-	        // 3글자 이하라면 첫 글자 + 나머지 마스킹
 	        return loginId.charAt(0) + "*".repeat(loginId.length() - 1);
 	    } else {
-	        String start = loginId.substring(0, 3);  // 앞 3자리
-	        String end = loginId.substring(loginId.length() - 1); // 맨 끝 1자리
-	        int maskLength = loginId.length() - 4;  // 가운데 부분 길이
+	        String start = loginId.substring(0, 3);
+	        String end = loginId.substring(loginId.length() - 1);
+	        int maskLength = loginId.length() - 4;
 	        return start + "*".repeat(maskLength) + end;
 	    }
 	}
@@ -282,7 +270,6 @@ public class AuthService {
 	}
 	
 	public User findByNameLoginIdEmail(String name, String loginId, String email) {
-
 		return authDao.findByNameLoginIdEmail(name, loginId, email);
 	}
 
@@ -303,16 +290,5 @@ public class AuthService {
 
 	public void insertProfile(FileVO file) {
 		authDao.insertProfile(file);
-		
 	}
-
-
-	
-
-
 }
-	
-
-	
-	
-
