@@ -1,7 +1,10 @@
+// security/filter/JWTAutenticationFilter.java
 package com.kh.mbtix.security.filter;
 
 import java.io.IOException;
+import java.util.Collections; // [추가]
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -28,8 +31,6 @@ public class JWTAutenticationFilter extends OncePerRequestFilter {
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {
-		//
-
 		String path = request.getServletPath();
 
 		// 1) /api/ws/** 요청은 JWT 인증 건너뛰기
@@ -37,7 +38,7 @@ public class JWTAutenticationFilter extends OncePerRequestFilter {
 			filterChain.doFilter(request, response);
 			return;
 		}
-		
+
 		String header = request.getHeader("Authorization");
 
 		if (header != null && header.startsWith("Bearer ")) {

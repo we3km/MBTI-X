@@ -112,6 +112,8 @@ public class AuthDto {
     private String profileImageUrl;
     private String provider;
     private List<String> roles;
+    private String relesaeDate;
+    
 	}
 	
 	@Data

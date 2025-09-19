@@ -24,4 +24,256 @@
         #{word}
     	)	
     </insert>
+    
+    <resultMap id="UserDetailResultMap" type="com.kh.mbtix.admin.model.vo.UserDetailDTO$UserInfo">
+        <id property="userId" column="USER_ID"/>
+        <result property="loginId" column="LOGIN_ID"/>
+        <result property="nickname" column="NICKNAME"/>
+        <result property="email" column="EMAIL"/>
+        <result property="createdAt" column="createdAt"/>
+        <result property="statusName" column="statusName"/>
+        <result property="point" column="POINT"/>
+        <collection property="roles" ofType="java.lang.String">
+            <result column="AUTHORITY"/>
+        </collection>
+    </resultMap>
+
+	<select id="selectAllUsers" parameterType="map" resultType="com.kh.mbtix.user.model.vo.UserEntity">
+    SELECT *
+      FROM (
+            SELECT ROWNUM AS RNUM, A.*
+              FROM (
+                    SELECT 
+                           U.USER_ID, U.MBTI_ID, U.LOGIN_ID, U.EMAIL, U.NAME, U.NICKNAME, U.CREATED_AT, U.IS_QUIT, U.POINT,
+                           CASE
+                             WHEN B.BANNED_ID IS NOT NULL AND B.RELESAE_DATE > SYSDATE THEN '정지'
+                             WHEN U.IS_QUIT = 'Y' THEN '탈퇴'
+                             ELSE '활동중'
+                           END AS "statusName",
+                           B.RELESAE_DATE
+                      FROM USERS U
+                      LEFT JOIN BANNED_USER B ON U.USER_ID = B.USER_ID
+                      AND B.BANNED_ID = (SELECT MAX(BANNED_ID) FROM BANNED_USER WHERE USER_ID = U.USER_ID)
+                    
+                    <where>
+                        <if test="keyword != null and keyword != ''">
+                            <if test="searchType == 'nickname'">
+                                AND U.NICKNAME LIKE '%' || #{keyword} || '%'
+                            </if>
+                            <if test="searchType == 'loginId'">
+                                AND U.LOGIN_ID LIKE '%' || #{keyword} || '%'
+                            </if>
+                        </if>
+                        <if test="status != null and status != ''">
+                            <choose>
+                                <when test="status == 'active'">
+                                    AND U.IS_QUIT = 'N'
+                                    AND (B.BANNED_ID IS NULL OR B.RELESAE_DATE &lt;= SYSDATE)
+                                </when>
+                                <when test="status == 'banned'">
+                                    AND B.BANNED_ID IS NOT NULL AND B.RELESAE_DATE > SYSDATE
+                                </when>
+                                <when test="status == 'withdrawn'">
+                                    AND U.IS_QUIT = 'Y'
+                                </when>
+                            </choose>
+                        </if>
+                    </where>
+                     ORDER BY U.USER_ID DESC
+                   ) A
+           )
+     WHERE RNUM BETWEEN (#{pi.currentPage} - 1) * #{pi.boardLimit} + 1 AND #{pi.currentPage} * #{pi.boardLimit}
+	</select>
+    
+    <select id="selectListCount" resultType="_int">
+    	SELECT COUNT(*)
+    	FROM USERS U
+    	<where>
+        <if test="keyword != null and keyword != ''">
+            <if test="searchType == 'nickname'">
+                AND U.NICKNAME LIKE '%' || #{keyword} || '%'
+            </if>
+            <if test="searchType == 'loginId'">
+                AND U.LOGIN_ID LIKE '%' || #{keyword} || '%'
+            </if>
+        </if>
+        <if test="status != null and status != ''">
+            <choose>
+                <when test="status == 'active'">
+                    AND U.IS_QUIT = 'N'
+                    AND NOT EXISTS (SELECT 1 FROM BANNED_USER B WHERE B.USER_ID = U.USER_ID AND B.RELESAE_DATE > SYSDATE)
+                </when>
+                <when test="status == 'banned'">
+                    AND EXISTS (SELECT 1 FROM BANNED_USER B WHERE B.USER_ID = U.USER_ID AND B.RELESAE_DATE > SYSDATE)
+                </when>
+                <when test="status == 'withdrawn'">
+                    AND U.IS_QUIT = 'Y'
+                </when>
+            </choose>
+        </if>
+    </where>
+    </select>
+    
+    <select id="selectReportListCount" parameterType="map" resultType="_int">
+    	SELECT COUNT(*)
+    	FROM REPORTS R
+    <where>
+        <if test="keyword != null and keyword != ''">
+            <if test="searchType == 'reporter'">
+                AND R.USER_ID IN (SELECT USER_ID FROM USERS WHERE NICKNAME LIKE '%' || #{keyword} || '%')
+            </if>
+            <if test="searchType == 'reported'">
+                AND R.TARGET_USER_NUM IN (SELECT USER_ID FROM USERS WHERE NICKNAME LIKE '%' || #{keyword} || '%')
+            </if>
+        </if>
+        <if test="status != null and status != ''">
+            AND R.STATUS = #{status}
+        </if>
+        <if test="category != null and category != ''">
+            AND R.REPORT_CATEGORY = #{category}
+        </if>
+    </where>
+	</select>
+    
+	<select id="selectAllReports" parameterType="map" resultType="com.kh.mbtix.admin.model.vo.Report">
+    SELECT *
+      FROM (
+            SELECT ROWNUM AS RNUM, A.*
+              FROM (
+                    SELECT 
+                           R.REPORT_ID, R.USER_ID, R.TARGET_USER_NUM, R.RESON, R.STATUS, R.CREATED_AT, R.PROCESSED_AT, R.REPORT_CATEGORY,
+                           U1.LOGIN_ID AS "reporterId",
+                           U2.LOGIN_ID AS "reportedId",
+                           U1.NICKNAME AS "reporterNickname",
+                           U2.NICKNAME AS "reportedNickname",
+                           CASE R.REPORT_CATEGORY
+                                WHEN 1 THEN '욕설 및 어그로' WHEN 2 THEN '음란 및 선정성' WHEN 3 THEN '도배 및 광고'
+                                WHEN 4 THEN '혐오성 글 게시' ELSE '기타'
+                           END AS "reportCategoryName"
+                      FROM REPORTS R
+                      LEFT JOIN USERS U1 ON (R.USER_ID = U1.USER_ID)
+                      LEFT JOIN USERS U2 ON (R.TARGET_USER_NUM = U2.USER_ID)
+                    <where>
+                        <if test="keyword != null and keyword != ''">
+                            <if test="searchType == 'reporter'">
+                                AND U1.NICKNAME LIKE '%' || #{keyword} || '%'
+                            </if>
+                            <if test="searchType == 'reported'">
+                                AND U2.NICKNAME LIKE '%' || #{keyword} || '%'
+                            </if>
+                        </if>
+                        <if test="status != null and status != ''">
+                            AND R.STATUS = #{status}
+                        </if>
+                        <if test="category != null and category != ''">
+                            AND R.REPORT_CATEGORY = #{category}
+                        </if>
+                    </where>
+                     ORDER BY R.REPORT_ID DESC
+                   ) A
+           )
+     WHERE RNUM BETWEEN (#{pi.currentPage} - 1) * #{pi.boardLimit} + 1 AND #{pi.currentPage} * #{pi.boardLimit}
+	</select>
+        
+    <select id="selectReport" parameterType="_int" resultType="com.kh.mbtix.admin.model.vo.Report">
+    	SELECT
+    		 R.REPORT_ID, R.USER_ID, R.TARGET_USER_NUM, R.RESON, R.STATUS, R.CREATED_AT, R.PROCESSED_AT, R.REPORT_CATEGORY,
+    	     U1.LOGIN_ID AS "reporterId",
+    	     U2.LOGIN_ID AS "reportedId",
+             U1.NICKNAME AS "reporterNickname",
+             U2.NICKNAME AS "reportedNickname",
+    	     CASE R.REPORT_CATEGORY
+    			WHEN 1 THEN '욕설 및 어그로' WHEN 2 THEN '음란 및 선정성' WHEN 3 THEN '도배 및 광고'
+    			WHEN 4 THEN '혐오성 글 게시' ELSE '기타'
+    	     END AS "reportCategoryName"
+    	FROM REPORTS R
+    	LEFT JOIN USERS U1 ON (R.USER_ID = U1.USER_ID)
+    	LEFT JOIN USERS U2 ON (R.TARGET_USER_NUM = U2.USER_ID)
+    	WHERE R.REPORT_ID = #{reportId}
+    </select>
+    
+    <insert id="banUser" parameterType="com.kh.mbtix.admin.model.vo.BanInfo">
+        INSERT INTO BANNED_USER (BANNED_ID, USER_ID, RESON, IS_BANNED, PENALTY_DATE, RELESAE_DATE, ADMIN_USER_NUM) 
+    	VALUES (BANNED_USER_SEQ.NEXTVAL, #{userId}, #{reson}, 'Y', SYSDATE, SYSDATE + #{relesaeDate}, #{adminUserNum})
+	</insert>
+
+    <update id="updateReportStatus" parameterType="_int">
+        UPDATE REPORTS SET STATUS = 'Y', PROCESSED_AT = SYSDATE WHERE REPORT_ID = #{reportId}
+    </update>
+
+    <select id="selectUserInfo" parameterType="_int" resultMap="UserDetailResultMap">
+        SELECT
+               U.USER_ID, U.LOGIN_ID, U.NICKNAME, U.EMAIL,
+               TO_CHAR(U.CREATED_AT, 'YYYY-MM-DD') AS "createdAt",
+               U.POINT,
+               CASE
+                 WHEN B.RELESAE_DATE > SYSDATE THEN '정지'
+                 WHEN U.IS_QUIT = 'Y' THEN '탈퇴'
+                 ELSE '활동중'
+               END AS "statusName",
+               UA.AUTHORITY
+          FROM USERS U
+          LEFT JOIN BANNED_USER B ON U.USER_ID = B.USER_ID AND B.RELESAE_DATE = (SELECT MAX(RELESAE_DATE) FROM BANNED_USER WHERE USER_ID = U.USER_ID)
+          LEFT JOIN USER_AUTHORITY UA ON U.USER_ID = UA.USER_ID
+         WHERE U.USER_ID = #{userId}
+    </select>
+
+    <select id="selectBanHistory" parameterType="_int" resultType="com.kh.mbtix.admin.model.vo.UserDetailDTO$BanHistory">
+        SELECT BANNED_ID, RESON, TO_CHAR(PENALTY_DATE, 'YYYY-MM-DD') AS "penaltyDate", TO_CHAR(RELESAE_DATE, 'YYYY-MM-DD') AS "relesaeDate"
+          FROM BANNED_USER
+         WHERE USER_ID = #{userId}
+         ORDER BY BANNED_ID DESC
+    </select>
+
+    <select id="selectReportsMade" parameterType="_int" resultType="com.kh.mbtix.admin.model.vo.UserDetailDTO$ReportHistory">
+        SELECT
+               R.REPORT_ID, U.NICKNAME AS "targetNickname",
+               CASE R.REPORT_CATEGORY
+                    WHEN 1 THEN '욕설 및 어그로' WHEN 2 THEN '음란 및 선정성' WHEN 3 THEN '도배 및 광고'
+                    WHEN 4 THEN '혐오성 글 게시' ELSE '기타'
+               END AS "reportCategoryName",
+               TO_CHAR(R.CREATED_AT, 'YYYY-MM-DD') AS "createdAt", R.STATUS
+          FROM REPORTS R
+          LEFT JOIN USERS U ON R.TARGET_USER_NUM = U.USER_ID
+         WHERE R.USER_ID = #{userId}
+         ORDER BY R.REPORT_ID DESC
+    </select>
+
+    <select id="selectReportsReceived" parameterType="_int" resultType="com.kh.mbtix.admin.model.vo.UserDetailDTO$ReportHistory">
+        SELECT
+               R.REPORT_ID, U.NICKNAME AS "targetNickname",
+               CASE R.REPORT_CATEGORY
+                    WHEN 1 THEN '욕설 및 어그로' WHEN 2 THEN '음란 및 선정성' WHEN 3 THEN '도배 및 광고'
+                    WHEN 4 THEN '혐오성 글 게시' ELSE '기타'
+               END AS "reportCategoryName",
+               TO_CHAR(R.CREATED_AT, 'YYYY-MM-DD') AS "createdAt", R.STATUS
+          FROM REPORTS R
+          LEFT JOIN USERS U ON R.USER_ID = U.USER_ID
+         WHERE R.TARGET_USER_NUM = #{userId}
+         ORDER BY R.REPORT_ID DESC
+    </select>
+
+    <update id="updateUserRole" parameterType="com.kh.mbtix.security.model.dto.AuthDto$UserAuthority">
+        UPDATE USER_AUTHORITY SET AUTHORITY = #{roles[0]} WHERE USER_ID = #{userId}
+    </update>
+    
+    <update id="unbanUser" parameterType="_int">
+    UPDATE BANNED_USER
+       SET RELESAE_DATE = SYSDATE - 1
+     WHERE BANNED_ID = (
+        SELECT MAX(BANNED_ID)
+          FROM BANNED_USER
+         WHERE USER_ID = #{userId}
+     )
+	</update>
+	
+	<select id="selectDashboardStats" resultType="com.kh.mbtix.admin.model.vo.DashboardStatsDTO">
+		SELECT
+        	(SELECT COUNT(*) FROM USERS WHERE TRUNC(CREATED_AT) = TRUNC(SYSDATE)) AS newUsersToday,
+        	(SELECT COUNT(*) FROM CS WHERE STATUS = 'N' AND HIDDEN_BY_ADMIN = 'N') AS pendingInquiries,
+        	(SELECT COUNT(*) FROM REPORTS WHERE STATUS = 'N') AS pendingReports,
+        	(SELECT COUNT(*) FROM USERS) AS totalUsers
+    	FROM DUAL
+	</select>
+	
 </mapper>

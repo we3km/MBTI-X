@@ -388,10 +388,8 @@ public class OnlineGameServiceImpl implements OnlineGameService {
 		if (wasDrawerInDrawingPhase) {
 			log.info("출제자({})가 나가 현재 라운드를 종료하고 다음 라운드를 시작합니다.", leavingGamer.getNickname());
 			stopTimer(roomId); // 현재 라운드 타이머 즉시 중지
-
 			Map<String, String> systemMessage = Map.of("message", "출제자가 나가서 현재 라운드가 종료됩니다.");
 			messagingTemplate.convertAndSend("/sub/chat/" + roomId, systemMessage);
-
 			startNextRoundOrEndGame(roomId);
 		} else {
 			// 2. 나간 사람이 방장이었을 경우
@@ -403,12 +401,19 @@ public class OnlineGameServiceImpl implements OnlineGameService {
 				Map<String, Object> captainInfo = new HashMap<>();
 				captainInfo.put("userId", newCaptain.getUserId());
 				captainInfo.put("roomId", roomId);
-
 				miniGameService.changeCaptain(captainInfo);
+
+				// 통합된 알림 메시지 전송
+				Map<String, String> captainChangeMessage = Map.of("message",
+						"방장 " + leavingGamer.getNickname() + "님이 나가서 새로운 방장은 " + newCaptain.getNickname() + "님입니다.");
+				messagingTemplate.convertAndSend("/sub/chat/" + roomId, captainChangeMessage);
+			} else {
+				// 일반 유저가 나갔을 경우
+				Map<String, String> leaveSystemMessage = Map.of("message", leavingGamer.getNickname() + "님이 방을 나갔습니다.");
+				messagingTemplate.convertAndSend("/sub/chat/" + roomId, leaveSystemMessage);
 			}
 			// 3. 단순히 업데이트된 게임 상태만 모두에게 브로드캐스팅
-			GameStateMessage leaveMessage = GameStateMessage.builder()
-					.status(room.getStatus()) // 현재 상태는 유지
+			GameStateMessage leaveMessage = GameStateMessage.builder().status(room.getStatus()) // 현재 상태는 유지
 					.gamers(new ArrayList<>(room.getPlayers().values())) // 최신 플레이어 목록
 					.captain(room.getCaptain()) // 방장이 바뀌었을 수 있으니 최신 정보 전송
 					.build();
@@ -432,7 +437,7 @@ public class OnlineGameServiceImpl implements OnlineGameService {
 		Gamer drawer = gamers.get(0);
 
 		List<String> words = getRandomWords(3);
-		
+
 		room.setStatus("waiting");
 		room.setCurrentDrawerId(drawer.getUserId());
 		room.setWordsForDrawer(words); // 제시어 저장
@@ -511,11 +516,11 @@ public class OnlineGameServiceImpl implements OnlineGameService {
 		}
 	}
 
-	// ===================== 그림판 메세지 데이터 처리 ===================== 
+	// ===================== 그림판 메세지 데이터 처리 =====================
 	@Override
 	public void handleDrawChunk(int roomId, DrawChunkMessage message) {
-		log.info("[RECEIVE CHUNK] roomId: {}, chunkId: {}, index: {}/{}", roomId, message.getId(),
-				message.getIndex() + 1, message.getTotal());
+//		log.info("[RECEIVE CHUNK] roomId: {}, chunkId: {}, index: {}/{}", roomId, message.getId(),
+//				message.getIndex() + 1, message.getTotal());
 
 		GameRoom room = gameRooms.get(roomId);
 		if (room == null || !"drawing".equalsIgnoreCase(room.getStatus()))
