@@ -1,13 +1,14 @@
 package com.kh.mbtix.board.controller;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.ibatis.javassist.expr.Instanceof;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.kh.mbtix.board.model.service.BoardService;
 import com.kh.mbtix.board.model.vo.Board;
+import com.kh.mbtix.board.model.vo.Board.BoardLike;
 import com.kh.mbtix.board.model.vo.Board.BoardRequest;
 import com.kh.mbtix.board.model.vo.BoardComment;
 import com.kh.mbtix.board.model.vo.Report;
@@ -50,6 +52,7 @@ public class BoardController {
 	public ResponseEntity<List<Board>> selectBoardList(
 			@RequestParam Map<String, Object> param
 			){
+		log.debug("param : {}",param);
 		List<Board> list = service.selectBoardList(param);
 		
 		return ResponseEntity.ok().body(list); // 
@@ -77,12 +80,14 @@ public class BoardController {
 	 * */
 	@PostMapping
 	public ResponseEntity<Void> insertBoard(@ModelAttribute BoardRequest request){
-		
+		Object userId =  SecurityContextHolder.getContext().getAuthentication().getPrincipal(); // 사용자 userId
 		Board b = Board.builder()
 	            .title(request.getTitle())
 	            .content(request.getContent())
-	            .categoryId(request.getCategoryId())
+	            .categoryId(request.getCategoryId())	            
 	            .mbtiName(request.getMbtiName())
+	            .userId((Long)userId)
+	            .boardMbti(request.getBoardMbti())
 	            .build();
 		log.debug("board : {}", b);
 		int result = service.insertBoard(b , request.getImages());
@@ -97,6 +102,11 @@ public class BoardController {
 	
 	@PostMapping("/report") // /board/report
 	public ResponseEntity<Void> insertReport(@RequestBody Report r){
+		Object userId =  SecurityContextHolder.getContext().getAuthentication().getPrincipal(); // 사용자 userId
+    	if(userId.getClass().equals(Long.class)) {
+    		r.setUserId((Long)userId);
+    	}
+    	log.debug("dd {}",r);
 		int result = service.insertReport(r);
 		
 		// 등록 성공
@@ -128,9 +138,7 @@ public class BoardController {
         service.insertComment(comment);
         return comment;
     }
-	
-	
-	
+    
 //	@GetMapping("/{boardId}")
 //	public ResponseEntity<Board> ListBoard(@PathVariable int boardId) {
 //	    service.incrementView(boardId);
@@ -142,13 +150,34 @@ public class BoardController {
 //	    return ResponseEntity.ok(b);
 //	}
 	
+    @DeleteMapping("/{boardId}")
+    public ResponseEntity<String> deleteBoard(
+            @PathVariable int boardId
+    ) {
+    	Object userId =  SecurityContextHolder.getContext().getAuthentication().getPrincipal(); // 사용자 userId
+        boolean deleted = service.deleteBoard(boardId,(long) userId);
+        if (deleted) {
+            return ResponseEntity.ok("삭제 성공");
+        } else {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("권한 없음");
+        }
+    }
 	
-	
-	
-	
-	
-	
-	
-	
+    
+    @PostMapping("/boardLike/{boardId}")
+    public ResponseEntity<Void> insertLike(@PathVariable int boardId , @RequestBody BoardLike like){
+		Object userId =  SecurityContextHolder.getContext().getAuthentication().getPrincipal(); // 사용자 userId
+		like.setBoardId(boardId);
+		like.setUserId((long)userId);
+		
+		int result = service.insertLike(like);
+		
+		// 등록 성공
+		if(result > 0) {
+			return ResponseEntity.noContent().build(); //응답상태 204(요청은 성공, body에는 데이터 없는 상태)
+		}else {
+			return ResponseEntity.badRequest().build(); // 응답상태 400
+		}
+	}
 	
 }

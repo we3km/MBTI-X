@@ -11,10 +11,10 @@ import lombok.NoArgsConstructor;
 @Builder
 public class Report {
 	private int reportId;
-	private int userId;	
+	private long userId;	
 	private int targetUserNum;
 	private String reason;
-	private int reportCateogry;
+	private int reportCategory;
 }
 
 

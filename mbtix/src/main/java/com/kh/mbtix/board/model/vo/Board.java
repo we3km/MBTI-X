@@ -21,9 +21,14 @@ public class Board {
 	private String createdAt;
 	private int view;
 	private int categoryId;
-	private int userId;	
-	private String mbtiName;	
+	private long userId;	
+	private String mbtiName;
+	private String boardMbti;	
 	private List<String> images;
+	private int likeCount;
+	private int dislikeCount;
+	
+	
     
     @Data
     @NoArgsConstructor
@@ -34,9 +39,20 @@ public class Board {
         private String content;
         private int categoryId;
         private String mbtiName;
+        private String boardMbti;
 
         // 프런트에서 formData.append("images", file) 로 넘어오는 파일들
         private List<MultipartFile> images;
+    }
+    
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class BoardLike {
+    	private int boardId;
+    	private long userId;
+    	private String status;
     }
 }
 

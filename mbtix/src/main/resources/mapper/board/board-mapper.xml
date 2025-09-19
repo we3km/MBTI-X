@@ -3,15 +3,25 @@
 <mapper namespace="board">
     
     <select id="selectBoardList" resultType="board">
-    	SELECT B.* , U.NICKNAME
+    	SELECT B.* , U.NICKNAME, MB.MBTI_NAME
     	FROM BOARD B
     	JOIN USERS U ON B.USER_ID = U.USER_ID
     	LEFT JOIN MBTI_BOARD MB ON B.BOARD_ID = MB.BOARD_ID
+    	LEFT JOIN MBTI M ON MB.MBTI_NAME = M.MBTI_NAME
+    	
 		<where>
-			<if test="mbtiName != null and mbtiName != ''">
-				MBTI_NAME = #{mbtiName}	
+			<if test="mbtiId != null and mbtiId != ''">
+				M.MBTI_ID = #{mbtiId}	
 			</if>
+			<if test="categoryId != null and categoryId != ''">
+				AND B.CATEGORY_ID = #{categoryId}
+			</if>
+			<if test="mbtiName != null and mbtiName != ''">
+				AND MB.MBTI_NAME LIKE #{mbtiName}
+			</if>
+				AND B.STATUS = 'N'
 		</where>
+		
     </select>
     
     <resultMap type="board" id="boardResultMap" autoMapping="true">
@@ -22,18 +32,20 @@
     </resultMap>
     
     <select id="selectBoard" resultMap="boardResultMap">
-    	SELECT B.* , U.NICKNAME, F.FILE_NAME
+    	SELECT B.* , U.NICKNAME, F.FILE_NAME ,
+    	(SELECT COUNT(*) FROM BOARD_LIKE WHERE BOARD_ID = #{boardId} AND STATUS = '1') likeCount,
+    	(SELECT COUNT(*) FROM BOARD_LIKE WHERE BOARD_ID = #{boardId} AND STATUS = '2') dislikeCount
     	FROM BOARD B
     	JOIN USERS U ON B.USER_ID = U.USER_ID
     	LEFT JOIN "FILE" F ON REF_ID = BOARD_ID AND F.CATEGORY_ID = B.CATEGORY_ID    	    	
-    	WHERE BOARD_ID = #{boardId}
+    	WHERE BOARD_ID = #{boardId} AND B.STATUS= 'N'
     </select>
     
-    
+	    
     
     <insert id="insertBoard">
     	INSERT INTO BOARD(BOARD_ID, CATEGORY_ID, TITLE, CONTENT, USER_ID)
-    	VALUES(BOARD_SEQ.NEXTVAL , #{categoryId}, #{title}, #{content}, 8)
+    	VALUES(BOARD_SEQ.NEXTVAL , #{categoryId}, #{title}, #{content}, #{userId})
     	
     	<selectKey keyProperty="boardId" resultType="int" order="AFTER">
     		SELECT BOARD_SEQ.CURRVAL FROM DUAL
@@ -53,7 +65,7 @@
 	
 	<insert id="insertReport">
 		INSERT INTO REPORTS
-		VALUES (REPORTS_SEQ.NEXTVAL, #{userId}, #{targetUserNum}, #{reason}, DEFAULT, DEFAULT, DEFAULT, #{reportCategory})
+		VALUES (REPORTS_SEQ.NEXTVAL, #{userId}, #{targetUserNum}, #{reason}, 'Y' ,SYSDATE, DEFAULT, #{reportCategory})
 	</insert>
     
     <insert id="insertBoardImage">
@@ -71,8 +83,8 @@
      	댓글번호, 유저번호, 내용, 게시글 번호 등록
       -->
      <insert id="insertComment">
-     	INSERT INTO BOARD_COMMENT(COMMENT_ID, USER_ID, CONTENT, BOARD_ID )
-     	VALUES (BOARD_COMMENT_SEQ.NEXTVAL, #{userId}, #{content}, #{boardId})
+     	INSERT INTO BOARD_COMMENT(COMMENT_ID, USER_ID, CONTENT, BOARD_ID , PARENT_ID )
+     	VALUES (BOARD_COMMENT_SEQ.NEXTVAL, #{userId}, #{content}, #{boardId} , #{parentId})
      </insert>
      
      <select id="getComments" resultType="boardComment">
@@ -81,13 +93,47 @@
      		CONTENT,
      		CREATE_AT,
      		COMMENT_ID,
-     		PARENT_ID
+     		PARENT_ID,
+     		BC.USER_ID     		
      	FROM BOARD_COMMENT BC
      	LEFT JOIN USERS U ON BC.USER_ID = U.USER_ID     	
-     	WHERE BOARD_ID = #{boardId}
+		WHERE BOARD_ID = #{boardId}
+		START WITH PARENT_ID IS NULL
+		CONNECT BY PRIOR COMMENT_ID = PARENT_ID				
      </select>
      
      
-    
-    
+     <delete id="deleteBoard">
+     	UPDATE BOARD SET
+     	STATUS = 'Y'
+     	WHERE BOARD_ID =#{boardId}
+     	AND USER_ID = #{userId}
+     </delete>
+     
+     <insert id="insertLike">
+     	INSERT INTO BOARD_LIKE
+     	VALUES (#{boardId}, #{userId} ,#{status})
+     </insert>
+     
+     <update id="updateLike">
+     	UPDATE BOARD_LIKE SET
+     	STATUS = #{status}
+     	WHERE BOARD_ID =#{boardId}
+     	AND USER_ID = #{userId}
+     </update>
+     
+     <delete id="deleteLike">
+     	DELETE FROM BOARD_LIKE
+     	WHERE BOARD_ID = #{boardId}
+     	AND USER_ID = #{userId}
+     </delete>
+     
+     <select id ="selectBoardLike" resultType="string">
+     	SELECT 
+     		status
+     	FROM BOARD_LIKE
+     	WHERE BOARD_ID = #{boardId}
+     	  AND USER_ID =#{userId}
+     </select>
+     
 </mapper>
