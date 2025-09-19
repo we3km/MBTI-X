@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -71,6 +72,17 @@ public class SecurityConfig {
 							 "/auth/find-id","/auth/idmatch","/auth/pw-send-code","/auth/updatePW"
 							 
 							).permitAll()
+					// cs경로
+					.requestMatchers("/cs/**").authenticated()
+					// 관리자 페이지 허용
+                    .requestMatchers("/admin/**").hasRole("ADMIN")
+                    // FAQ는 GET 요청만 허용
+                    .requestMatchers(HttpMethod.GET, "/faqs/**").permitAll()
+                    // 알림 허용
+                    .requestMatchers("/alarms/**").authenticated()
+                    // 업로드된 파일에 대한 접근 허용
+                    .requestMatchers("/uploads/**").permitAll()
+                    
 					.requestMatchers("/oauth2/**","/login**","/error").permitAll()
 					.requestMatchers("/**").authenticated()
 				);
@@ -80,38 +92,35 @@ public class SecurityConfig {
 		return http.build();
 	}
 
-	// CORS 설정정보를 가진 빈객체
-	@Bean
-	public CorsConfigurationSource corsConfigurationSource() {
-		CorsConfiguration config = new CorsConfiguration();
+    // CORS 설정정보를 가진 빈객체
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
 
-		// 허용 Origin설정
-		config.setAllowedOrigins(List.of("http://localhost:5173"));
+        // 허용 Origin설정 - React 개발 서버
+        config.setAllowedOrigins(List.of("http://localhost:5173"));
 
-		// 허용 메서드
-		config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE"));
-		config.setAllowedHeaders(List.of("*"));
-		config.setExposedHeaders(List.of("Location","Authorization","Set-Cookie"));
-		config.setAllowCredentials(true); // 세션,쿠키 허용
-		config.setMaxAge(3600L); // 요청정보 캐싱시간
+        // 허용 메서드
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setExposedHeaders(List.of("Location", "Authorization"));
+        config.setAllowCredentials(true); // 세션, 쿠키 허용
+        config.setMaxAge(3600L); // 요청정보 캐싱시간
 
-		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-		source.registerCorsConfiguration("/**", config);
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
 
-		return source;
-	}
-	
-	
-	@Bean
-	public PasswordEncoder passwordEncoder() {
-		PasswordEncoder encoder = new BCryptPasswordEncoder();
-		return encoder;
-	}
-	
-	@Bean
-	public RestTemplate restTemplate() {
-		return new RestTemplate();
-	}
-	
-	
+        return source;
+    }
+    
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+    
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
+    }
 }
+

@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.kh.mbtix.cs.model.dao.InquiryDao">
+
+    <select id="findAllInquiries" parameterType="map" resultType="com.kh.mbtix.cs.model.vo.Cs">
+        SELECT *
+          FROM (
+                SELECT ROWNUM AS RNUM, A.*
+                  FROM (
+                        SELECT
+                               C.INQUIRY_ID, C.STATUS, C.INQUIRY_TITLE,
+                               U.LOGIN_ID AS "userLoginId", C.CREATED_AT, C.DELETED_BY_USER
+                          FROM CS C
+                          LEFT JOIN USERS U ON (C.USER_ID = U.USER_ID)
+                         <where>
+                            <if test="status != null and status != ''">
+                                C.STATUS = #{status}
+                            </if>
+                         AND C.HIDDEN_BY_ADMIN = 'N' </where>
+                         ORDER BY C.INQUIRY_ID DESC
+                       ) A
+               )
+         WHERE RNUM BETWEEN (#{pi.currentPage} - 1) * #{pi.boardLimit} + 1 AND #{pi.currentPage} * #{pi.boardLimit}
+    </select>
+
+    <select id="selectInquiryListCount" parameterType="map" resultType="_int">
+        SELECT COUNT(*)
+          FROM CS
+        <where>
+            <if test="status != null and status != ''">
+                STATUS = #{status}
+            </if>
+        </where>
+    </select>
+
+    <select id="findInquiryById" parameterType="_int" resultType="com.kh.mbtix.cs.model.vo.Cs">
+        SELECT
+               C.INQUIRY_ID, C.USER_ID, C.INQUIRY_TITLE, C.INQUIRY_CONTENT,
+               TO_CHAR(C.CREATED_AT, 'YYYY-MM-DD') AS "createdAt",
+               C.ANSWER,
+               TO_CHAR(C.ANSWER_AT, 'YYYY-MM-DD') AS "answerAt",
+               C.STATUS, C.CS_CATEGORY,
+               U.LOGIN_ID AS "userLoginId",
+               U.NICKNAME AS "userNickname",
+               (SELECT MAX(F.FILE_NAME) FROM "FILE" F WHERE F.REF_ID = C.INQUIRY_ID AND F.CATEGORY_ID = 1) AS "fileName"
+          FROM CS C
+          LEFT JOIN USERS U ON (C.USER_ID = U.USER_ID)
+         WHERE C.INQUIRY_ID = #{inquiryId}
+    </select>
+
+    <update id="submitAnswer" parameterType="com.kh.mbtix.cs.model.vo.Cs">
+        UPDATE CS
+           SET ANSWER = #{answer}, ANSWER_AT = SYSDATE, STATUS = 'Y'
+         WHERE INQUIRY_ID = #{inquiryId}
+    </update>
+    
+    <select id="findInquiriesByUserId" parameterType="map" resultType="com.kh.mbtix.cs.model.vo.Cs">
+        SELECT *
+          FROM (
+                SELECT ROWNUM AS RNUM, A.*
+                  FROM (
+                        SELECT
+                               INQUIRY_ID, STATUS, INQUIRY_TITLE, CREATED_AT
+                          FROM CS
+                         WHERE USER_ID = #{userId}
+                          AND DELETED_BY_USER = 'N' ORDER BY INQUIRY_ID DESC
+                       ) A
+               )
+         WHERE RNUM BETWEEN (#{pi.currentPage} - 1) * #{pi.boardLimit} + 1 AND #{pi.currentPage} * #{pi.boardLimit}
+	</select>
+
+    <select id="selectUserInquiryListCount" parameterType="long" resultType="_int">
+        SELECT COUNT(*)
+          FROM CS
+         WHERE USER_ID = #{userId}
+    </select>
+
+    <select id="findUserInquiryById" parameterType="com.kh.mbtix.cs.model.vo.Cs" resultType="com.kh.mbtix.cs.model.vo.Cs">
+        SELECT
+               C.INQUIRY_ID, C.USER_ID, C.INQUIRY_TITLE, C.INQUIRY_CONTENT,
+               TO_CHAR(C.CREATED_AT, 'YYYY-MM-DD') as "createdAt", 
+               C.ANSWER, 
+               TO_CHAR(C.ANSWER_AT, 'YYYY-MM-DD') as "answerAt", 
+               C.STATUS, C.CS_CATEGORY,
+               (SELECT MAX(F.FILE_NAME) FROM "FILE" F WHERE F.REF_ID = C.INQUIRY_ID AND F.CATEGORY_ID = 1) as "fileName"
+          FROM CS C
+         WHERE C.INQUIRY_ID = #{inquiryId} AND C.USER_ID = #{userId}
+	</select>
+
+    <insert id="createInquiry" parameterType="com.kh.mbtix.cs.model.vo.Cs">
+        <selectKey keyProperty="inquiryId" resultType="_int" order="AFTER">
+            SELECT CS_SEQ.CURRVAL FROM DUAL
+        </selectKey>
+        INSERT INTO CS (
+            INQUIRY_ID, USER_ID, INQUIRY_TITLE, INQUIRY_CONTENT, CREATED_AT, STATUS, CS_CATEGORY
+        ) VALUES (
+            CS_SEQ.NEXTVAL, #{userId}, #{inquiryTitle}, #{inquiryContent}, SYSDATE, 'N', #{csCategory, jdbcType=INTEGER}
+        )
+	</insert>
+    
+    <insert id="insertFile" parameterType="map">
+        INSERT INTO "FILE" (
+            FILE_ID, FILE_NAME, REF_ID, CATEGORY_ID
+        ) VALUES (
+            FILE_SEQ.NEXTVAL, #{fileName}, #{refId}, #{categoryId}
+        )
+    </insert>
+    
+    <update id="deleteInquiry" parameterType="com.kh.mbtix.cs.model.vo.Cs">
+    	UPDATE CS
+          SET DELETED_BY_USER = 'Y'
+         WHERE INQUIRY_ID = #{inquiryId}
+           AND USER_ID = #{userId}
+    </update>
+    
+    <update id="hideInquiryByAdmin" parameterType="_int">
+    	UPDATE CS
+    	SET HIDDEN_BY_ADMIN = 'Y'
+    	WHERE INQUIRY_ID = #{inquiryId}
+    </update>
+    
+    <select id="findOldInquiriesForDeletion" resultType="com.kh.mbtix.cs.model.vo.Cs">
+    SELECT
+           C.INQUIRY_ID,
+           F.FILE_NAME
+      FROM CS C
+      LEFT JOIN "FILE" F ON (C.INQUIRY_ID = F.REF_ID AND F.CATEGORY_ID = 1)
+      WHERE (C.DELETED_BY_USER = 'Y' OR C.HIDDEN_BY_ADMIN = 'Y')
+       AND <![CDATA[ C.CREATED_AT < SYSDATE - 365 ]]>
+	</select>
+
+	<delete id="permanentlyDeleteInquiryById" parameterType="_int">
+    BEGIN
+        -- FILE 테이블에서 먼저 삭제
+        DELETE FROM "FILE" WHERE REF_ID = #{inquiryId} AND CATEGORY_ID = 1;
+        -- CS 테이블에서 삭제
+        DELETE FROM CS WHERE INQUIRY_ID = #{inquiryId};
+    END;
+	</delete>
+
+        
+</mapper>

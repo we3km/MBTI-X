@@ -1,0 +1,61 @@
+package com.kh.mbtix.cs.controller;
+
+import com.kh.mbtix.common.model.vo.PageResponse;
+import com.kh.mbtix.cs.model.service.InquiryService;
+import com.kh.mbtix.cs.model.vo.Cs;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/admin/inquiries")
+public class InquiryController {
+
+    @Autowired
+    private InquiryService inquiryService;
+
+    // 목록 조회
+    @GetMapping
+    public ResponseEntity<PageResponse<Cs>> getInquiryList(
+    		@RequestParam(value = "status", required = false) String status,
+    		@RequestParam(value = "cpage", defaultValue = "1") int currentPage) {
+    	PageResponse<Cs> response = inquiryService.findAllInquiries(status, currentPage);
+    	return ResponseEntity.ok(response);
+    }
+    
+
+    // 상세 조회
+    @GetMapping("/{inquiryId}")
+    public ResponseEntity<Cs> getInquiryDetail(@PathVariable("inquiryId") int inquiryId) {
+        Cs inquiry = inquiryService.findInquiryById(inquiryId);
+        return inquiry != null ? ResponseEntity.ok(inquiry) : ResponseEntity.notFound().build();
+    }
+
+    // 답변 등록
+    @PostMapping("/{inquiryId}/answer")
+    public ResponseEntity<String> submitAnswer(
+            @PathVariable("inquiryId") int inquiryId,
+            @RequestBody Map<String, String> payload) {
+        String answer = payload.get("answer");
+        int result = inquiryService.submitAnswer(inquiryId, answer);
+
+        if (result > 0) {
+            return ResponseEntity.ok("답변이 성공적으로 등록되었습니다.");
+        } else {
+            return ResponseEntity.status(500).body("답변 등록에 실패했습니다.");
+        }
+    }
+    
+    // 문의 삭제(숨김) 처리
+    @DeleteMapping("/{inquiryId}")
+    public ResponseEntity<Void> hideInquiry(@PathVariable("inquiryId") int inquiryId) {
+    	int result = inquiryService.hideInquiry(inquiryId);
+    	return result > 0 ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
+    }
+    
+    
+    
+}
