@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.kh.mbtix.faq.model.dao.FaqDao">
+
+    <select id="findAllFaqs" parameterType="com.kh.mbtix.common.model.vo.PageInfo" resultType="com.kh.mbtix.faq.model.vo.Faq">
+    SELECT *
+      FROM (
+            SELECT ROWNUM AS RNUM, A.*
+              FROM (
+                    SELECT
+                           FAQ_ID,
+                           FAQ_CATEGORY,
+                           QUESTION,
+                           ANSWER,
+                           CREATED_AT
+                      FROM FAQ
+                     ORDER BY FAQ_ID DESC
+                   ) A
+           )
+     WHERE RNUM BETWEEN (#{currentPage} - 1) * #{boardLimit} + 1 AND #{currentPage} * #{boardLimit}
+</select>
+
+    <select id="findFaqById" parameterType="_int" resultType="com.kh.mbtix.faq.model.vo.Faq">
+        SELECT
+               FAQ_ID,
+               FAQ_CATEGORY,
+               QUESTION,
+               ANSWER,
+               CREATED_AT
+          FROM FAQ
+         WHERE FAQ_ID = #{faqId}
+    </select>
+
+    <insert id="saveFaq" parameterType="com.kh.mbtix.faq.model.vo.Faq">
+        INSERT INTO FAQ (
+               FAQ_ID,
+               FAQ_CATEGORY,
+               QUESTION,
+               ANSWER,
+               CREATED_AT
+        ) VALUES (
+               FAQ_SEQ.NEXTVAL,
+               #{faqCategory},
+               #{question},
+               #{answer},
+               SYSDATE
+        )
+    </insert>
+
+    <update id="updateFaq" parameterType="com.kh.mbtix.faq.model.vo.Faq">
+        UPDATE FAQ
+           SET FAQ_CATEGORY = #{faqCategory},
+               QUESTION = #{question},
+               ANSWER = #{answer}
+         WHERE FAQ_ID = #{faqId}
+    </update>
+
+    <delete id="deleteFaq" parameterType="_int">
+        DELETE
+          FROM FAQ
+         WHERE FAQ_ID = #{faqId}
+    </delete>
+    
+    <select id="selectFaqListCount" resultType="_int">
+        SELECT COUNT(*) FROM FAQ
+    </select>
+
+
+</mapper>
