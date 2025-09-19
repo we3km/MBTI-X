@@ -70,7 +70,6 @@ public class SecurityConfig {
 							 "/auth/checkId", "/auth/checkNickname","/auth/send-code","/auth/verify-code",
 							 "/auth/checkemail","/auth/social-signup","/auth/namematch","/auth/send-code-if-match",
 							 "/auth/find-id","/auth/idmatch","/auth/pw-send-code","/auth/updatePW"
-							 
 							).permitAll()
 					// cs경로
 					.requestMatchers("/cs/**").authenticated()
