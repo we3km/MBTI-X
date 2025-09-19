@@ -162,7 +162,7 @@ public class ChatbotController {
         }
         
         // 서버에서 접근 가능한 짧은 URL 반환
-        return "/chatbot_profiles/" + fileName;
+        return /*"/chatbot_profiles/" + */fileName;
     }
 	
 	// 채팅방 메시지 불러오기
