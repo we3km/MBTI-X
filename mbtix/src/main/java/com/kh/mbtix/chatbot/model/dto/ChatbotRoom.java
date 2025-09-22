@@ -18,8 +18,10 @@ public class ChatbotRoom {
 		private String gender;
 		private String talkStyle;
 		private int age;
-		private String features;
-		private String botProfileImageUrl; // 👈 이미지 URL 필드 추가
+		private String personality;
+		private String appearance;
+		//private String features;
+		private String botProfileImageUrl;
 	}
 	
 	@Data
@@ -34,8 +36,10 @@ public class ChatbotRoom {
 		private String gender;
 		private String talkStyle;
 		private int age;
-		private String features;
-		private String botProfileImageUrl; // 👈 이미지 URL 필드 추가
+		private String personality;
+		private String appearance;
+		//private String features;
+		private String botProfileImageUrl;
 	}
 	
 	@Data

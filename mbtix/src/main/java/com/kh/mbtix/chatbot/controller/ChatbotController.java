@@ -1,3 +1,5 @@
+// ChatbotController.java (수정된 전체 코드)
+
 package com.kh.mbtix.chatbot.controller;
 
 import java.io.IOException;
@@ -31,7 +33,7 @@ import org.springframework.http.HttpEntity;
 import com.kh.mbtix.chatbot.model.dto.ChatMessageDto.ChatMessageResponse;
 import com.kh.mbtix.chatbot.model.dto.ChatMessageDto.ChatMessageSave;
 import com.kh.mbtix.chatbot.model.dto.ChatbotRoom.ChatbotRoomResponse;
-import com.kh.mbtix.chatbot.model.dto.ChatbotRoom.CreateChatbotRoom;
+import com.kh.mbtix.chatbot.model.dto.ChatbotRoom.CreateChatbotRoom; // 이 DTO에 personality와 appearance 필드가 있어야 합니다.
 import com.kh.mbtix.chatbot.model.service.ChatbotService;
 import com.kh.mbtix.security.model.provider.JWTProvider;
 
@@ -49,8 +51,8 @@ public class ChatbotController {
 	private final JWTProvider jwtTokenProvider;
     private final RestTemplate restTemplate;
 
-//    private final String uploadDir = "src/main/resources/static/chatbot_profiles/"; 
-    private final String uploadDir = "C:/mbtix_storage/images/"; 
+    // WebConfig에 설정된 경로와 동일한 논리로 경로 설정
+    private final String uploadDir = System.getProperty("user.dir") + "/uploads/chatbot";
 
     // 챗봇 방 목록 불러오기
 	@GetMapping("/chatbot/rooms/{userId}")
@@ -58,19 +60,18 @@ public class ChatbotController {
 			@PathVariable long userId
 			){
 		List<ChatbotRoomResponse> list = chatbotService.selectChatbotList(userId);
-		System.out.println(list);
 		return ResponseEntity.ok().body(list);
 	}
 
     /**
      * 1단계: 프로필 이미지를 미리 생성하여 프론트엔드로 반환하는 엔드포인트
      * - 이미지 생성 요청을 파이썬 서버로 전달하고, 받은 긴 URL을 그대로 반환합니다.
-     * - 이 단계에서는 서버에 이미지를 저장하지 않습니다.
      */
     @PostMapping("/chatbot/generate-image")
     public ResponseEntity<Map<String, String>> generateImage(@RequestBody CreateChatbotRoom req) {
         try {
             String fastApiImageUrl = "http://localhost:8000/generate_profile_image";
+            // req 객체에 personality와 appearance가 포함되어 FastAPI로 전달됩니다.
             ResponseEntity<Map> imageResponse = restTemplate.postForEntity(fastApiImageUrl, req, Map.class);
             String openaiImageUrl = (String) imageResponse.getBody().get("imageUrl");
 
@@ -90,6 +91,10 @@ public class ChatbotController {
      */
 	@PostMapping("/chatbot")
 	public ResponseEntity<?> createRoom(@RequestBody CreateChatbotRoom room) {
+        // DB에 저장하기 위해 personality와 appearance를 features로 조합
+		//String combinedFeatures = "성격: " + room.getPersonality() + "\n외모: " + room.getAppearance();
+        //room.setFeatures(combinedFeatures);
+
 	    // 1. 챗봇방을 먼저 생성하고 roomId를 받아옵니다.
 	    int result = chatbotService.createChatbot(room);
 	    if (result <= 0) {
@@ -102,8 +107,9 @@ public class ChatbotController {
 	    // 2. 프론트에서 받은 긴 이미지 URL을 서버에 저장하고, 저장된 짧은 경로를 반환받습니다.
 	    try {
             if (room.getBotProfileImageUrl() != null && !room.getBotProfileImageUrl().isEmpty()) {
-                // saveImageFromUrl 메소드가 긴 URL을 짧은 로컬 경로로 변환합니다.
+                // saveImageFromUrl에서 웹 경로를 반환하도록 변경
                 savedImageUrl = saveImageFromUrl(room.getBotProfileImageUrl(), roomId);
+                System.out.println(savedImageUrl);
             } else {
                 savedImageUrl = "/chatbot_profiles/default_profile.png";
             }
@@ -123,7 +129,9 @@ public class ChatbotController {
 	    requestBody.put("gender", room.getGender());
 	    requestBody.put("talkStyle", room.getTalkStyle());
 	    requestBody.put("age", room.getAge());
-	    requestBody.put("features", room.getFeatures());
+        // personality와 appearance를 각각 전달
+	    requestBody.put("personality", room.getPersonality());
+	    requestBody.put("appearance", room.getAppearance());
 	    
 	    ResponseEntity<Map> response = restTemplate.postForEntity(fastApiUrl, requestBody, Map.class);
 	    String initialMessageContent = (String) response.getBody().get("message");
@@ -136,7 +144,7 @@ public class ChatbotController {
 	    ChatbotRoomResponse createdRoom = new ChatbotRoomResponse(
 	        roomId, room.getUserId(), room.getBotMbti(), room.getBotName(),
 	        null, room.getGender(), room.getTalkStyle(), room.getAge(),
-	        room.getFeatures(), savedImageUrl
+	        room.getPersonality(), room.getAppearance(), savedImageUrl
 	    );
 	    
 	    return ResponseEntity.status(HttpStatus.CREATED).body(createdRoom);
@@ -151,7 +159,6 @@ public class ChatbotController {
             Files.createDirectories(uploadPath);
         }
         
-        // 파일 이름을 고유한 UUID를 사용하여 생성합니다.
         String uniqueId = UUID.randomUUID().toString();
         String fileName = "profile_" + roomId + "_" + uniqueId + ".png";
         
@@ -161,8 +168,8 @@ public class ChatbotController {
             Files.copy(in, filePath);
         }
         
-        // 서버에서 접근 가능한 짧은 URL 반환
-        return /*"/chatbot_profiles/" + */fileName;
+        // 프론트에서 접근할 수 있는 상대 경로를 반환
+        return "/uploads/chatbot/" + fileName;
     }
 	
 	// 채팅방 메시지 불러오기

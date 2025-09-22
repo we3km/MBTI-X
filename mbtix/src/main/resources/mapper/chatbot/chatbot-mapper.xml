@@ -17,8 +17,9 @@
 			#{talkStyle},
 			'Y',
 			#{age},
-			#{features},
-            #{botProfileImageUrl} )
+			#{botProfileImageUrl},
+			#{personality},
+			#{appearance} )
 	</insert>
 	
 	<update id="updateChatbotProfileImage"> UPDATE CHATBOT_ROOM
