@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="board">
+    
+    <select id="selectBoardList" resultType="board">
+    	SELECT B.* , U.NICKNAME, MB.MBTI_NAME
+    	FROM BOARD B
+    	JOIN USERS U ON B.USER_ID = U.USER_ID
+    	LEFT JOIN MBTI_BOARD MB ON B.BOARD_ID = MB.BOARD_ID
+    	LEFT JOIN MBTI M ON MB.MBTI_NAME = M.MBTI_NAME
+    	
+		<where>
+			<if test="mbtiId != null and mbtiId != ''">
+				M.MBTI_ID = #{mbtiId}	
+			</if>
+			<if test="categoryId != null and categoryId != ''">
+				AND B.CATEGORY_ID = #{categoryId}
+			</if>
+			<if test="mbtiName != null and mbtiName != ''">
+				AND MB.MBTI_NAME LIKE #{mbtiName}
+			</if>
+				AND B.STATUS = 'N'
+		</where>
+		
+    </select>
+    
+    <resultMap type="board" id="boardResultMap" autoMapping="true">
+    	<id property="boardId" column="BOARD_ID"/>
+    	<collection property="images" javaType="java.util.List" ofType="string">
+    		<result column="FILE_NAME"/>
+    	</collection>
+    </resultMap>
+    
+    <select id="selectBoard" resultMap="boardResultMap">
+    	SELECT B.* , U.NICKNAME, F.FILE_NAME ,
+    	(SELECT COUNT(*) FROM BOARD_LIKE WHERE BOARD_ID = #{boardId} AND STATUS = '1') likeCount,
+    	(SELECT COUNT(*) FROM BOARD_LIKE WHERE BOARD_ID = #{boardId} AND STATUS = '2') dislikeCount,
+    	M.MBTI_ID,
+    	MB.MBTI_NAME
+    	FROM BOARD B
+    	JOIN USERS U ON B.USER_ID = U.USER_ID
+    	LEFT JOIN "FILE" F ON REF_ID = BOARD_ID AND F.CATEGORY_ID = B.CATEGORY_ID
+    	LEFT JOIN MBTI_BOARD MB ON  MB.BOARD_ID = B.BOARD_ID
+        LEFT JOIN MBTI M ON M.MBTI_NAME = MB.MBTI_NAME    	    	    	
+    	WHERE B.BOARD_ID = #{boardId} AND B.STATUS= 'N'
+    </select>
+    
+	    
+    
+    <insert id="insertBoard">
+    	INSERT INTO BOARD(BOARD_ID, CATEGORY_ID, TITLE, CONTENT, USER_ID)
+    	VALUES(BOARD_SEQ.NEXTVAL , #{categoryId}, #{title}, #{content}, #{userId})
+    	
+    	<selectKey keyProperty="boardId" resultType="int" order="AFTER">
+    		SELECT BOARD_SEQ.CURRVAL FROM DUAL
+    	</selectKey>
+    </insert>
+    
+    <insert id="insertMbtiBoard">
+    	INSERT INTO MBTI_BOARD
+    	VALUES(#{boardId} , #{mbtiName})
+    </insert>
+    
+    <update id="incrementView">
+	    UPDATE BOARD
+	    SET "VIEW" = "VIEW" + 1
+	    WHERE BOARD_ID = #{boardId}
+	</update>
+	
+	<insert id="insertReport">
+		INSERT INTO REPORTS
+		VALUES (REPORTS_SEQ.NEXTVAL, #{userId}, #{targetUserNum}, #{reason}, 'Y' ,SYSDATE, DEFAULT, #{reportCategory})
+	</insert>
+    
+    <insert id="insertBoardImage">
+    	INSERT INTO "FILE" 
+    	VALUES (FILE_SEQ.NEXTVAL, #{fileName} , #{refId}, #{categoryId})
+    </insert>
+    
+    <!-- 
+    	1. 댓글 등록
+    	2. 댓글 조회     
+     -->
+     
+     <!-- 
+        COMMENT_ID, USER_ID, CONTENT, BOARD_ID 
+     	댓글번호, 유저번호, 내용, 게시글 번호 등록
+      -->
+     <insert id="insertComment">
+     	INSERT INTO BOARD_COMMENT(COMMENT_ID, USER_ID, CONTENT, BOARD_ID , PARENT_ID )
+     	VALUES (BOARD_COMMENT_SEQ.NEXTVAL, #{userId}, #{content}, #{boardId} , #{parentId})
+     </insert>
+     
+     <select id="getComments" resultType="boardComment">
+     	SELECT 
+   			NVL(NICKNAME, '익명') NICKNAME,
+     		DECODE(BC.STATUS , 'Y', '삭제된 코멘트입니다.' ,CONTENT) CONTENT,
+     		CREATE_AT,
+     		COMMENT_ID,
+     		PARENT_ID,
+     		BC.USER_ID,
+     		BC.STATUS     		
+     	FROM BOARD_COMMENT BC
+     	LEFT JOIN USERS U ON BC.USER_ID = U.USER_ID     	
+		WHERE BOARD_ID = #{boardId}
+		START WITH PARENT_ID = 0
+		CONNECT BY PRIOR COMMENT_ID = PARENT_ID				
+     </select>
+     
+     <delete id="deleteComment">
+     	UPDATE BOARD_COMMENT SET
+     	STATUS = 'Y'
+     	WHERE COMMENT_ID = #{commentId} AND USER_ID= #{userId}
+     </delete>
+     
+     
+     <delete id="deleteBoard">
+     	UPDATE BOARD SET
+     	STATUS = 'Y'
+     	WHERE BOARD_ID =#{boardId}
+     	AND USER_ID = #{userId}
+     </delete>
+     
+     <insert id="insertLike">
+     	INSERT INTO BOARD_LIKE
+     	VALUES (#{boardId}, #{userId} ,#{status})
+     </insert>
+     
+     <update id="updateLike">
+     	UPDATE BOARD_LIKE SET
+     	STATUS = #{status}
+     	WHERE BOARD_ID =#{boardId}
+     	AND USER_ID = #{userId}
+     </update>
+     
+     <delete id="deleteLike">
+     	DELETE FROM BOARD_LIKE
+     	WHERE BOARD_ID = #{boardId}
+     	AND USER_ID = #{userId}
+     </delete>
+     
+     <select id ="selectBoardLike" resultType="string">
+     	SELECT 
+     		status
+     	FROM BOARD_LIKE
+     	WHERE BOARD_ID = #{boardId}
+     	  AND USER_ID =#{userId}
+     </select>
+     
+</mapper>

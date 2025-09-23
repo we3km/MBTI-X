@@ -85,6 +85,7 @@ public class SecurityConfig {
                     .requestMatchers("/alarms/**").authenticated()
 					
                     .anyRequest().authenticated()
+
 				);
 		http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 		
