@@ -1,6 +1,5 @@
 package com.kh.mbtix.board.controller;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -24,7 +23,7 @@ import com.kh.mbtix.board.model.vo.Board;
 import com.kh.mbtix.board.model.vo.Board.BoardLike;
 import com.kh.mbtix.board.model.vo.Board.BoardRequest;
 import com.kh.mbtix.board.model.vo.BoardComment;
-import com.kh.mbtix.board.model.vo.Report;
+//import com.kh.mbtix.board.model.vo.Report;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -100,7 +99,7 @@ public class BoardController {
 		}
 	}
 	
-	@PostMapping("/report") // /board/report
+	/*@PostMapping("/report") // /board/report
 	public ResponseEntity<Void> insertReport(@RequestBody Report r){
 		Object userId =  SecurityContextHolder.getContext().getAuthentication().getPrincipal(); // 사용자 userId
     	if(userId.getClass().equals(Long.class)) {
@@ -116,6 +115,7 @@ public class BoardController {
 			return ResponseEntity.badRequest().build(); // 응답상태 400
 		}
 	}
+	*/
 	
 	@GetMapping("/{boardId}/comments")
     public List<BoardComment> getComments(@PathVariable int boardId) {
@@ -138,6 +138,23 @@ public class BoardController {
         service.insertComment(comment);
         return comment;
     }
+    
+    @DeleteMapping("/comments/{commentId}")
+    public ResponseEntity<BoardComment> deleteComment(BoardComment comment , @PathVariable int commentId) {
+    	Object userId =  SecurityContextHolder.getContext().getAuthentication().getPrincipal(); // 사용자 userId
+    	if(userId.getClass().equals(Long.class)) {
+    		comment.setUserId((Long)userId);
+    	}    	
+    	comment.setCommentId(commentId);
+        
+    	int result = service.deleteComment(comment);
+    	
+    	if(result == 0) {
+    		return ResponseEntity.badRequest().build();
+    	}
+    	return ResponseEntity.noContent().build();
+    }
+    
     
 //	@GetMapping("/{boardId}")
 //	public ResponseEntity<Board> ListBoard(@PathVariable int boardId) {

@@ -27,6 +27,7 @@ public class Board {
 	private List<String> images;
 	private int likeCount;
 	private int dislikeCount;
+	private int mbtiId;
 	
 	
     

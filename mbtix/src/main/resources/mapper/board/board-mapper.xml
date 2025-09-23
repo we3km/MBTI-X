@@ -34,11 +34,15 @@
     <select id="selectBoard" resultMap="boardResultMap">
     	SELECT B.* , U.NICKNAME, F.FILE_NAME ,
     	(SELECT COUNT(*) FROM BOARD_LIKE WHERE BOARD_ID = #{boardId} AND STATUS = '1') likeCount,
-    	(SELECT COUNT(*) FROM BOARD_LIKE WHERE BOARD_ID = #{boardId} AND STATUS = '2') dislikeCount
+    	(SELECT COUNT(*) FROM BOARD_LIKE WHERE BOARD_ID = #{boardId} AND STATUS = '2') dislikeCount,
+    	M.MBTI_ID,
+    	MB.MBTI_NAME
     	FROM BOARD B
     	JOIN USERS U ON B.USER_ID = U.USER_ID
-    	LEFT JOIN "FILE" F ON REF_ID = BOARD_ID AND F.CATEGORY_ID = B.CATEGORY_ID    	    	
-    	WHERE BOARD_ID = #{boardId} AND B.STATUS= 'N'
+    	LEFT JOIN "FILE" F ON REF_ID = BOARD_ID AND F.CATEGORY_ID = B.CATEGORY_ID
+    	LEFT JOIN MBTI_BOARD MB ON  MB.BOARD_ID = B.BOARD_ID
+        LEFT JOIN MBTI M ON M.MBTI_NAME = MB.MBTI_NAME    	    	    	
+    	WHERE B.BOARD_ID = #{boardId} AND B.STATUS= 'N'
     </select>
     
 	    
@@ -90,17 +94,24 @@
      <select id="getComments" resultType="boardComment">
      	SELECT 
    			NVL(NICKNAME, '익명') NICKNAME,
-     		CONTENT,
+     		DECODE(BC.STATUS , 'Y', '삭제된 코멘트입니다.' ,CONTENT) CONTENT,
      		CREATE_AT,
      		COMMENT_ID,
      		PARENT_ID,
-     		BC.USER_ID     		
+     		BC.USER_ID,
+     		BC.STATUS     		
      	FROM BOARD_COMMENT BC
      	LEFT JOIN USERS U ON BC.USER_ID = U.USER_ID     	
 		WHERE BOARD_ID = #{boardId}
-		START WITH PARENT_ID IS NULL
+		START WITH PARENT_ID = 0
 		CONNECT BY PRIOR COMMENT_ID = PARENT_ID				
      </select>
+     
+     <delete id="deleteComment">
+     	UPDATE BOARD_COMMENT SET
+     	STATUS = 'Y'
+     	WHERE COMMENT_ID = #{commentId} AND USER_ID= #{userId}
+     </delete>
      
      
      <delete id="deleteBoard">

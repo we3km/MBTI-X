@@ -12,7 +12,7 @@ import com.kh.mbtix.board.model.dao.BoardDao;
 import com.kh.mbtix.board.model.vo.Board;
 import com.kh.mbtix.board.model.vo.Board.BoardLike;
 import com.kh.mbtix.board.model.vo.BoardComment;
-import com.kh.mbtix.board.model.vo.Report;
+//import com.kh.mbtix.board.model.vo.Report;
 import com.kh.mbtix.common.util.FileStorage;
 
 import lombok.RequiredArgsConstructor;
@@ -67,10 +67,10 @@ public class BoardService {
 		return result;		
 	}
 
-	public int insertReport(Report r) {
+	/*public int insertReport(Report r) {
 		return dao.insertReport(r);
 	}
-	
+	*/
 	public void insertComment(BoardComment c) {
 		int comment = dao.insertComment(c);
 		
@@ -104,5 +104,14 @@ public class BoardService {
 		}
 		
 		return dao.insertLike(map);
+	}
+
+	public int deleteComment(BoardComment comment) {
+		return dao.deleteComment(comment);
+	}
+
+	public boolean deleteComment(int commentId, Long userId) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 }

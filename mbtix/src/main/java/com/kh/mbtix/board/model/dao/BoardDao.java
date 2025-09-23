@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 import com.kh.mbtix.board.model.vo.Board;
 import com.kh.mbtix.board.model.vo.Board.BoardLike;
 import com.kh.mbtix.board.model.vo.BoardComment;
-import com.kh.mbtix.board.model.vo.Report;
+//import com.kh.mbtix.board.model.vo.Report;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -54,10 +54,10 @@ public class BoardDao {
 		return  template.selectList("board.getComments", boardId);
 	}
 
-	public int insertReport(Report report) {
+	/*public int insertReport(Report report) {
 		return  template.insert("board.insertReport", report);
 	}
-
+	*/
 	public int deleteBoard(int boardId, long userId) {
 		HashMap map = new HashMap();
 		map.put("boardId", boardId);
@@ -94,6 +94,10 @@ public class BoardDao {
 		}catch (Exception e) {
 		}
 		return result;
+	}
+
+	public int deleteComment(BoardComment comment) {
+		return template.delete("board.deleteComment",comment);
 	}
 
 }
