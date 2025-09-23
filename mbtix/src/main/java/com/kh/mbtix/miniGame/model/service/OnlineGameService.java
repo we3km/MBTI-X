@@ -3,6 +3,7 @@ package com.kh.mbtix.miniGame.model.service;
 import com.kh.mbtix.miniGame.model.dto.ChatMessage;
 import com.kh.mbtix.miniGame.model.dto.DrawChunkMessage;
 import com.kh.mbtix.miniGame.model.dto.DrawMessage;
+import com.kh.mbtix.miniGame.model.dto.GameRoomInfo;
 
 public interface OnlineGameService {
 	public void startGame(int roomId);
@@ -18,4 +19,6 @@ public interface OnlineGameService {
 	public void drawAndBroadCast(int roomId, DrawMessage message);
 
 	public void handleDrawChunk(int roomId, DrawChunkMessage message);
+
+	public void updateAndNotifyRoomInfo(GameRoomInfo updatedInfo);
 }

@@ -559,4 +559,10 @@ public class OnlineGameServiceImpl implements OnlineGameService {
 			userBuffer.remove(message.getId());
 		}
 	}
+
+	@Override
+	public void updateAndNotifyRoomInfo(GameRoomInfo updatedInfo) {
+		
+		
+	}
 }

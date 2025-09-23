@@ -187,5 +187,10 @@ public class MiniGameController {
 		log.info("{}번방 변경하는 방 속성 : {}", roomId, map);
 
 		miniGameService.changeRoomInfo(map);
+
+		// 넣은 정보 다시 조회
+		GameRoomInfo updatedInfo = miniGameService.selectGameRoomInfo(roomId);
+
+		onlineGameService.updateAndNotifyRoomInfo(updatedInfo);
 	}
 }
