@@ -7,15 +7,10 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -23,21 +18,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.http.HttpMethod; 
-import org.springframework.http.HttpEntity; 
-
 import com.kh.mbtix.chatbot.model.dto.ChatMessageDto.ChatMessageResponse;
 import com.kh.mbtix.chatbot.model.dto.ChatMessageDto.ChatMessageSave;
 import com.kh.mbtix.chatbot.model.dto.ChatbotRoom.ChatbotRoomResponse;
 import com.kh.mbtix.chatbot.model.dto.ChatbotRoom.CreateChatbotRoom; // 이 DTO에 personality와 appearance 필드가 있어야 합니다.
 import com.kh.mbtix.chatbot.model.service.ChatbotService;
 import com.kh.mbtix.security.model.provider.JWTProvider;
-
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
