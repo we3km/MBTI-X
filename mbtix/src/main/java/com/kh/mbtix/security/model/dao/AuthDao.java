@@ -144,5 +144,9 @@ public class AuthDao {
 		session.insert("auth.insertProfile",file);
 	}
 
+	public void updateProfile(FileVO file) {
+		session.update("auth.updateProfile",file);
+	}
+
 
 }

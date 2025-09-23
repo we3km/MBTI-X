@@ -68,6 +68,7 @@ public class SecurityConfig {
 							 "/auth/checkemail","/auth/social-signup","/auth/namematch","/auth/send-code-if-match",
 							 "/auth/find-id","/auth/idmatch","/auth/pw-send-code","/auth/updatePW","/board/**" 
 							).permitAll()
+					.requestMatchers("/mypage/profile/images/**").permitAll() 
 					// cs경로
 					.requestMatchers("/cs/**").authenticated()
 					// 관리자 페이지 허용
