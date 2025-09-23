@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.kh.mbtix.miniGame.model.dto.ChatMessage;
 import com.kh.mbtix.miniGame.model.dto.DrawChunkMessage;
@@ -63,10 +64,8 @@ public class OnlineGameServiceImpl implements OnlineGameService {
 	public void init() {
 		try {
 			allWords = miniGameService.selectCathMindWords();
-			log.info("데이터베이스에서 {}개의 캐치마인드 단어를 성공적으로 로드했습니다.", allWords.size());
 		} catch (Exception e) {
 			log.error("캐치마인드 단어 로드 중 오류 발생: {}", e.getMessage(), e);
-			// 오류 발생 시에도 기본 단어를 사용하도록 fallback 처리
 			allWords = Arrays.asList("사과", "바나나", "컴퓨터", "노트북", "의자", "책상", "호랑이", "코끼리", "자전거", "비행기");
 		}
 	}
@@ -269,16 +268,11 @@ public class OnlineGameServiceImpl implements OnlineGameService {
 
 	// ================= 방 메모리 데이터 관련 =================
 	@Override
-	public void prepareRoom(int roomId) {
-		System.out.println("DB에서 " + roomId + "번 방 정보를 메모리로 로드합니다.");
+	public void prepareRoom(int roomId, int userId) {
 		List<Gamer> gamersFromDb = miniGameService.selectGamers(roomId);
 		GameRoomInfo gameRoomInfo = miniGameService.selectGameRoomInfo(roomId);
 
-		// 이미 메모리에 로드되어 있다면 중복 실행 방지
-//		if (gameRooms.containsKey(roomId)) {
-//			System.out.println(roomId + "번 방은 이미 메모리에 준비되어 있습니다.");
-//			return;
-//		}
+		Gamer joiningGamer = gamersFromDb.stream().filter(g -> g.getUserId() == userId).findFirst().orElse(null);
 
 		log.info("현재 게임방 정보 : {}", gameRoomInfo);
 
@@ -287,7 +281,6 @@ public class OnlineGameServiceImpl implements OnlineGameService {
 		log.info("방장 정보 : {}", captain);
 
 		if (gamersFromDb == null || gamersFromDb.isEmpty()) {
-			System.out.println(roomId + "번 방 정보가 DB에 없거나 참여자가 없습니다.");
 			gameRooms.remove(roomId); // 방 번호 비었으니 삭제
 			return;
 		}
@@ -300,6 +293,9 @@ public class OnlineGameServiceImpl implements OnlineGameService {
 			room.setStatus("start");
 			gameRooms.put(roomId, room);
 		}
+
+		Map<String, String> joinSystemMessage = Map.of("message", joiningGamer.getNickname() + "님이 방을 입장하였습니다.");
+		messagingTemplate.convertAndSend("/sub/chat/" + roomId, joinSystemMessage);
 
 		// DB에서 가져온 최신 정보로 메모리의 플레이어 목록을 '덮어씁니다'.
 		Map<Integer, Gamer> playersMap = gamersFromDb.stream()
@@ -317,6 +313,7 @@ public class OnlineGameServiceImpl implements OnlineGameService {
 	}
 
 	// 방 나가기
+	@Transactional
 	@Override
 	public void handleLeaveRoom(int roomId, int userId) {
 		GameRoom room = gameRooms.get(roomId);
@@ -337,6 +334,7 @@ public class OnlineGameServiceImpl implements OnlineGameService {
 
 		// 나가는 사람이 방장이었는지, 그림을 그리던 출제자였는지
 		Gamer captain = room.getCaptain();
+		log.info("captain , leavingGamer , {} , {}", captain, leavingGamer);
 		boolean wasCaptain = captain != null && captain.getUserId() == leavingGamer.getUserId();
 		boolean wasDrawerInDrawingPhase = leavingGamer.getUserId() == room.getCurrentDrawerId()
 				&& "drawing".equalsIgnoreCase(room.getStatus());
@@ -378,9 +376,13 @@ public class OnlineGameServiceImpl implements OnlineGameService {
 			roomState.put("status", "N");
 			miniGameService.setGameState(roomState);
 
+			Map<String, String> aloneMessage = Map.of("message", "플레이어가 한명만 남아 게임 초기화면으로 이동합니다.");
+			messagingTemplate.convertAndSend("/sub/chat/" + roomId, aloneMessage);
+			
 			GameStateMessage resetMessage = GameStateMessage.builder().status("start")
 					.gamers(new ArrayList<>(room.getPlayers().values())).captain(room.getCaptain()).build();
 			messagingTemplate.convertAndSend("/sub/game/" + roomId + "/state", resetMessage);
+			
 			return;
 		}
 
@@ -483,16 +485,13 @@ public class OnlineGameServiceImpl implements OnlineGameService {
 		if (request.getMessage().equals(room.getCorrectAnswer())) {
 			log.info("정답! | 방: {}, 유저: {}", roomId, sender.getNickname());
 
-			// ============================= 점수 부여 로직 필요 =============================
-			// 점수 부여 (맞힌 사람 +10점, 출제자 +5점)
 			sender.setPoints(sender.getPoints() + 10);
 			Gamer drawer = room.getPlayers().get(room.getCurrentDrawerId());
 			if (drawer != null) {
 				drawer.setPoints(drawer.getPoints() + 5);
 			}
 
-			Map<String, String> correctMessage = Map.of("user", "SYSTEM", "message",
-					("\"" + sender.getNickname() + "\"") + "" + "님이 정답을 맞혔습니다!");
+			Map<String, String> correctMessage = Map.of("message", "\"" + sender.getNickname() + "\" 님이 정답을 맞혔습니다!");
 			messagingTemplate.convertAndSend("/sub/chat/" + roomId, correctMessage);
 
 			// 즉시 라운드 결과 화면으로 전환
@@ -547,7 +546,7 @@ public class OnlineGameServiceImpl implements OnlineGameService {
 
 			// ✅ 4. [그 다음에] 전송 간격(100ms)이 지났는지 확인합니다.
 			if (currentTime - lastTime > BROADCAST_INTERVAL_MS) {
-				log.info("[BROADCASTING] assembledSize: {}", fullDataString.length());
+//				log.info("[BROADCASTING] assembledSize: {}", fullDataString.length());
 
 				// ✅ 5. 위에서 만든 fullDataString을 사용해 데이터를 전송합니다.
 				messagingTemplate.convertAndSend("/sub/draw/" + roomId, fullDataString.toString());

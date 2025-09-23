@@ -18,4 +18,5 @@ public class GameRoomInfo {
 	private String nickname; // 방 생성자 닉네임
 	private String mbtiName; // 방 생성자 mbti
 	private String profile; // 생성자 프로필 (경로 + 프로필 img)
+	private int maxCount; // 최대 인원수
 }

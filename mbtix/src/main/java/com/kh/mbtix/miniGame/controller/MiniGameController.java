@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,23 +23,22 @@ import com.kh.mbtix.miniGame.model.service.OnlineGameService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-// 점수 컨트롤
 @Slf4j
 @RequiredArgsConstructor
 @RestController // @ResponseBody + @Controlle
+@CrossOrigin(origins = { "http://localhost:5173", "http://192.168.10.230:5173" })
 public class MiniGameController {
 	private final MiniGameService miniGameService;
 	private final OnlineGameService onlineGameService;
+	private final SimpMessagingTemplate messagingTemplate;
 
 	@GetMapping("/speedquiz")
-	@CrossOrigin(origins = "http://localhost:5173")
 	public ResponseEntity<List<Quiz>> quizList() {
 		List<Quiz> list = miniGameService.selectQuiz();
 		return ResponseEntity.ok(list);
 	}
 
 	@PostMapping("/point")
-	@CrossOrigin(origins = "http://localhost:5173")
 	public Map<String, Object> insertPoint(@RequestBody Map<String, Object> point) {
 		int gameCode = ((Number) point.get("GAME_CODE")).intValue();
 		int score = ((Number) point.get("SCORE")).intValue();
@@ -57,7 +57,6 @@ public class MiniGameController {
 
 	// 가져올 랭크 (미니 게임 메인페이지, 게임랭크 페이지에서 재탕하자잇)
 	@GetMapping("/rank")
-	@CrossOrigin(origins = "http://localhost:5173")
 	public Map<Integer, List<Map<String, Object>>> getRank() {
 		List<Map<String, Object>> allRanks = miniGameService.getRank();
 
@@ -74,35 +73,35 @@ public class MiniGameController {
 	}
 
 	@GetMapping("/getUserMBTI")
-	@CrossOrigin(origins = "http://localhost:5173")
 	public List<Map<String, Object>> getUserMBTI() {
 		return miniGameService.getUserMBTI();
 	}
 
 	// 메인페이지 오늘의 밸런스 게임 제목 가져오기
 	@GetMapping("/getQuizTitle")
-	@CrossOrigin(origins = "http://localhost:5173")
 	public String getQuizTitle() {
 		return miniGameService.getQuizTitle();
 	}
 
 	// 온라인 게임 방 만들기
 	@PostMapping("/createGameRoom")
-	@CrossOrigin(origins = "http://localhost:5173")
 	public ResponseEntity<Integer> createGameRoom(@RequestBody Map<String, Object> data) {
 
 		String roomName = ((String) data.get("title"));
 		int userId = ((Number) data.get("userId")).intValue();
+		int maxCount = ((Number) data.get("maxPlayers")).intValue();
 
 		Map<String, Object> map = new HashMap<>();
 		map.put("roomName", roomName);
 		map.put("userId", userId);
+		map.put("maxCount", maxCount);
 
 		// 서비스 호출해서 DB에 저장
 		int roomId = miniGameService.createGameRoom(map);
-		if (roomId > 0)
+		if (roomId > 0) {
 			log.info("{}번호 회원이 {}방 생성", userId, roomId);
-		else
+			onlineGameService.prepareRoom(roomId, userId);
+		} else
 			log.info("방 생성 실패");
 
 		return ResponseEntity.ok(roomId);
@@ -112,21 +111,18 @@ public class MiniGameController {
 
 	// 게임방 정보 가져오기
 	@GetMapping("/selectGameRoomInfo")
-	@CrossOrigin(origins = "http://localhost:5173")
 	public GameRoomInfo selectGameRoomInfo(int roomId) {
 		return miniGameService.selectGameRoomInfo(roomId);
 	}
 
 	// 게임방 리스트 불러오기
 	@GetMapping("/selectGameRoomList")
-	@CrossOrigin(origins = "http://localhost:5173")
 	public List<GameRoom> selectGameRoomList() {
 		return miniGameService.selectGameRoomList();
 	}
 
 	// 게임방 내 게이머들
 	@GetMapping("/selectGamers")
-	@CrossOrigin(origins = "http://localhost:5173")
 	public List<Gamer> selectGamers(int roomId) {
 		List<Gamer> gr = miniGameService.selectGamers(roomId);
 		log.debug("게임 이용자들 : {}", gr);
@@ -134,7 +130,6 @@ public class MiniGameController {
 	}
 
 	@PostMapping("/leaveRoom")
-	@CrossOrigin(origins = "http://localhost:5173")
 	public Map<String, Object> leaveRoom(@RequestBody Map<String, Integer> payload) {
 		int roomId = payload.get("roomId");
 		int userId = payload.get("userId");
@@ -142,10 +137,8 @@ public class MiniGameController {
 		Map<String, Object> map = new HashMap<>();
 		map.put("roomId", roomId);
 		map.put("userId", userId);
-		if (miniGameService.leaveRoom(map) > 0)
-			log.info("{}방에서 {}번호 회원 나감", roomId, userId);
-		else
-			log.info("{}번호 회원 못나감", userId);
+
+		miniGameService.leaveRoom(map);
 
 		List<Gamer> remainingGamers = miniGameService.selectGamers(roomId);
 		if (remainingGamers == null || remainingGamers.isEmpty()) {
@@ -158,7 +151,6 @@ public class MiniGameController {
 	}
 
 	@PostMapping("/joinGameRoom")
-	@CrossOrigin(origins = "http://localhost:5173")
 	public Map<String, Object> joinGameRoom(@RequestBody Map<String, Integer> payload) {
 		int roomId = payload.get("roomId");
 		int userId = payload.get("userId");
@@ -173,13 +165,27 @@ public class MiniGameController {
 			return Map.of("status", "fail ");
 		} else {
 			miniGameService.joinGameRoom(map);
-
-			onlineGameService.prepareRoom(roomId);
+			onlineGameService.prepareRoom(roomId, userId);
 			return Map.of("status", "success");
 		}
 	}
 
 	public List<String> selectCathMindWords() {
 		return miniGameService.selectCathMindWords();
+	}
+
+	@PostMapping("/changeRoomInfo")
+	public void changeRoomInfo(@RequestBody Map<String, Object> payload) {
+		String roomName = (String) payload.get("roomName");
+		int roomId = (int) payload.get("roomId");
+		int maxCount = (int) payload.get("maxCount");
+
+		Map<String, Object> map = new HashMap<>();
+		map.put("roomName", roomName);
+		map.put("maxCount", maxCount);
+		map.put("roomId", roomId);
+		log.info("{}번방 변경하는 방 속성 : {}", roomId, map);
+
+		miniGameService.changeRoomInfo(map);
 	}
 }

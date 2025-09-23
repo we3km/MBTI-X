@@ -41,4 +41,6 @@ public interface MiniGameService {
 	public void changeCaptain(Map<String, Object> captainInfo);
 
 	public List<String> selectCathMindWords();
+
+	public void changeRoomInfo(Map<String, Object> map);
 }

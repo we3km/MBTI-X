@@ -7,7 +7,7 @@ import com.kh.mbtix.miniGame.model.dto.DrawMessage;
 public interface OnlineGameService {
 	public void startGame(int roomId);
 
-	public void prepareRoom(int roomId);
+	public void prepareRoom(int roomId, int userId);
 
 	public void handleLeaveRoom(int roomId, int userId);
 

@@ -101,7 +101,7 @@ public class SecurityConfig {
 			));
 
 		// 허용 메서드
-		config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE"));
+		config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
 		config.setAllowedHeaders(List.of("*"));
 		config.setExposedHeaders(List.of("Location", "Authorization", "Set-Cookie"));
 

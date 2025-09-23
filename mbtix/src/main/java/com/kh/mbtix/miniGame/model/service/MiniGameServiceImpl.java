@@ -97,4 +97,9 @@ public class MiniGameServiceImpl implements MiniGameService {
 	public List<String> selectCathMindWords() {
 		return dao.selectCathMindWords();
 	}
+
+	@Override
+	public void changeRoomInfo(Map<String, Object> map) {
+		dao.changeRoomInfo(map);
+	}
 }

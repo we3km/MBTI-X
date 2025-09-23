@@ -50,11 +50,12 @@
 		GROUP BY M.MBTI_NAME
 	</select>	
 	
-	<!-- 메인페이지 퀴즈 제목 가져오기 -->
+	<!-- 메인페이지 퀴즈 제목 가져오기 (오늘 날짜로) -->
 	<select id="getQuizTitle" resultType="String">
 	    SELECT TITLE
-		FROM BAL_GAME
-		WHERE CREATE_DATE = '2025/09/01'
+	    FROM BAL_GAME
+	    WHERE TRUNC(CREATE_DATE) = TRUNC(SYSDATE)
+	    AND ACTIVE = 'Y'
 	</select>	
 	
 	
@@ -64,7 +65,8 @@
 		SELECT 
 		    GR.ROOM_ID, 
 		    GR.ROOM_NAME, 
-		    GR.USER_ID AS CREATOR_ID, 
+		    GR.USER_ID AS CREATOR_ID,
+		    GR.MAX_COUNT, 
 		    TRIM(GR.STATUS) AS STATUS,
 		    U.NICKNAME,
 		    M.MBTI_NAME,
@@ -83,6 +85,7 @@
 	        GR.ROOM_ID, 
 	        GR.ROOM_NAME, 
 	        GR.USER_ID AS CREATOR_ID,
+	        GR.MAX_COUNT,
 	        (SELECT COUNT(*) FROM GAME_PARTICIPANT WHERE ROOM_ID = GR.ROOM_ID AND STATUS = 'Y') AS PLAYER_COUNT
 	    FROM GAME_ROOM GR
 	    WHERE GR.ROOM_ID = #{roomId}
@@ -94,9 +97,9 @@
 	        SELECT GAME_ROOM_SEQ.NEXTVAL FROM DUAL
 	    </selectKey>
 	    INSERT INTO GAME_ROOM 
-	        (ROOM_ID, ROOM_NAME, USER_ID, STATUS, PLAYER_COUNT)
+	        (ROOM_ID, ROOM_NAME, USER_ID, STATUS, PLAYER_COUNT, MAX_COUNT)
 	    VALUES 
-	        (#{roomId}, #{roomName}, #{userId}, 'N', 1)
+	        (#{roomId}, #{roomName}, #{userId}, 'N', 1, #{maxCount})
 	</insert>
 		
 	<!-- 이전에 들어왔던 방이면 검사후 입장 -->	
@@ -188,4 +191,12 @@
 		ORDER BY DBMS_RANDOM.VALUE
 	</select>
 	
+	<!-- 게임방 정보 바꾸기 -->
+	<update id="changeRoomInfo" parameterType="map">
+		UPDATE GAME_ROOM
+		SET 
+			ROOM_NAME = #{roomName},
+			MAX_COUNT = #{maxCount}
+		WHERE ROOM_ID = #{roomId}
+	</update>
 </mapper>

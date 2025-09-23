@@ -94,4 +94,8 @@ public class MiniGameDao {
 	public List<String> selectCathMindWords() {
 		return session.selectList("minimapper.selectCathMindWords");
 	}
+
+	public void changeRoomInfo(Map<String, Object> map) {
+		session.update("minimapper.changeRoomInfo", map);
+	}
 }
