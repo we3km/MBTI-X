@@ -111,7 +111,7 @@ public class AuthController {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("회원가입 중 오류가 발생했습니다: " + e.getMessage());
 		}
 	}
-
+	
 	@PostMapping("/login")
 	public ResponseEntity<?> login(@RequestBody LoginRequest req) {
 		final String loginId = req.getLoginId() == null ? "" : req.getLoginId().trim().toLowerCase();
@@ -326,7 +326,7 @@ public class AuthController {
 	            };
 
 	            return ResponseEntity.badRequest().body(
-	                providerName + " 계정으로 가입된 사용자입니다. 비밀번호 변경이 불가능합니다."
+	                providerName + " 계정으로 가입된 사용자입니다.1`"
 	            );
 	        }
 
