@@ -5,7 +5,9 @@ import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -39,36 +41,36 @@ public class BalGameController {
         throw new IllegalStateException("로그인 정보가 없습니다.");
     }
     
-    @GetMapping("/me")
-    public Map<String, Object> me() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
-        return Map.of(
-            "userId", auth.getName(),
-            "roles", auth.getAuthorities().stream()
-                         .map(Object::toString)
-                         .toList()
-        );
-    }
-    
 //    @GetMapping("/me")
 //    public Map<String, Object> me() {
-//        // ✅ 테스트: userId=44, ROLE_ADMIN으로 강제 로그인
-//        var auth = new UsernamePasswordAuthenticationToken(
-//            44L,                         // principal (userId)
-//            null,                        // credentials
-//            List.of(new SimpleGrantedAuthority("ROLE_ADMIN")) // 권한
-//        );
-//        SecurityContextHolder.getContext().setAuthentication(auth);
+//        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 //
-//        var current = SecurityContextHolder.getContext().getAuthentication();
 //        return Map.of(
-//            "userId", current.getPrincipal(),
-//            "roles", current.getAuthorities().stream()
-//                            .map(Object::toString)
-//                            .toList()
+//            "userId", auth.getName(),
+//            "roles", auth.getAuthorities().stream()
+//                         .map(Object::toString)
+//                         .toList()
 //        );
 //    }
+    
+    @GetMapping("/me")
+    public Map<String, Object> me() {
+        // ✅ 테스트: userId=44, ROLE_ADMIN으로 강제 로그인
+        var auth = new UsernamePasswordAuthenticationToken(
+            44L,                         // principal (userId)
+            null,                        // credentials
+            List.of(new SimpleGrantedAuthority("ROLE_ADMIN")) // 권한
+        );
+        SecurityContextHolder.getContext().setAuthentication(auth);
+
+        var current = SecurityContextHolder.getContext().getAuthentication();
+        return Map.of(
+            "userId", current.getPrincipal(),
+            "roles", current.getAuthorities().stream()
+                            .map(Object::toString)
+                            .toList()
+        );
+    }
 
     
     
