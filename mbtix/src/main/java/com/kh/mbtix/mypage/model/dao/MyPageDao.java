@@ -8,7 +8,8 @@ import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.stereotype.Repository;
 
 import com.kh.mbtix.mypage.model.dto.MyPageDto.GameScore;
-import com.kh.mbtix.mypage.model.dto.MyPageDto.MyBoard;
+import com.kh.mbtix.mypage.model.dto.MyPageDto.UserBoard;
+import com.kh.mbtix.mypage.model.dto.MyPageDto.UserProfileDto;
 import com.kh.mbtix.security.model.dto.AuthDto.User;
 
 import lombok.RequiredArgsConstructor;
@@ -69,16 +70,28 @@ public class MyPageDao {
 		return session.selectOne("mypage.getScore",userId);
 	}
 
-	public MyBoard getBoard(Long userId) {
+	public UserBoard getBoard(Long userId) {
 		return session.selectOne("mypage.getBoard",userId);
 	}
 
-	public List<MyBoard> getBoardList(Long userId) {
+	public List<UserBoard> getBoardList(Long userId) {
 		return session.selectList("mypage.getBoardList",userId);
 	}
 
 	public int deductMbtiPoint(Long userId) {
 		return session.update("mypage.deductMbtiPoint",userId);
+	}
+
+	public UserProfileDto findUserProfile(Long userId) {
+		return session.selectOne("mypage.findUserProfile",userId);
+	}
+
+	public GameScore findUserScores(Long userId) {
+		return session.selectOne("mypage.findUserScores",userId);
+	}
+
+	public List<UserBoard> findUserBoard(Long userId) {
+		return session.selectList("mypage.findUserBoard",userId);
 	}
 
 

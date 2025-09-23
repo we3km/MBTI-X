@@ -262,5 +262,12 @@
         #{categoryId}
     )
 </insert>
+
+<update id="updateProfile">
+	UPDATE "FILE"
+    SET FILE_NAME = #{fileName}
+    WHERE REF_ID = #{refId}
+    AND CATEGORY_ID = #{categoryId}
+</update>
 	  
 </mapper>

@@ -22,11 +22,28 @@ public class MyPageDto {
 	@NoArgsConstructor
 	@AllArgsConstructor
 	@Builder
-	public static class MyBoard{
+	public static class UserBoard{
 		private Long boardId;
 		private String boardTitle;
 		private String nickName;
 		private String createdAt;
 		private Long viewCount;
 	}
+	
+	@Data
+	@NoArgsConstructor
+	@AllArgsConstructor
+	@Builder
+	public static class UserProfileDto{
+		private Long userId;
+		private String nickname;
+		private String email;
+		private String mbtiName;
+		private String profileType;
+		private String profileFileName;
+		private Integer point;
+	}
+	
+	
+	
 }

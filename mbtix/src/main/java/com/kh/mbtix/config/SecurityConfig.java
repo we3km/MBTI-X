@@ -72,7 +72,7 @@ public class SecurityConfig {
 							 "/auth/find-id","/auth/idmatch","/auth/pw-send-code","/auth/updatePW"
 
 							).permitAll()
-					.requestMatchers("/profile/images/**").permitAll() 
+					.requestMatchers("/mypage/profile/images/**").permitAll() 
 					// cs경로
 					.requestMatchers("/cs/**").authenticated()
 					// 관리자 페이지 허용

@@ -14,13 +14,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.kh.mbtix.mypage.model.dto.MyPageDto.GameScore;
-import com.kh.mbtix.mypage.model.dto.MyPageDto.MyBoard;
+import com.kh.mbtix.mypage.model.dto.MyPageDto.UserBoard;
+import com.kh.mbtix.mypage.model.dto.MyPageDto.UserProfileDto;
 import com.kh.mbtix.mypage.model.service.MyPageService;
 import com.kh.mbtix.mypage.model.service.ProfileFileService;
 import com.kh.mbtix.security.model.dto.AuthDto.User;
@@ -30,6 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RestController
+@RequestMapping("/mypage")
 @RequiredArgsConstructor
 public class MyPageController {
 	
@@ -117,8 +120,8 @@ public class MyPageController {
 	    }
 	    
 	    @GetMapping("/myBoard/{userId}")
-	    public ResponseEntity<List<MyBoard>> getBoard(@PathVariable Long userId){
-	    	List<MyBoard> boards = service.getBoardList(userId);
+	    public ResponseEntity<List<UserBoard>> getBoard(@PathVariable Long userId){
+	    	List<UserBoard> boards = service.getBoardList(userId);
 	    	return ResponseEntity.ok(boards);
 	    }
 	    
@@ -137,4 +140,29 @@ public class MyPageController {
 	            return ResponseEntity.badRequest().body(response);
 	        }
 	}
+	    
+	    @GetMapping("/otherUserProfile")
+	    public ResponseEntity<UserProfileDto> getOtherUserProfile(@RequestParam Long userId) {
+	        UserProfileDto profile = service.findUserProfile(userId);
+	        return ResponseEntity.ok(profile);
+	    }
+
+	    /**
+	     * 상대방 게임 점수 조회
+	     */
+	    @GetMapping("/otherUserScores")
+	    public ResponseEntity<GameScore> getOtherUserScores(@RequestParam Long userId) {
+	    	GameScore scores = service.findUserScores(userId);
+	        return ResponseEntity.ok(scores);
+	    }
+
+	    /**
+	     * 상대방 게시글 목록 조회
+	     */
+	    @GetMapping("/otherUserBoards")
+	    public ResponseEntity<List<UserBoard>> getOtherUserBoards(@RequestParam Long userId) {
+	        List<UserBoard> boards = service.findUserBoards(userId);
+	        return ResponseEntity.ok(boards);
+	    }
+	    
 }

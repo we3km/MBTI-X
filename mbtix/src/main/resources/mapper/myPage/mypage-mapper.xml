@@ -18,6 +18,15 @@
             <result column="AUTHORITY"/>
         </collection>
     </resultMap>
+    
+    <resultMap id="UserProfileResult" type="com.kh.mbtix.mypage.model.dto.MyPageDto$UserProfileDto">
+    <id property="userId" column="USER_ID"/>
+    <result property="nickname" column="NICKNAME"/>
+    <result property="mbtiName" column="MBTI_NAME"/>
+    <result property="profileType" column="PROFILE_TYPE"/>
+    <result property="point" column="POINT"/>
+    <result property="profileFileName" column="PROFILE_FILE_NAME"/>
+</resultMap>
 	
 	<update id="minusPoint" parameterType="map">
         UPDATE USERS
@@ -108,7 +117,7 @@
 </select>
 
 <select id="getBoardList" parameterType="long"
-        resultType="com.kh.mbtix.mypage.model.dto.MyPageDto$MyBoard">
+        resultType="com.kh.mbtix.mypage.model.dto.MyPageDto$UserBoard">
     SELECT 
         B.BOARD_ID   AS boardId,
         B.TITLE      AS boardTitle,
@@ -126,6 +135,53 @@
 	SET POINT = POINT - 1000
 	WHERE USER_ID = #{userId}
 </update>
+
+<select id="findUserProfile" parameterType="long" resultMap="UserProfileResult">
+        SELECT 
+            U.USER_ID,
+            U.EMAIL,
+            U.NICKNAME,
+            U.NAME,
+            U.MBTI_ID,
+            U.PROFILE_TYPE,
+            U.POINT,
+            F.FILE_NAME AS PROFILE_FILE_NAME,
+            M.MBTI_NAME
+        FROM USERS U
+        LEFT JOIN USER_CREDENTIALS C 
+            ON C.USER_ID = U.USER_ID
+        LEFT JOIN MBTI M 
+            ON U.MBTI_ID = M.MBTI_ID
+        LEFT JOIN "FILE" F 
+            ON U.USER_ID = F.REF_ID 
+           AND F.CATEGORY_ID = 4
+        LEFT JOIN USER_AUTHORITY UA 
+            ON U.USER_ID = UA.USER_ID
+        WHERE U.USER_ID = #{userId}
+    </select>
+    
+        <select id="findUserScores" parameterType="long" resultType="com.kh.mbtix.mypage.model.dto.MyPageDto$GameScore">
+    SELECT 
+        MAX(CASE WHEN GAME_CODE = 1 THEN SCORE END) AS quizScore,
+        MAX(CASE WHEN GAME_CODE = 2 THEN SCORE END) AS reactionScore,
+        MAX(CASE WHEN GAME_CODE = 3 THEN SCORE END) AS findDiffScore
+    FROM GAME_SCORE
+    WHERE USER_ID = #{userId}
+</select>
+
+<select id="findUserBoard" parameterType="long"
+        resultType="com.kh.mbtix.mypage.model.dto.MyPageDto$UserBoard">
+    SELECT 
+        B.BOARD_ID   AS boardId,
+        B.TITLE      AS boardTitle,
+        U.NICKNAME   AS nickName,
+        TO_CHAR(B.CREATED_AT, 'YYYY-MM-DD') AS createdAt, 
+        B."VIEW"     AS viewCount        
+    FROM BOARD B
+    LEFT JOIN USERS U ON U.USER_ID = B.USER_ID
+    WHERE B.USER_ID = #{userId}
+    ORDER BY B.CREATED_AT DESC
+</select>
 
 
 	  

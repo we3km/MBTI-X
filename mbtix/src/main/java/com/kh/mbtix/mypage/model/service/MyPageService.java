@@ -6,7 +6,8 @@ import org.springframework.stereotype.Service;
 
 import com.kh.mbtix.mypage.model.dao.MyPageDao;
 import com.kh.mbtix.mypage.model.dto.MyPageDto.GameScore;
-import com.kh.mbtix.mypage.model.dto.MyPageDto.MyBoard;
+import com.kh.mbtix.mypage.model.dto.MyPageDto.UserBoard;
+import com.kh.mbtix.mypage.model.dto.MyPageDto.UserProfileDto;
 import com.kh.mbtix.security.model.dto.AuthDto.User;
 
 import lombok.RequiredArgsConstructor;
@@ -76,7 +77,7 @@ public class MyPageService {
 			return dao.getScore(userId);
 		}
 
-		public List<MyBoard> getBoardList(Long userId) {
+		public List<UserBoard> getBoardList(Long userId) {
 			return dao.getBoardList(userId);
 		}
 
@@ -87,5 +88,17 @@ public class MyPageService {
 		       return user.getPoint();
 		    }
 		    return null; // 실패
+		}
+
+		public UserProfileDto findUserProfile(Long userId) {
+			return dao.findUserProfile(userId);
+		}
+
+		public GameScore findUserScores(Long userId) {
+			return dao.findUserScores(userId);
+		}
+
+		public List<UserBoard> findUserBoards(Long userId) {
+			return dao.findUserBoard(userId);
 		}
 }
