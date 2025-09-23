@@ -92,7 +92,7 @@ public class MyPageController {
 	    @GetMapping("/profile/images/{fileName}")
 	    public ResponseEntity<Resource> getProfileImage(@PathVariable String fileName) {
 	        try {
-	        	Path filePath = Paths.get(System.getProperty("user.dir"), "upload", "profile", fileName);
+	        	Path filePath = Paths.get(System.getProperty("user.dir"), "uploads", "profile", fileName);
 	            Resource resource = new UrlResource(filePath.toUri());
 
 	            if (!resource.exists()) {

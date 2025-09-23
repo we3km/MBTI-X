@@ -12,7 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 public class ProfileFileService {
 
-    private final String uploadDir = System.getProperty("user.dir") + "/upload/profile";
+    private final String uploadDir = System.getProperty("user.dir") + "/uploads/profile";
 
     public String saveProfile(MultipartFile file) {
         if (file.isEmpty()) {
