@@ -50,4 +50,10 @@ public class ChatbotServiceImpl implements ChatbotService {
 		
 	}
 
+	@Override
+	public void updateChatbotIsQuit(long roomId) {
+		chatbotDao.updateChatbotIsQuit(roomId);
+		
+	}
+
 }

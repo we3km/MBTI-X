@@ -30,7 +30,7 @@
 	<select id="selectChatbotList" resultType="com.kh.mbtix.chatbot.model.dto.ChatbotRoom$ChatbotRoomResponse">
 		SELECT *
 		FROM CHATBOT_ROOM
-		WHERE USER_ID = #{userId}
+		WHERE USER_ID = #{userId} AND STATUS = 'Y'
 		ORDER BY CREATED_AT ASC
 	</select>
 	
@@ -56,4 +56,10 @@
 			SYSDATE
 		)
 	</insert>
+	
+	<update id="updateChatbotIsQuit">
+		UPDATE CHATBOT_ROOM
+		SET STATUS = 'N'
+		WHERE ROOM_ID = #{roomId}
+	</update>
 </mapper>

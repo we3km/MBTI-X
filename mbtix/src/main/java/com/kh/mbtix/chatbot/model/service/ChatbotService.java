@@ -23,4 +23,6 @@ public interface ChatbotService {
 	String getNickName(long userId);
 
 	void updateChatbotProfileImage(long roomId, String savedImageUrl);
+	
+	void updateChatbotIsQuit(long roomId);
 }

@@ -6,6 +6,8 @@ import com.kh.mbtix.chatbot.model.dto.ChatMessageDto.ChatMessageResponse;
 import com.kh.mbtix.chatbot.model.dto.ChatMessageDto.ChatMessageSave;
 import com.kh.mbtix.chatbot.model.dto.ChatbotRoom.ChatbotRoomResponse;
 import com.kh.mbtix.chatbot.model.dto.ChatbotRoom.CreateChatbotRoom;
+import com.kh.mbtix.chatbot.model.dto.ChatbotRoom.ChatbotQuitUpdate;
+
 
 public interface ChatbotDao {
 
@@ -21,6 +23,6 @@ public interface ChatbotDao {
 
 	void updateChatbotProfileImage(long roomId, String savedImageUrl);
 	
-	
+	void updateChatbotIsQuit(long roomId);
 
 }

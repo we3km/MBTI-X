@@ -40,6 +40,7 @@ public class ChatbotRoom {
 		private String appearance;
 		//private String features;
 		private String botProfileImageUrl;
+		private String status;
 	}
 	
 	@Data
@@ -49,5 +50,12 @@ public class ChatbotRoom {
 		private long roomId;
 		private String botProfileImageUrl;
 	}
-	
+
+	@Data
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class ChatbotQuitUpdate{
+		private long roomId;
+		private String status;
+	}
 }

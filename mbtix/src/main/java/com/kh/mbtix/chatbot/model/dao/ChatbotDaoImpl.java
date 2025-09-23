@@ -55,5 +55,11 @@ public class ChatbotDaoImpl implements ChatbotDao {
 		
 	}
 
+	@Override
+	public void updateChatbotIsQuit(long roomId) {
+		session.update("chatbot.updateChatbotIsQuit", roomId);
+		
+	}
+
 
 }
