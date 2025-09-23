@@ -17,7 +17,6 @@ import com.kh.mbtix.security.controller.AuthController;
 import com.kh.mbtix.security.model.dto.CustomOAuth2User;
 import com.kh.mbtix.security.model.provider.JWTProvider;
 
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;

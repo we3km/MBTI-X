@@ -6,20 +6,24 @@ import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
+import com.kh.mbtix.common.MbtiUtils;
+import com.kh.mbtix.security.model.dao.AuthDao;
+import com.kh.mbtix.security.model.dto.AuthDto.FileVO;
+import com.kh.mbtix.security.model.dto.AuthDto.User;
 import com.kh.mbtix.test.model.dao.MbtiTestDao;
 import com.kh.mbtix.test.model.dto.MbtiModelDto.Answer;
 import com.kh.mbtix.test.model.dto.MbtiModelDto.MbtiDetailRes;
 import com.kh.mbtix.test.model.dto.MbtiModelDto.MbtiRatioRes;
 import com.kh.mbtix.test.model.dto.MbtiModelDto.Question;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class MbtiTestService {
 
     private final MbtiTestDao mbtiDao;
-
-    public MbtiTestService(MbtiTestDao mbtiDao) {
-        this.mbtiDao = mbtiDao;
-    }
+    private final AuthDao  authDao;
 
     public List<Question> getQuestions() {
         return mbtiDao.findAllQuestions();
@@ -58,6 +62,19 @@ public class MbtiTestService {
         // USERS 업데이트
         Long mbtiId = mbtiDao.findMbtiIdByName(mbti);
         mbtiDao.updateUserMbti(userId, mbtiId);
+        
+        User user = authDao.findUserByUserId(userId);
+        if ("DEFAULT".equals(user.getProfileType())) {
+            String fileName = MbtiUtils.getProfileFileName(String.valueOf(mbtiId));
+
+            FileVO file = FileVO.builder()
+                    .fileName(fileName)
+                    .refId(userId)
+                    .categoryId(4) // 프로필
+                    .build();
+
+            authDao.updateProfile(file);
+        }
 
         return mbti;
     }
