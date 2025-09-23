@@ -69,9 +69,7 @@ public class SecurityConfig {
 					.requestMatchers("/auth/login", "/auth/signup", "/auth/logout","/auth/refresh",
 							 "/auth/checkId", "/auth/checkNickname","/auth/send-code","/auth/verify-code",
 							 "/auth/checkemail","/auth/social-signup","/auth/namematch","/auth/send-code-if-match",
-							 "/auth/find-id","/auth/idmatch","/auth/pw-send-code","/auth/updatePW"
-							 
-							 
+							 "/auth/find-id","/auth/idmatch","/auth/pw-send-code","/auth/updatePW","/board/**" 
 							).permitAll()
 					// cs경로
 					.requestMatchers("/cs/**").authenticated()
@@ -85,6 +83,7 @@ public class SecurityConfig {
                     .requestMatchers("/uploads/**").permitAll()
                     
 					.requestMatchers("/oauth2/**","/login**","/error").permitAll()
+					.requestMatchers("/uploads/**").permitAll()
 					.requestMatchers("/**").authenticated()
 				);
 		http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
@@ -98,7 +97,7 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
 
         // 허용 Origin설정 - React 개발 서버
-        config.setAllowedOrigins(List.of("http://localhost:5174"));
+        config.setAllowedOrigins(List.of("http://localhost:5173"));
 
         // 허용 메서드
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
