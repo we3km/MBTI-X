@@ -38,7 +38,6 @@ public class AuthService {
 	@Transactional
 	public AuthResult signUp(String loginId, String email, String name, String nickname, String password, String mbtiId) {
 		
-        // 1️ 필수 입력값 체크
         if (loginId == null || loginId.isBlank()) {
             throw new IllegalArgumentException("아이디는 필수 입력입니다.");
         }
@@ -163,6 +162,10 @@ public class AuthService {
 				.roles(user.getRoles())
 				.email(user.getEmail())
 				.mbtiId(user.getMbtiId())
+				.profileType(user.getProfileType())
+				.point(user.getPoint())
+				.mbtiName(user.getMbtiName())
+				.provider(user.getProvider())
 				.profileFileName(user.getProfileFileName())
 				.build();
 		return AuthResult.builder()
