@@ -1,10 +1,16 @@
 package com.kh.mbtix.admin.model.vo;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.sql.Date;
 
-import lombok.Data;
-
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Report {
 
     private int reportId;
@@ -22,5 +28,6 @@ public class Report {
     
     private String reporterNickname; // 신고한 회원 닉네임
     private String reportedNickname; // 신고된 회원 닉네임
+    
     
 }

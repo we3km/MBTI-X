@@ -69,8 +69,7 @@ public class SecurityConfig {
 					.requestMatchers("/auth/login", "/auth/signup", "/auth/logout","/auth/refresh",
 							 "/auth/checkId", "/auth/checkNickname","/auth/send-code","/auth/verify-code",
 							 "/auth/checkemail","/auth/social-signup","/auth/namematch","/auth/send-code-if-match",
-							 "/auth/find-id","/auth/idmatch","/auth/pw-send-code","/auth/updatePW"
-
+							 "/auth/find-id","/auth/idmatch","/auth/pw-send-code","/auth/updatePW","/board/**" 
 							).permitAll()
 					.requestMatchers("/mypage/profile/images/**").permitAll() 
 					// cs경로
@@ -85,6 +84,7 @@ public class SecurityConfig {
                     .requestMatchers("/uploads/**").permitAll()
                     
 					.requestMatchers("/oauth2/**","/login**","/error").permitAll()
+					.requestMatchers("/uploads/**").permitAll()
 					.requestMatchers("/**").authenticated()
 				);
 		http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
