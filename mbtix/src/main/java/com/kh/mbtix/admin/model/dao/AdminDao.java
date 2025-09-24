@@ -46,5 +46,8 @@ public interface AdminDao {
     
     
 	void updateSpeedQuiz(Quiz quiz);
-	void updateCatchMindWord(CatchMindWord catchMindWord);	
+	void updateCatchMindWord(CatchMindWord catchMindWord);
+	
+	void deleteSpeedQuiz(int questionId);
+	void deleteCatchMindWord(int wordId);	
 }

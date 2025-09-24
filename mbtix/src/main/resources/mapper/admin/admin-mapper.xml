@@ -38,7 +38,7 @@
 	<update id="updateCatchMindWord" parameterType="com.kh.mbtix.miniGame.model.dto.CatchMindWord">
 	    UPDATE GAME_CATCH_MIND_WORDS
 	    SET 
-	        WORD = #{word},	       
+	        WORD = #{word}       
 	    WHERE WORD_ID = #{wordId}
 	</update>
     
@@ -56,6 +56,17 @@
     	FROM GAME_CATCH_MIND_WORDS
     	ORDER BY WORD_ID
     </select>
+   
+    <!-- 게임 데이터 삭제 -->
+    <delete id="deleteSpeedQuiz" parameterType="int">
+    	DELETE FROM GAME_QUIZ
+    	WHERE QUESTION_ID = #{questionId}
+    </delete>
+    
+    <delete id="deleteCatchMindWord" parameterType="int">
+    	DELETE FROM GAME_CATCH_MIND_WORDS
+    	WHERE WORD_ID = #{wordId}
+    </delete>
     
     <resultMap id="UserDetailResultMap" type="com.kh.mbtix.admin.model.vo.UserDetailDTO$UserInfo">
         <id property="userId" column="USER_ID"/>

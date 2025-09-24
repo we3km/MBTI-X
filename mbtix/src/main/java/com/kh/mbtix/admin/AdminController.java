@@ -45,20 +45,20 @@ public class AdminController {
 		return ResponseEntity.ok().build();
 	}
 	
-	// 스피드 퀴즈 다 가져오기
+	// 게임 데이터 다 가져오기
 	@GetMapping("/selectAllSpeedQuiz")
 	public List<Quiz> selectAllSpeedQuiz() {
 		List<Quiz> speedQuizList = adminService.selectAllSpeedQuiz();
 		return speedQuizList;
 	}
 	
-	// 캐치마인드 단어 다 가져오기
 	@GetMapping("/selectAllCatchMindWords")
 	public List<CatchMindWord> selectAllCatchMindWords() {
 		List<CatchMindWord> catchMindWordList = adminService.selectAllCatchMindWords();
 		return catchMindWordList;
 	}
 	
+	// 게임 데이터 업데이트
 	@PatchMapping("/updateSpeedQuiz")
 	public ResponseEntity<Void> updateSpeedQuiz(@RequestBody Quiz quiz) {
 		adminService.updateSpeedQuiz(quiz);
@@ -71,6 +71,20 @@ public class AdminController {
 		return ResponseEntity.ok().build();
 	}
 	
+	// 게임 데이터 삭제
+	@DeleteMapping("/deleteSpeedQuiz")
+	public ResponseEntity<Void> deleteSpeedQuiz(@RequestBody Map<String, Integer> body) {
+		int questionId = body.get("id");
+		adminService.deleteSpeedQuiz(questionId);
+		return ResponseEntity.ok().build();
+	}
+	
+	@DeleteMapping("/deleteCatchMindWord")
+	public ResponseEntity<Void> deleteCatchMindWord(@RequestBody Map<String, Integer> body) {
+		int wordId = body.get("id");
+		adminService.deleteCatchMindWord(wordId);
+		return ResponseEntity.ok().build();
+	}
 	
 	// 대시보드 통계 조회 메소드
 	@GetMapping("/dashboard/stats")

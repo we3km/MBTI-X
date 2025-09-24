@@ -183,4 +183,14 @@ public class AdminServiceImpl implements AdminService {
 	public void updateCatchMindWord(CatchMindWord catchMindWord) {
 		adminDao.updateCatchMindWord(catchMindWord);
 	}
+
+	@Override
+	public void deleteSpeedQuiz(int id) {
+		adminDao.deleteSpeedQuiz(id);	
+	}
+
+	@Override
+	public void deleteCatchMindWord(int id) {
+		adminDao.deleteCatchMindWord(id);
+	}
 }

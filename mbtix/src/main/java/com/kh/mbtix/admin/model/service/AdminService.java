@@ -39,4 +39,8 @@ public interface AdminService {
 	void updateSpeedQuiz(Quiz quiz);
 
 	void updateCatchMindWord(CatchMindWord catchMindWord);
+
+	void deleteSpeedQuiz(int id);
+
+	void deleteCatchMindWord(int id);
 }
