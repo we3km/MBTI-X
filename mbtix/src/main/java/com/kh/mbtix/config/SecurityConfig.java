@@ -79,6 +79,9 @@ public class SecurityConfig {
 					.requestMatchers(HttpMethod.POST, "/faqs").hasRole("ADMIN")
 					.requestMatchers(HttpMethod.PUT, "/faqs/**").hasRole("ADMIN")
 					.requestMatchers(HttpMethod.DELETE, "/faqs/**").hasRole("ADMIN")
+
+					.requestMatchers("/mypage/profile/images/**").permitAll() 
+
 					// cs경로
 					.requestMatchers("/cs/**").authenticated()
                     // 알림 허용
