@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="chatbot">
+    
+    <insert id="createChatbot">
+		<selectKey keyProperty="roomId" resultType="int" order="BEFORE">
+			SELECT CHATBOT_ROOM_SEQ.NEXTVAL FROM DUAL
+		</selectKey>
+		INSERT INTO CHATBOT_ROOM
+		VALUES(
+			#{roomId},
+			#{userId},
+			#{botMbti},
+			#{botName},
+			SYSDATE,
+			#{gender},
+			#{talkStyle},
+			'Y',
+			#{age},
+			#{botProfileImageUrl},
+			#{personality},
+			#{appearance} )
+	</insert>
+	
+	<update id="updateChatbotProfileImage"> UPDATE CHATBOT_ROOM
+        SET BOT_PROFILE_IMAGE_URL = #{botProfileImageUrl}
+        WHERE ROOM_ID = #{roomId}
+    </update>
+
+	<select id="selectChatbotList" resultType="com.kh.mbtix.chatbot.model.dto.ChatbotRoom$ChatbotRoomResponse">
+		SELECT *
+		FROM CHATBOT_ROOM
+		WHERE USER_ID = #{userId} AND STATUS = 'Y'
+		ORDER BY CREATED_AT ASC
+	</select>
+	
+	<select id="getMessage" resultType="com.kh.mbtix.chatbot.model.dto.ChatMessageDto$ChatMessageResponse">
+		SELECT *
+		FROM CHAT_MESSAGE
+		WHERE ROOM_ID = #{roomId}
+		ORDER BY CREATED_AT ASC
+	</select>
+	
+	<insert id="saveMessage">
+		INSERT INTO CHAT_MESSAGE(
+			MESSAGE_ID,
+			ROOM_ID,
+			SENDER,
+			CONTENT,
+			CREATED_AT
+		) VALUES (
+			CHAT_MESSAGE_SEQ.NEXTVAL,
+			#{roomId},
+			#{sender},
+			#{content},
+			SYSDATE
+		)
+	</insert>
+	
+	<update id="updateChatbotIsQuit">
+		UPDATE CHATBOT_ROOM
+		SET STATUS = 'N'
+		WHERE ROOM_ID = #{roomId}
+	</update>
+</mapper>

@@ -16,14 +16,13 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 
 import com.kh.mbtix.security.filter.JWTAutenticationFilter;
 import com.kh.mbtix.security.model.handler.OAuth2SuccessHandler;
 import com.kh.mbtix.security.model.service.OAuth2Service;
-
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-
 @Configuration
 @RequiredArgsConstructor
 @EnableWebSecurity
@@ -63,6 +62,7 @@ public class SecurityConfig {
 					)
 				.authorizeHttpRequests(auth -> 
 					auth
+					.requestMatchers("/chatbot_profiles/**").permitAll()
 					.requestMatchers("/auth/login", "/auth/signup", "/auth/logout","/auth/refresh",
 							 "/auth/checkId", "/auth/checkNickname","/auth/send-code","/auth/verify-code",
 							 "/auth/checkemail","/auth/social-signup","/auth/namematch","/auth/send-code-if-match",
@@ -86,6 +86,7 @@ public class SecurityConfig {
 					.requestMatchers("/uploads/**").permitAll()
 					.requestMatchers("/**").authenticated()
 				);
+
 		http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 		
 		return http.build();
@@ -126,3 +127,4 @@ public class SecurityConfig {
         return new RestTemplate();
     }
 }
+
