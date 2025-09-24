@@ -1,10 +1,12 @@
 package com.kh.mbtix.admin.model.service;
 
+import com.kh.mbtix.admin.model.vo.DashboardStatsDTO;
 import com.kh.mbtix.admin.model.vo.Report;
 import com.kh.mbtix.admin.model.vo.UserDetailDTO;
+import com.kh.mbtix.board.model.vo.Board;
+import com.kh.mbtix.board.model.vo.BoardComment;
 import com.kh.mbtix.common.model.vo.PageResponse;
 import com.kh.mbtix.user.model.vo.UserEntity;
-import com.kh.mbtix.admin.model.vo.DashboardStatsDTO;
 
 public interface AdminService {
     
@@ -24,5 +26,14 @@ public interface AdminService {
     
     boolean unbanUser(int userId);
     
+    boolean rejectReport(int reportId);
+    
+    int createReport(Report report);
+    
+    PageResponse<Board> findPostsByUserId(int userId, int currentPage);
+    PageResponse<BoardComment> findCommentsByUserId(int userId, int currentPage);
+    
     DashboardStatsDTO getDashboardStats();
+    
+    
 }

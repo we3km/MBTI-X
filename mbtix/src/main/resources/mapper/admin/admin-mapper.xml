@@ -126,7 +126,7 @@
                            U2.NICKNAME AS "reportedNickname",
                            CASE R.REPORT_CATEGORY
                                 WHEN 1 THEN '욕설 및 어그로' WHEN 2 THEN '음란 및 선정성' WHEN 3 THEN '도배 및 광고'
-                                WHEN 4 THEN '혐오성 글 게시' ELSE '기타'
+                                WHEN 4 THEN '악의적 혐오 조장' ELSE '기타'
                            END AS "reportCategoryName"
                       FROM REPORTS R
                       LEFT JOIN USERS U1 ON (R.USER_ID = U1.USER_ID)
@@ -156,6 +156,7 @@
     <select id="selectReport" parameterType="_int" resultType="com.kh.mbtix.admin.model.vo.Report">
     	SELECT
     		 R.REPORT_ID, R.USER_ID, R.TARGET_USER_NUM, R.RESON, R.STATUS, R.CREATED_AT, R.PROCESSED_AT, R.REPORT_CATEGORY,
+    	     R.BOARD_ID, R.COMMENT_ID,
     	     U1.LOGIN_ID AS "reporterId",
     	     U2.LOGIN_ID AS "reportedId",
              U1.NICKNAME AS "reporterNickname",
@@ -254,4 +255,78 @@
     	FROM DUAL
 	</select>
 	
+	<insert id="insertReport" parameterType="com.kh.mbtix.admin.model.vo.Report">
+    	INSERT INTO REPORTS (
+        	REPORT_ID,
+        	USER_ID,
+        	TARGET_USER_NUM,
+        	RESON,
+        	STATUS,
+        	CREATED_AT,
+        	REPORT_CATEGORY,
+        	BOARD_ID,
+        	COMMENT_ID
+    	) VALUES (
+        	REPORTS_SEQ.NEXTVAL,
+        	#{userId},
+        	#{targetUserNum},
+        	#{reson},
+        	'N',
+        	SYSDATE,
+        	#{reportCategory},
+        	#{boardId, jdbcType=NUMERIC},
+        	#{commentId, jdbcType=NUMERIC}
+    	)
+	</insert>
+	
+	<select id="selectPostCountByUserId" parameterType="map" resultType="_int">
+    	SELECT COUNT(*)
+    	FROM BOARD
+    	WHERE USER_ID = #{userId}
+	</select>
+
+	<select id="selectPostsByUserId" parameterType="map" resultType="com.kh.mbtix.board.model.vo.Board">
+    	SELECT *
+    	FROM (
+        	SELECT ROWNUM AS RNUM, A.*
+        FROM (
+            SELECT
+                B.BOARD_ID,
+                B.TITLE,
+                B.VIEW,
+                B.CREATED_AT,
+                C.NAME AS "categoryName"
+            FROM BOARD B
+            LEFT JOIN CATEGORY C ON B.CATEGORY_ID = C.CATEGORY_ID
+            WHERE B.USER_ID = #{userId}
+            ORDER BY B.BOARD_ID DESC
+        	) A
+    	)
+    	WHERE RNUM BETWEEN (#{pi.currentPage} - 1) * #{pi.boardLimit} + 1 AND #{pi.currentPage} * #{pi.boardLimit}
+	</select>
+
+	<select id="selectCommentCountByUserId" parameterType="map" resultType="_int">
+    	SELECT COUNT(*)
+    	FROM BOARD_COMMENT
+    	WHERE USER_ID = #{userId}
+	</select>
+
+	<select id="selectCommentsByUserId" parameterType="map" resultType="com.kh.mbtix.board.model.vo.BoardComment">
+    	SELECT *
+    	FROM (
+        	SELECT ROWNUM AS RNUM, A.*
+        FROM (
+            SELECT
+                COMMENT_ID,
+                BOARD_ID,
+                CONTENT,
+                CREATE_AT
+            FROM BOARD_COMMENT
+            WHERE USER_ID = #{userId}
+            ORDER BY COMMENT_ID DESC
+        	) A
+    	)
+    	WHERE RNUM BETWEEN (#{pi.currentPage} - 1) * #{pi.boardLimit} + 1 AND #{pi.currentPage} * #{pi.boardLimit}
+	</select>
+
 </mapper>

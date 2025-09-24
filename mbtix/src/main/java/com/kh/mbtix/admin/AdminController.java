@@ -20,8 +20,11 @@ import com.kh.mbtix.admin.model.service.AdminService;
 import com.kh.mbtix.admin.model.vo.DashboardStatsDTO;
 import com.kh.mbtix.admin.model.vo.Report;
 import com.kh.mbtix.admin.model.vo.UserDetailDTO;
+import com.kh.mbtix.board.model.vo.Board;
+import com.kh.mbtix.board.model.vo.BoardComment;
 import com.kh.mbtix.common.model.vo.PageResponse;
 import com.kh.mbtix.user.model.vo.UserEntity;
+import com.nimbusds.oauth2.sdk.Response;
 
 @RestController
 @RequestMapping("/admin")
@@ -140,6 +143,16 @@ public class AdminController {
         }
     }
     
+    // 신고 반려
+    @PostMapping("/reports/{reportId}/reject")
+    public ResponseEntity<String> rejectReport(@PathVariable("reportId") int reportId) {
+    	boolean success = adminService.rejectReport(reportId);
+    	if (success) {
+    		return ResponseEntity.ok("신고가 반려 처리 되었습니다.");
+    	} else {
+    		return ResponseEntity.status(HttpStatus.NOT_FOUND).body("처리할 신고를 찾을 수 없습니다.");
+    	}
+    }
     
     // 관리자가 직접 제재
     @PostMapping("/users/{userId}/ban")
@@ -206,4 +219,22 @@ public class AdminController {
     	}
     }
      
+    // 특정 회원이 작성한 게시글 목록 조회
+    @GetMapping("/users/{userId}/posts")
+    public ResponseEntity<PageResponse<Board>> getUserPosts(
+            @PathVariable("userId") int userId,
+            @RequestParam(value="cpage", defaultValue="1") int currentPage) {
+        PageResponse<Board> response = adminService.findPostsByUserId(userId, currentPage);
+        return ResponseEntity.ok(response);
+    }
+    
+    // 특정 회원이 작성한 댓글 목록 조회
+    @GetMapping("/users/{userId}/comments")
+    public ResponseEntity<PageResponse<BoardComment>> getUserComments(
+            @PathVariable("userId") int userId,
+            @RequestParam(value="cpage", defaultValue="1") int currentPage) {
+        PageResponse<BoardComment> response = adminService.findCommentsByUserId(userId, currentPage);
+        return ResponseEntity.ok(response);
+    }
+    
 }
