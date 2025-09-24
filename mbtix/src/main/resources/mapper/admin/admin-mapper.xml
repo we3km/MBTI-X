@@ -2,7 +2,29 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
   
 <mapper namespace="com.kh.mbtix.admin.model.dao.AdminDao">
-
+	
+	<insert id="insertSpeedQuiz" parameterType="map">
+		INSERT INTO GAME_QUIZ (
+        QUESTION_ID,
+        QUESTION,
+        ANSWER
+		) VALUES (
+        GAME_QUIZ_SEQ.NEXTVAL,
+        #{question},
+        #{answer}
+    	)	
+	</insert>
+	
+	<insert id="insertCathMindWords" parameterType="map">
+		INSERT INTO GAME_CATCH_MIND_WORDS (
+        WORD_ID,
+        WORD
+		) VALUES (
+        CATCH_MIND_WORD_SEQ.NEXTVAL,
+        #{word}
+    	)	
+    </insert>
+    
     <resultMap id="UserDetailResultMap" type="com.kh.mbtix.admin.model.vo.UserDetailDTO$UserInfo">
         <id property="userId" column="USER_ID"/>
         <result property="loginId" column="LOGIN_ID"/>

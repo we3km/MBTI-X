@@ -65,7 +65,6 @@ public class AuthController {
 			return ResponseEntity.badRequest().body("인증 실패: 코드가 틀리거나 만료됨");
 		}
 	}
-
 	@GetMapping("/checkId")
 	public ResponseEntity<Boolean> checkId(@RequestParam String loginId) {
 		boolean available = service.isLoginIdAvailable(loginId);

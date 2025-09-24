@@ -1,5 +1,7 @@
 package com.kh.mbtix.admin.model.service;
 
+import java.util.Map;
+
 import com.kh.mbtix.admin.model.vo.DashboardStatsDTO;
 import com.kh.mbtix.admin.model.vo.Report;
 import com.kh.mbtix.admin.model.vo.UserDetailDTO;
@@ -9,31 +11,33 @@ import com.kh.mbtix.common.model.vo.PageResponse;
 import com.kh.mbtix.user.model.vo.UserEntity;
 
 public interface AdminService {
-    
-	PageResponse<UserEntity> selectAllUsers(int currentPage, String searchType, String keyword, String status);
-    
-    PageResponse<Report> selectAllReports(int currentPage, String searchType, String keyword, String status, String category);
-    
-    Report selectReport(int reportId);
+	
+	void insertGameData(Map<String, Object> data);
 
-    boolean processReport(int reportId, int banDuration, int adminUserNum);
-    
-    UserDetailDTO selectUserDetail(int userId);
-    
-    boolean banUserDirectly(int userId, int banDuration, String reason, int adminUserId);
-    
-    boolean updateUserRole(int userId, String newRole);
-    
-    boolean unbanUser(int userId);
-    
-    boolean rejectReport(int reportId);
-    
-    int createReport(Report report);
-    
-    PageResponse<Board> findPostsByUserId(int userId, int currentPage);
-    PageResponse<BoardComment> findCommentsByUserId(int userId, int currentPage);
-    
-    DashboardStatsDTO getDashboardStats();
-    
-    
+	PageResponse<UserEntity> selectAllUsers(int currentPage, String searchType, String keyword, String status);
+
+	PageResponse<Report> selectAllReports(int currentPage, String searchType, String keyword, String status, String category);
+
+	Report selectReport(int reportId);
+
+	boolean processReport(int reportId, int banDuration, int adminUserNum);
+
+	UserDetailDTO selectUserDetail(int userId);
+
+	boolean banUserDirectly(int userId, int banDuration, String reason, int adminUserId);
+
+	boolean updateUserRole(int userId, String newRole);
+
+	boolean unbanUser(int userId);
+
+	boolean rejectReport(int reportId);
+
+	int createReport(Report report);
+
+	PageResponse<Board> findPostsByUserId(int userId, int currentPage);
+	
+	PageResponse<BoardComment> findCommentsByUserId(int userId, int currentPage);
+
+	DashboardStatsDTO getDashboardStats();
+
 }

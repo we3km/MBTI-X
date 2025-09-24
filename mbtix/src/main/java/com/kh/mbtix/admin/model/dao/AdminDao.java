@@ -16,6 +16,8 @@ import com.kh.mbtix.user.model.vo.UserEntity;
 
 @Mapper
 public interface AdminDao {
+	void insertSpeedQuiz(Map<String, Object> data);
+	void insertCathMindWords(Map<String, Object> data);
 
     List<UserEntity> selectAllUsers(Map<String, Object> param);
     int selectListCount(Map<String, Object> param);
@@ -46,5 +48,4 @@ public interface AdminDao {
     
     // 관리자 페이지 통계
     DashboardStatsDTO selectDashboardStats();
-    
 }

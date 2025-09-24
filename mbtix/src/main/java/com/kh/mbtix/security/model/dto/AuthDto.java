@@ -1,15 +1,12 @@
 package com.kh.mbtix.security.model.dto;
-
 import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 public class AuthDto {
 	
 	@Data
@@ -55,7 +52,7 @@ public class AuthDto {
 	    private String profilename;   // 프로필 이미지 URL
 	    private String mbtiId;
 	    private String verificationCode;
-	    
+	   
 	    @JsonProperty("agree1")
 	    private boolean agree1; //약관동의
 	    @JsonProperty("agree2")
@@ -167,3 +164,8 @@ public class AuthDto {
 	    private Integer categoryId; // 파일 카테고리 (4 = 프로필)
 	}
 }
+
+
+
+
+
