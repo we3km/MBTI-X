@@ -1,6 +1,7 @@
 package com.kh.mbtix.test.model.dto;
 
 import java.util.List;
+import java.util.Map;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -40,6 +41,11 @@ public class MbtiModelDto {
 	}
 	
 	public record MbtiRatioRes(String mbtiName, double ratio) {}
+	
+	public record MbtiDetailRes(
+		    String type,
+		    Map<String, Map<String,Integer>> ratios
+		) {}
 
 
 }
