@@ -8,9 +8,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.kh.mbtix.test.model.dto.MbtiModelDto;
 import com.kh.mbtix.test.model.dto.MbtiModelDto.Answer;
+import com.kh.mbtix.test.model.dto.MbtiModelDto.MbtiDetailRes;
 import com.kh.mbtix.test.model.dto.MbtiModelDto.MbtiRatioRes;
 import com.kh.mbtix.test.model.dto.MbtiModelDto.MbtiTestRequest;
 import com.kh.mbtix.test.model.dto.MbtiModelDto.Question;
@@ -46,5 +49,12 @@ public class MbtiTestController {
     	System.out.println("넘어온 userId = " + userId);
         return ResponseEntity.ok(mbtiService.getUserMbtiRatio(userId));
     }
+    
+    @PostMapping("/calculate-detail")
+    public MbtiDetailRes calculateDetail(@RequestBody MbtiModelDto.MbtiTestRequest req) {
+        return mbtiService.calculateWithRatio(req.getUserId(), req.getAnswers());
+    }
+
+
 
 }
