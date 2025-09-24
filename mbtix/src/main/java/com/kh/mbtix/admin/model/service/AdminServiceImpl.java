@@ -6,9 +6,6 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import com.kh.mbtix.admin.model.dao.AdminDao;
-
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kh.mbtix.admin.model.dao.AdminDao;
@@ -18,6 +15,8 @@ import com.kh.mbtix.admin.model.vo.Report;
 import com.kh.mbtix.admin.model.vo.UserDetailDTO;
 import com.kh.mbtix.common.model.vo.PageInfo;
 import com.kh.mbtix.common.model.vo.PageResponse;
+import com.kh.mbtix.miniGame.model.dto.CatchMindWord;
+import com.kh.mbtix.miniGame.model.dto.Quiz;
 import com.kh.mbtix.security.model.dto.AuthDto.UserAuthority;
 import com.kh.mbtix.user.model.vo.UserEntity;
 
@@ -42,6 +41,17 @@ public class AdminServiceImpl implements AdminService {
 		}
 	}
 
+	@Override
+	public List<Quiz> selectAllSpeedQuiz() {
+		return adminDao.selectAllSpeedQuiz();
+	}
+
+
+	@Override
+	public List<CatchMindWord> selectAllCatchMindWords() {
+		return adminDao.selectAllCatchMindWords();
+	}
+	
 	@Override
 	public PageResponse<UserEntity> selectAllUsers(int currentPage, String searchType, String keyword, String status) {
 
@@ -164,5 +174,4 @@ public class AdminServiceImpl implements AdminService {
 	public DashboardStatsDTO getDashboardStats() {
 		return adminDao.selectDashboardStats();
 	}
-
 }

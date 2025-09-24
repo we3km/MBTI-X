@@ -1,10 +1,13 @@
 package com.kh.mbtix.admin.model.service;
 
+import java.util.List;
 import java.util.Map;
 
 import com.kh.mbtix.admin.model.vo.Report;
 import com.kh.mbtix.admin.model.vo.UserDetailDTO;
 import com.kh.mbtix.common.model.vo.PageResponse;
+import com.kh.mbtix.miniGame.model.dto.CatchMindWord;
+import com.kh.mbtix.miniGame.model.dto.Quiz;
 import com.kh.mbtix.user.model.vo.UserEntity;
 import com.kh.mbtix.admin.model.vo.DashboardStatsDTO;
 
@@ -28,4 +31,8 @@ public interface AdminService {
     boolean unbanUser(int userId);
     
     DashboardStatsDTO getDashboardStats();
+
+	List<Quiz> selectAllSpeedQuiz();
+
+	List<CatchMindWord> selectAllCatchMindWords();
 }

@@ -25,6 +25,18 @@
     	)	
     </insert>
     
+    <select id="selectAllSpeedQuiz" resultType="com.kh.mbtix.miniGame.model.dto.Quiz">
+    	SELECT 
+    		*
+    	FROM GAME_QUIZ
+    </select>
+    
+    <select id="selectAllCatchMindWords" resultType="com.kh.mbtix.miniGame.model.dto.CatchMindWord">
+    	SELECT 
+    		*
+    	FROM GAME_CATCH_MIND_WORDS
+    </select>
+    
     <resultMap id="UserDetailResultMap" type="com.kh.mbtix.admin.model.vo.UserDetailDTO$UserInfo">
         <id property="userId" column="USER_ID"/>
         <result property="loginId" column="LOGIN_ID"/>

@@ -119,7 +119,6 @@ public class OnlineGameServiceImpl implements OnlineGameService {
 						log.info("{}번 방의 정답이 '{}'(으)로 확정되었습니다. (서버 자동 선택)", roomId, randomAnswer);
 					}
 				}
-				// 정답이 확정되었으니 '그림 그리기' 단계로 이동
 				startDrawingPhase(roomId);
 			};
 			break;
