@@ -10,8 +10,6 @@ public interface OnlineGameService {
 
 	public void prepareRoom(int roomId, int userId);
 
-	public void handleLeaveRoom(int roomId, int userId);
-
 	public void selectWord(int roomId, String answer);
 
 	public void checkAnswerAndBroadcast(int roomId, ChatMessage message);
@@ -21,4 +19,6 @@ public interface OnlineGameService {
 	public void handleDrawChunk(int roomId, DrawChunkMessage message);
 
 	public void updateAndNotifyRoomInfo(GameRoomInfo updatedInfo);
+
+	public void handleLeaveRoom(int roomId, int userId, int isKickedOut);
 }

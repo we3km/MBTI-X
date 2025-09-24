@@ -6,6 +6,7 @@ import java.util.Map;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.kh.mbtix.miniGame.model.dto.GameRoom;
 import com.kh.mbtix.miniGame.model.dto.GameRoomInfo;
@@ -25,8 +26,10 @@ public class MiniGameDao {
 		return session.selectList("minimapper.selectQuiz");
 	}
 
+	@Transactional
 	public void insertPoint(Map<String, Object> point) {
 		session.insert("minimapper.insertPoint", point);
+		session.update("minimapper.updateUserPoint", point);
 	}
 
 	public List<Map<String, Object>> getRank() {
@@ -54,15 +57,11 @@ public class MiniGameDao {
 
 	public void joinGameRoom(Map<String, Object> map) {
 		session.update("minimapper.increasePlayerCount", map);
-
-		int result = session.insert("minimapper.joinGameRoom", map);
-		log.info("joinGameRoom 실행: roomId={}, userId={}, 변경된 행: {}", map.get("roomId"), map.get("userId"), result);
+		session.insert("minimapper.joinGameRoom", map);
 	}
 
 	public List<Gamer> selectGamers(int roomId) {
 		List<Gamer> gamers = session.selectList("minimapper.selectGamers", roomId);
-		// DB에서 조회된 직후의 리스트 크기를 로그로 남깁니다.
-		log.info("selectGamers 실행: roomId={}, 조회된 게이머 수: {}", roomId, (gamers != null ? gamers.size() : "null"));
 		return gamers;
 	}
 

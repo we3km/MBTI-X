@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -30,7 +31,6 @@ import lombok.extern.slf4j.Slf4j;
 public class MiniGameController {
 	private final MiniGameService miniGameService;
 	private final OnlineGameService onlineGameService;
-	private final SimpMessagingTemplate messagingTemplate;
 
 	@GetMapping("/speedquiz")
 	public ResponseEntity<List<Quiz>> quizList() {
@@ -133,6 +133,8 @@ public class MiniGameController {
 	public Map<String, Object> leaveRoom(@RequestBody Map<String, Integer> payload) {
 		int roomId = payload.get("roomId");
 		int userId = payload.get("userId");
+		int isKickedOut = payload.get("isKickedOut");
+		// isKickedOut = 1이면 강퇴, 0이면 자진 퇴소!!
 
 		Map<String, Object> map = new HashMap<>();
 		map.put("roomId", roomId);
@@ -140,12 +142,13 @@ public class MiniGameController {
 
 		miniGameService.leaveRoom(map);
 
+		map.put("isKickedOut", isKickedOut);
 		List<Gamer> remainingGamers = miniGameService.selectGamers(roomId);
 		if (remainingGamers == null || remainingGamers.isEmpty()) {
 			log.info("{}번 방이 비었으므로 DB에서 삭제합니다.", roomId);
 			miniGameService.deleteRoom(roomId);
 		}
-		onlineGameService.handleLeaveRoom(roomId, userId);
+		onlineGameService.handleLeaveRoom(roomId, userId, isKickedOut);
 
 		return Map.of("status", "success");
 	}
@@ -174,6 +177,7 @@ public class MiniGameController {
 		return miniGameService.selectCathMindWords();
 	}
 
+	@Transactional
 	@PostMapping("/changeRoomInfo")
 	public void changeRoomInfo(@RequestBody Map<String, Object> payload) {
 		String roomName = (String) payload.get("roomName");

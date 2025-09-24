@@ -23,6 +23,7 @@ import com.kh.mbtix.miniGame.model.dto.DrawMessage;
 import com.kh.mbtix.miniGame.model.dto.GameRoom;
 import com.kh.mbtix.miniGame.model.dto.GameRoomInfo;
 import com.kh.mbtix.miniGame.model.dto.GameStateMessage;
+import com.kh.mbtix.miniGame.model.dto.GameStateMessage.GameStateMessageBuilder;
 import com.kh.mbtix.miniGame.model.dto.Gamer;
 
 import jakarta.annotation.PostConstruct;
@@ -297,7 +298,6 @@ public class OnlineGameServiceImpl implements OnlineGameService {
 		Map<String, String> joinSystemMessage = Map.of("message", joiningGamer.getNickname() + "님이 방을 입장하였습니다.");
 		messagingTemplate.convertAndSend("/sub/chat/" + roomId, joinSystemMessage);
 
-		// DB에서 가져온 최신 정보로 메모리의 플레이어 목록을 '덮어씁니다'.
 		Map<Integer, Gamer> playersMap = gamersFromDb.stream()
 				.collect(Collectors.toMap(Gamer::getUserId, gamer -> gamer));
 		room.setPlayers(playersMap);
@@ -312,116 +312,131 @@ public class OnlineGameServiceImpl implements OnlineGameService {
 		messagingTemplate.convertAndSend("/sub/game/" + roomId + "/state", initialStateMessage);
 	}
 
-	// 방 나가기
+	// ==================================== 방 나가기 ====================================
 	@Transactional
 	@Override
-	public void handleLeaveRoom(int roomId, int userId) {
-		GameRoom room = gameRooms.get(roomId);
-		if (room == null) {
-			log.warn("메모리에 {}번 방이 없어 나가기 처리를 스킵합니다.", roomId);
-			return;
-		}
+	public void handleLeaveRoom(int roomId, int userId, int isKickedOut) {
+	    GameRoom room = gameRooms.get(roomId);
+	    if (room == null) {
+	        log.warn("메모리에 {}번 방이 없어 나가기 처리를 스킵합니다.", roomId);
+	        return;
+	    }
 
-		// 나가는 플레이어 정보
-		Gamer leavingGamer = room.getPlayers().get(userId);
-		if (leavingGamer == null) {
-			log.warn("{}번 방에 {}번 유저가 없어 나가기 처리를 스킵합니다.", roomId, userId);
-			return;
-		}
+	    Gamer leavingGamer = room.getPlayers().get(userId);
+	    if (leavingGamer == null) {
+	        log.warn("{}번 방에 {}번 유저가 없어 나가기 처리를 스킵합니다.", roomId, userId);
+	        return;
+	    }
 
-		chunkBuffers.remove(userId);
-		log.info("[메모리 정리] {}번 유저의 chunkBuffer를 삭제했습니다.", userId);
+	    chunkBuffers.remove(userId);
+	    log.info("[메모리 정리] {}번 유저의 chunkBuffer를 삭제했습니다.", userId);
 
-		// 나가는 사람이 방장이었는지, 그림을 그리던 출제자였는지
-		Gamer captain = room.getCaptain();
-		log.info("captain , leavingGamer , {} , {}", captain, leavingGamer);
-		boolean wasCaptain = captain != null && captain.getUserId() == leavingGamer.getUserId();
-		boolean wasDrawerInDrawingPhase = leavingGamer.getUserId() == room.getCurrentDrawerId()
-				&& "drawing".equalsIgnoreCase(room.getStatus());
+	    boolean wasCaptain = room.getCaptain() != null && room.getCaptain().getUserId() == leavingGamer.getUserId();
+	    boolean wasDrawerInDrawingPhase = leavingGamer.getUserId() == room.getCurrentDrawerId()
+	            && "drawing".equalsIgnoreCase(room.getStatus());
 
-		room.getPlayers().remove(userId);
-		log.info("{}번 유저가 {}번 방의 메모리에서 제거되었습니다.", userId, roomId);
+	    room.getPlayers().remove(userId);
+	    log.info("{}번 유저가 {}번 방의 메모리에서 제거되었습니다.", userId, roomId);
 
-		if (room.getPlayers().isEmpty()) {
-			log.info("{}번 방이 비어있어 방을 제거하고 타이머를 중지합니다.", roomId);
-			gameRooms.remove(roomId);
-			scheduledTasks.remove(roomId);
-			lastBroadcastTime.remove(roomId);
-			stopTimer(roomId);
-			return; // 모든 로직 종료
-		}
+	    if (room.getPlayers().isEmpty()) {
+	        log.info("{}번 방이 비어있어 방을 제거하고 타이머를 중지합니다.", roomId);
+	        gameRooms.remove(roomId);
+	        scheduledTasks.remove(roomId);
+	        lastBroadcastTime.remove(roomId);
+	        stopTimer(roomId);
+	        return;
+	    }
 
-		// 방에 혼자만 남겨졌을 때
-		if (room.getPlayers().size() == 1) {
-			log.info("{}번 방에 한 명만 남아 게임을 대기 상태로 변경합니다.", roomId);
-			stopTimer(roomId); // 현재 라운드 타이머 즉시 중지
+	    if (room.getPlayers().size() == 1) {
+	        log.info("{}번 방에 한 명만 남아 게임을 대기 상태로 변경합니다.", roomId);
+	        stopTimer(roomId);
 
-			room.setStatus("start");
-			room.setCurrentRound(1);
-			room.setCorrectAnswer(null);
-			room.setWordsForDrawer(null);
+	        room.setStatus("start");
+	        room.setCurrentRound(1);
+	        room.setCorrectAnswer(null);
+	        room.setWordsForDrawer(null);
 
-			Gamer lastPlayer = new ArrayList<>(room.getPlayers().values()).get(0);
-			lastPlayer.setPoints(0); // 점수도 초기화
-			room.setCaptain(lastPlayer);
+	        Gamer lastPlayer = new ArrayList<>(room.getPlayers().values()).get(0);
+	        lastPlayer.setPoints(0);
+	        room.setCaptain(lastPlayer);
 
-			Map<String, Object> captainInfo = new HashMap<>();
-			captainInfo.put("userId", lastPlayer.getUserId());
-			captainInfo.put("roomId", roomId);
-			miniGameService.changeCaptain(captainInfo);
+	        Map<String, Object> captainInfo = new HashMap<>();
+	        captainInfo.put("userId", lastPlayer.getUserId());
+	        captainInfo.put("roomId", roomId);
+	        miniGameService.changeCaptain(captainInfo);
 
-			// 방 상태 바꾸는 로직
-			Map<String, Object> roomState = new HashMap<>();
-			roomState.put("roomId", roomId);
-			roomState.put("status", "N");
-			miniGameService.setGameState(roomState);
+	        Map<String, Object> roomState = new HashMap<>();
+	        roomState.put("roomId", roomId);
+	        roomState.put("status", "N");
+	        miniGameService.setGameState(roomState);
 
-			Map<String, String> aloneMessage = Map.of("message", "플레이어가 한명만 남아 게임 초기화면으로 이동합니다.");
-			messagingTemplate.convertAndSend("/sub/chat/" + roomId, aloneMessage);
-			
-			GameStateMessage resetMessage = GameStateMessage.builder().status("start")
-					.gamers(new ArrayList<>(room.getPlayers().values())).captain(room.getCaptain()).build();
-			messagingTemplate.convertAndSend("/sub/game/" + roomId + "/state", resetMessage);
-			
-			return;
-		}
+	        Map<String, String> aloneMessage = Map.of("message", "플레이어가 한명만 남아 게임 초기화면으로 이동합니다.");
+	        messagingTemplate.convertAndSend("/sub/chat/" + roomId, aloneMessage);
 
-		// 1. 그림을 그리던 출제자가 나갔을 경우 (가장 먼저 처리)
-		if (wasDrawerInDrawingPhase) {
-			log.info("출제자({})가 나가 현재 라운드를 종료하고 다음 라운드를 시작합니다.", leavingGamer.getNickname());
-			stopTimer(roomId); // 현재 라운드 타이머 즉시 중지
-			Map<String, String> systemMessage = Map.of("message", "출제자가 나가서 현재 라운드가 종료됩니다.");
-			messagingTemplate.convertAndSend("/sub/chat/" + roomId, systemMessage);
-			startNextRoundOrEndGame(roomId);
-		} else {
-			// 2. 나간 사람이 방장이었을 경우
-			if (wasCaptain) {
-				Gamer newCaptain = new ArrayList<>(room.getPlayers().values()).get(0);
-				room.setCaptain(newCaptain);
-				log.info("방장이 나가 새로운 방장이({})님으로 변경되었습니다.", newCaptain.getNickname());
+	        GameStateMessage resetMessage = GameStateMessage.builder().status("start")
+	                .gamers(new ArrayList<>(room.getPlayers().values())).captain(room.getCaptain()).build();
+	        messagingTemplate.convertAndSend("/sub/game/" + roomId + "/state", resetMessage);
+	        return;
+	    }
 
-				Map<String, Object> captainInfo = new HashMap<>();
-				captainInfo.put("userId", newCaptain.getUserId());
-				captainInfo.put("roomId", roomId);
-				miniGameService.changeCaptain(captainInfo);
+	    if (wasDrawerInDrawingPhase) {
+	        log.info("출제자({})가 나가 현재 라운드를 종료하고 다음 라운드를 시작합니다.", leavingGamer.getNickname());
+	        stopTimer(roomId);
 
-				// 통합된 알림 메시지 전송
-				Map<String, String> captainChangeMessage = Map.of("message",
-						"방장 " + leavingGamer.getNickname() + "님이 나가서 새로운 방장은 " + newCaptain.getNickname() + "님입니다.");
-				messagingTemplate.convertAndSend("/sub/chat/" + roomId, captainChangeMessage);
-			} else {
-				// 일반 유저가 나갔을 경우
-				Map<String, String> leaveSystemMessage = Map.of("message", leavingGamer.getNickname() + "님이 방을 나갔습니다.");
-				messagingTemplate.convertAndSend("/sub/chat/" + roomId, leaveSystemMessage);
-			}
-			// 3. 단순히 업데이트된 게임 상태만 모두에게 브로드캐스팅
-			GameStateMessage leaveMessage = GameStateMessage.builder().status(room.getStatus()) // 현재 상태는 유지
-					.gamers(new ArrayList<>(room.getPlayers().values())) // 최신 플레이어 목록
-					.captain(room.getCaptain()) // 방장이 바뀌었을 수 있으니 최신 정보 전송
-					.build();
-			messagingTemplate.convertAndSend("/sub/game/" + roomId + "/state", leaveMessage);
-		}
-		log.info("방 상태 : {}", room);
+	        String exitReason = (isKickedOut == 1) ? "강퇴당하여" : "나가서";
+	        Map<String, String> systemMessage = Map.of("message", "출제자가 " + exitReason + " 현재 라운드가 종료됩니다.");
+	        messagingTemplate.convertAndSend("/sub/chat/" + roomId, systemMessage);
+	        
+	        startNextRoundOrEndGame(roomId); 
+	        
+	        return; 
+	    }
+
+	    String chatMessageText;
+	    Gamer currentCaptain = room.getCaptain();
+
+	    if (wasCaptain) {
+	        Gamer newCaptain = new ArrayList<>(room.getPlayers().values()).get(0);
+	        room.setCaptain(newCaptain);
+	        currentCaptain = newCaptain;
+	        
+	        Map<String, Object> captainInfo = new HashMap<>();
+	        captainInfo.put("userId", currentCaptain.getUserId());
+	        captainInfo.put("roomId", roomId);
+	        miniGameService.changeCaptain(captainInfo);
+
+	        chatMessageText = "방장 " + leavingGamer.getNickname() + "님이 나가서 새로운 방장은 " + newCaptain.getNickname() + "님입니다.";
+	    
+	    } else if (isKickedOut == 1) {
+	        chatMessageText = "방장에 의해 " + leavingGamer.getNickname() + "님이 강퇴당했습니다.";
+	    
+	    } else {
+	        chatMessageText = leavingGamer.getNickname() + "님이 방을 나갔습니다.";
+	    }
+
+	    messagingTemplate.convertAndSend("/sub/chat/" + roomId, Map.of("message", chatMessageText));
+
+	    GameStateMessageBuilder messageBuilder = GameStateMessage.builder()
+	            .status(room.getStatus())
+	            .gamers(new ArrayList<>(room.getPlayers().values()))
+	            .captain(currentCaptain);
+	    if (isKickedOut == 1) {
+	        messageBuilder.kickedOutId(userId);
+	    }
+	    messagingTemplate.convertAndSend("/sub/game/" + roomId + "/state", messageBuilder.build());
+	    
+	    log.info("방 상태 : {}", room);
+	}
+
+	// 방장이 방속성 바꿈
+	@Override
+	public void updateAndNotifyRoomInfo(GameRoomInfo updatedInfo) {
+		GameRoom room = gameRooms.get(updatedInfo.getRoomId());
+
+		GameStateMessage updatedMessage = GameStateMessage.builder().roomName(updatedInfo.getRoomName())
+				.maxCount(updatedInfo.getMaxCount()).status(room.getStatus())
+				.gamers(new ArrayList<>(room.getPlayers().values())).build();
+		messagingTemplate.convertAndSend("/sub/game/" + updatedInfo.getRoomId() + "/state", updatedMessage);
 	}
 
 	@Override
@@ -558,11 +573,5 @@ public class OnlineGameServiceImpl implements OnlineGameService {
 			// 6. 조립이 끝난 데이터는 메모리에서 즉시 삭제합니다.
 			userBuffer.remove(message.getId());
 		}
-	}
-
-	@Override
-	public void updateAndNotifyRoomInfo(GameRoomInfo updatedInfo) {
-		
-		
 	}
 }

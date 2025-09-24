@@ -34,4 +34,8 @@ public class GameStateMessage {
 	
 	private List<Gamer> gamers;
 	private Gamer captain; // 방장
+	
+	private String roomName; // 방 제목
+	private int maxCount; // 방 최대 인원
+	private int kickedOutId; // 퇴장당하는 회원 번호
 }

@@ -17,6 +17,12 @@
     )
 	</insert>
 	
+	<update id="updateUserPoint" parameterType="map">
+	    UPDATE USERS
+	    	SET POINT = NVL(POINT, 0) + #{score}
+	    WHERE USER_ID = #{userId}
+	</update>
+	
 	<!-- 각 게임의 랭크 뽑아옴 -->	
 	<select id="getRank" resultType="map">
 		SELECT 
