@@ -53,17 +53,14 @@ public class AuthService {
         if (mbtiId == null || mbtiId.isBlank()) {
         	throw new IllegalArgumentException("mbti는 필수 입력입니다.");
         }
-
         // 2️ 아이디 중복 체크
         if (authDao.findByLoginId(loginId) != null) {
             throw new IllegalArgumentException("이미 사용 중인 아이디입니다.");
         }
-
         // 3️ 이메일 중복 체크
         if (authDao.findByEmail(email) != null) {
             throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
         }
-
         // 4️ 닉네임 중복 체크
         if (authDao.findByNickname(nickname) != null) {
             throw new IllegalArgumentException("이미 사용 중인 닉네임입니다.");
@@ -79,6 +76,8 @@ public class AuthService {
         authDao.insertUser(user);
         user.setUserId(user.getUserId()); // selectKey 결과 반영
 		
+		// user_credentials 테이블
+
 		UserCredential cred = UserCredential.builder()
 							.userId(user.getUserId())
 							.password(encoder.encode(password))
@@ -111,25 +110,17 @@ public class AuthService {
 				.user(user)
 				.build();
 	}
-
-
 	public boolean isLoginIdAvailable(String loginId) {
 		log.debug("중복검사 아이디({})",loginId);
 		return authDao.findByLoginId(loginId) == null;
 	}
-
-
 	public boolean isNicknameAvailable(String nickname) {
 		return authDao.findByNickname(nickname) == null;
 	}
-
-
 	public boolean existsByLoginId(String loginId) {
 		User user = authDao.findByLoginId(loginId);
 		return user != null;
 	}
-
-
 	public AuthResult login(String loginId, String password) {
 		User user = authDao.findByLoginpassword(loginId);
 		
@@ -187,6 +178,21 @@ public class AuthService {
 				.build();
 	}
 
+	
+//	@PostMapping("/logout")
+//	public ResponseEntity<Void> logiut(HttpServletRequest request){
+//		
+//		String accessToken = resolveAccessToken(request);
+//		Long userId = jwt.getUserId(accessToken);
+//		
+//		String authAccessToken = service.getauthAccessToken(userId);
+//		
+//		if(authAccessToken != null) {
+//			
+//		}
+//			
+//	}
+
 	public String resolveAccessToken(HttpServletRequest request) {
 		String bearerToken = request.getHeader("Authorization");
 		if(bearerToken != null && bearerToken.startsWith("Bearer ")) {
@@ -194,10 +200,8 @@ public class AuthService {
 		}
 		return null;
 	}
-
-
 	public boolean isEmailAvailable(String email) {
-		return authDao.findByEmail(email) == null; 
+		return authDao.findByEmail(email) == null;
 	}
 
 
@@ -291,4 +295,10 @@ public class AuthService {
 	public void insertProfile(FileVO file) {
 		authDao.insertProfile(file);
 	}
+
+
+	
+
+
 }
+
