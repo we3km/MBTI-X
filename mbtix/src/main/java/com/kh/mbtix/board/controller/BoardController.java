@@ -65,14 +65,14 @@ public class BoardController {
 	}
 	
 	@PostMapping
-	public ResponseEntity<Void> insertBoard(@ModelAttribute BoardRequest request){
-		Object principal =  SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		if (!(principal instanceof Long)) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-		}
-		Long userId = (Long) principal;
+	public ResponseEntity<Board> insertBoard(@ModelAttribute BoardRequest request){ // [수정] 반환 타입을 ResponseEntity<Board>로 변경
+	    Object principal =  SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+	    if (!(principal instanceof Long)) {
+	        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+	    }
+	    Long userId = (Long) principal;
 
-		Board b = Board.builder()
+	    Board b = Board.builder()
 	            .title(request.getTitle())
 	            .content(request.getContent())
 	            .categoryId(request.getCategoryId())	            
@@ -80,14 +80,14 @@ public class BoardController {
 	            .userId(userId)
 	            .boardMbti(request.getBoardMbti())
 	            .build();
-		log.debug("board : {}", b);
-		int result = boardService.insertBoard(b , request.getImages());
-		
-		if(result > 0) {
-			return ResponseEntity.noContent().build();
-		}else {
-			return ResponseEntity.badRequest().build();
-		}
+	    
+	    int result = boardService.insertBoard(b , request.getImages());
+	    
+	    if(result > 0) {
+	        return ResponseEntity.status(HttpStatus.CREATED).body(b); 
+	    }else {
+	        return ResponseEntity.badRequest().build();
+	    }
 	}
 	
     @PostMapping("/report")
