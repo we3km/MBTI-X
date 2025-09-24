@@ -3,6 +3,7 @@
   
 <mapper namespace="com.kh.mbtix.admin.model.dao.AdminDao">
 	
+	<!-- 게임 데이터 삽입 -->
 	<insert id="insertSpeedQuiz" parameterType="map">
 		INSERT INTO GAME_QUIZ (
         QUESTION_ID,
@@ -25,16 +26,35 @@
     	)	
     </insert>
     
+    <!-- 게임 데이터 수정 -->
+    <update id="updateSpeedQuiz" parameterType="com.kh.mbtix.miniGame.model.dto.Quiz">
+	    UPDATE GAME_QUIZ
+	    SET 
+	        QUESTION = #{question},
+	        ANSWER = #{answer}
+	    WHERE QUESTION_ID = #{questionId}
+	</update>
+	
+	<update id="updateCatchMindWord" parameterType="com.kh.mbtix.miniGame.model.dto.CatchMindWord">
+	    UPDATE GAME_CATCH_MIND_WORDS
+	    SET 
+	        WORD = #{word},	       
+	    WHERE WORD_ID = #{wordId}
+	</update>
+    
+    <!-- 게임 데이터 전부 불러오기 -->
     <select id="selectAllSpeedQuiz" resultType="com.kh.mbtix.miniGame.model.dto.Quiz">
     	SELECT 
     		*
     	FROM GAME_QUIZ
+    	ORDER BY QUESTION_ID
     </select>
     
     <select id="selectAllCatchMindWords" resultType="com.kh.mbtix.miniGame.model.dto.CatchMindWord">
     	SELECT 
     		*
     	FROM GAME_CATCH_MIND_WORDS
+    	ORDER BY WORD_ID
     </select>
     
     <resultMap id="UserDetailResultMap" type="com.kh.mbtix.admin.model.vo.UserDetailDTO$UserInfo">

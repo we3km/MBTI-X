@@ -35,4 +35,8 @@ public interface AdminService {
 	List<Quiz> selectAllSpeedQuiz();
 
 	List<CatchMindWord> selectAllCatchMindWords();
+
+	void updateSpeedQuiz(Quiz quiz);
+
+	void updateCatchMindWord(CatchMindWord catchMindWord);
 }

@@ -42,5 +42,9 @@ public interface AdminDao {
     int unbanUser(int usreId);
     
     // 관리자 페이지 통계
-    DashboardStatsDTO selectDashboardStats();	
+    DashboardStatsDTO selectDashboardStats();
+    
+    
+	void updateSpeedQuiz(Quiz quiz);
+	void updateCatchMindWord(CatchMindWord catchMindWord);	
 }

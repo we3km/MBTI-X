@@ -46,12 +46,11 @@ public class AdminServiceImpl implements AdminService {
 		return adminDao.selectAllSpeedQuiz();
 	}
 
-
 	@Override
 	public List<CatchMindWord> selectAllCatchMindWords() {
 		return adminDao.selectAllCatchMindWords();
 	}
-	
+
 	@Override
 	public PageResponse<UserEntity> selectAllUsers(int currentPage, String searchType, String keyword, String status) {
 
@@ -173,5 +172,15 @@ public class AdminServiceImpl implements AdminService {
 	@Override
 	public DashboardStatsDTO getDashboardStats() {
 		return adminDao.selectDashboardStats();
+	}
+
+	@Override
+	public void updateSpeedQuiz(Quiz quiz) {
+		adminDao.updateSpeedQuiz(quiz);
+	}
+
+	@Override
+	public void updateCatchMindWord(CatchMindWord catchMindWord) {
+		adminDao.updateCatchMindWord(catchMindWord);
 	}
 }

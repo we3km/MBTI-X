@@ -59,6 +59,19 @@ public class AdminController {
 		return catchMindWordList;
 	}
 	
+	@PatchMapping("/updateSpeedQuiz")
+	public ResponseEntity<Void> updateSpeedQuiz(@RequestBody Quiz quiz) {
+		adminService.updateSpeedQuiz(quiz);
+		return ResponseEntity.ok().build();
+	}
+	
+	@PatchMapping("/updateCatchMindWord")
+	public ResponseEntity<Void> updateCatchMindWord(@RequestBody CatchMindWord catchMindWord) {
+		adminService.updateCatchMindWord(catchMindWord);
+		return ResponseEntity.ok().build();
+	}
+	
+	
 	// 대시보드 통계 조회 메소드
 	@GetMapping("/dashboard/stats")
 	public ResponseEntity<DashboardStatsDTO> getDashboardStats() {
