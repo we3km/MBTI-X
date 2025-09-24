@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="minimapper">
+	
+	<!-- 스코어 점수 할당 -->
+	<insert id="insertPoint" parameterType="map">
+		INSERT INTO GAME_SCORE (
+        PLAYED_NO,
+        GAME_CODE,
+        SCORE,
+        USER_ID
+    ) VALUES (
+        GAME_SCORE_SEQ.NEXTVAL,
+        #{gameCode},
+        #{score},
+        #{userId}
+    )
+	</insert>
+	
+	<update id="updateUserPoint" parameterType="map">
+	    UPDATE USERS
+	    	SET POINT = NVL(POINT, 0) + #{score}
+	    WHERE USER_ID = #{userId}
+	</update>
+	
+	<!-- 각 게임의 랭크 뽑아옴 -->	
+	<select id="getRank" resultType="map">
+		SELECT 
+		    M.MBTI_NAME,
+		    SUM(GS.SCORE) AS TOTAL_SCORE,
+		    GS.GAME_CODE
+		FROM GAME_SCORE GS
+		INNER JOIN USERS U 
+		    ON U.USER_ID = GS.USER_ID
+		INNER JOIN MBTI M 
+		    ON U.MBTI_ID = M.MBTI_ID
+		GROUP BY M.MBTI_ID, M.MBTI_NAME, GS.GAME_CODE
+		ORDER BY TOTAL_SCORE DESC
+	</select>
+	
+	<!-- 스피드 퀴즈 문제 랜덤으로 5문제 뽑아옴 -->
+	<select id="selectQuiz" resultType="com.kh.mbtix.miniGame.model.dto.Quiz">
+	    SELECT *
+			FROM GAME_QUIZ
+		ORDER BY DBMS_RANDOM.VALUE
+		FETCH FIRST 5 ROWS ONLY
+	</select>	
+	
+	<!-- 각 회원의 MBTI 비율 -->
+	<select id="getUserMBTI" resultType="map">
+	    SELECT 
+		    M.MBTI_NAME,
+		    COUNT(U.USER_ID) AS USER_COUNT
+		FROM USERS U
+		JOIN MBTI M ON U.MBTI_ID = M.MBTI_ID
+		GROUP BY M.MBTI_NAME
+	</select>	
+	
+	<!-- 메인페이지 퀴즈 제목 가져오기 (오늘 날짜로) -->
+	<select id="getQuizTitle" resultType="String">
+	    SELECT TITLE
+	    FROM BAL_GAME
+	    WHERE TRUNC(CREATE_DATE) = TRUNC(SYSDATE)
+	    AND ACTIVE = 'Y'
+	</select>	
+	
+	
+	<!-- =========================== 온라인 게임 =========================== -->
+	<!-- 게임방 리스트 불러오기 -->
+	<select id="selectGameRoomList" parameterType="int" resultType="GameRoomInfo">
+		SELECT 
+		    GR.ROOM_ID, 
+		    GR.ROOM_NAME, 
+		    GR.USER_ID AS CREATOR_ID,
+		    GR.MAX_COUNT, 
+		    TRIM(GR.STATUS) AS STATUS,
+		    U.NICKNAME,
+		    M.MBTI_NAME,
+            F.FILE_NAME AS PROFILE,
+            (SELECT COUNT(*) FROM GAME_PARTICIPANT WHERE ROOM_ID = GR.ROOM_ID) AS PLAYER_COUNT
+		FROM GAME_ROOM GR
+		LEFT JOIN USERS U ON GR.USER_ID = U.USER_ID
+		LEFT JOIN MBTI M ON M.MBTI_ID = U.MBTI_ID
+        LEFT JOIN "FILE" F ON F.REF_ID = U.USER_ID
+		ORDER BY ROOM_ID DESC
+	</select>
+	
+	<!-- 방 정보 가져오기 -->
+	<select id="selectGameRoomInfo" parameterType="int" resultType="GameRoomInfo">
+	    SELECT 
+	        GR.ROOM_ID, 
+	        GR.ROOM_NAME, 
+	        GR.USER_ID AS CREATOR_ID,
+	        GR.MAX_COUNT,
+	        (SELECT COUNT(*) FROM GAME_PARTICIPANT WHERE ROOM_ID = GR.ROOM_ID AND STATUS = 'Y') AS PLAYER_COUNT
+	    FROM GAME_ROOM GR
+	    WHERE GR.ROOM_ID = #{roomId}
+	</select>
+	
+	<!-- 게임방 생성 -->
+	<insert id="createGameRoom" parameterType="map" useGeneratedKeys="true" keyProperty="roomId">
+	    <selectKey keyProperty="roomId" resultType="int" order="BEFORE">
+	        SELECT GAME_ROOM_SEQ.NEXTVAL FROM DUAL
+	    </selectKey>
+	    INSERT INTO GAME_ROOM 
+	        (ROOM_ID, ROOM_NAME, USER_ID, STATUS, PLAYER_COUNT, MAX_COUNT)
+	    VALUES 
+	        (#{roomId}, #{roomName}, #{userId}, 'N', 1, #{maxCount})
+	</insert>
+		
+	<!-- 이전에 들어왔던 방이면 검사후 입장 -->	
+	<insert id="joinGameRoom" parameterType="map">
+	    MERGE INTO GAME_PARTICIPANT t
+		USING (SELECT #{roomId} AS ROOM_ID, #{userId} AS USER_ID FROM dual) s
+		ON (t.ROOM_ID = s.ROOM_ID AND t.USER_ID = s.USER_ID)
+		WHEN MATCHED THEN
+		  UPDATE SET t.STATUS = 'Y'
+		WHEN NOT MATCHED THEN
+		  INSERT (ROOM_ID, USER_ID, STATUS)
+		  VALUES (s.ROOM_ID, s.USER_ID, 'Y')
+	</insert>	
+
+	<!-- 게임방 상태 확인 후 입장 가능하게 하자 -->	
+	<select id="getGameRoomStatus" parameterType="map" resultType="string">
+		SELECT STATUS FROM GAME_ROOM WHERE ROOM_ID = #{roomId}
+	</select>	
+	
+	<!-- 게임방에 들어와있는 사람들 정보 가져오기 -->
+	<resultMap id="gamerResultMap" type="com.kh.mbtix.miniGame.model.dto.Gamer">
+	    <result property="userId" column="USER_ID"/>
+	    <result property="nickname" column="NICKNAME"/>
+	    <result property="mbtiName" column="MBTI_NAME"/>
+	    <result property="profile" column="FILE_NAME"/>
+    </resultMap>
+	<select id="selectGamers" parameterType="int" resultMap="gamerResultMap">
+	   SELECT 
+	        GP.USER_ID,
+	        U.NICKNAME,
+	        M.MBTI_NAME,
+            (SELECT F.FILE_NAME
+		        FROM "FILE" F
+		     WHERE F.REF_ID = U.USER_ID 
+		        AND ROWNUM = 1) AS FILE_NAME 
+	    FROM GAME_PARTICIPANT GP
+	    LEFT JOIN USERS U ON GP.USER_ID = U.USER_ID
+	    LEFT JOIN MBTI M ON M.MBTI_ID = U.MBTI_ID
+	    WHERE GP.ROOM_ID = #{roomId} AND GP.STATUS = 'Y'
+	</select>
+	
+	<!-- 게임방 나가기 -->
+	<delete id="leaveRoom" parameterType="map">
+	    DELETE FROM GAME_PARTICIPANT
+	    WHERE ROOM_ID = #{roomId} 
+	    AND USER_ID = #{userId}
+	</delete>
+	
+	<update id="increasePlayerCount" parameterType="map">
+	    UPDATE GAME_ROOM
+	    SET PLAYER_COUNT = PLAYER_COUNT + 1
+	    WHERE ROOM_ID = #{roomId}
+	</update>
+	
+	<update id="decreasePlayerCount" parameterType="map">
+	    UPDATE GAME_ROOM
+	    SET PLAYER_COUNT = PLAYER_COUNT - 1
+	    WHERE ROOM_ID = #{roomId}
+	</update>
+
+	<!-- 게임방에 아무도 없으면 삭제 -->
+	<delete id="deleteRoom" parameterType="int">
+    	DELETE FROM GAME_ROOM 
+    	WHERE ROOM_ID = #{roomId}
+	</delete>	
+	
+	<!-- 게임방 상태 변경 -->
+	<update id="setGameState" parameterType="map">
+	    UPDATE GAME_ROOM
+		    <set>
+		        <if test="status != null">
+		            STATUS = #{status}
+		        </if>
+		    </set>
+	    WHERE ROOM_ID = #{roomId}
+	</update>
+	
+	<!-- 게임방 방장 정보 바꾸기 -->
+	<update id="changeCaptain" parameterType="map">
+		UPDATE GAME_ROOM
+		SET USER_ID = #{userId}
+		WHERE ROOM_ID = #{roomId}
+	</update>
+	
+	<!-- 캐치마인드 단어 -->
+	<select id="selectCathMindWords" resultType="string">
+	    SELECT WORD
+		    FROM GAME_CATCH_MIND_WORDS
+		ORDER BY DBMS_RANDOM.VALUE
+	</select>
+	
+	<!-- 게임방 정보 바꾸기 -->
+	<update id="changeRoomInfo" parameterType="map">
+		UPDATE GAME_ROOM
+		SET 
+			ROOM_NAME = #{roomName},
+			MAX_COUNT = #{maxCount}
+		WHERE ROOM_ID = #{roomId}
+	</update>
+</mapper>

@@ -31,37 +31,34 @@ public class JWTAutenticationFilter extends OncePerRequestFilter {
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {
-		String header  = request.getHeader("Authorization");
-		if(header != null && header.startsWith("Bearer ")) {
-			
+		String path = request.getServletPath();
+
+		// 1) /api/ws/** 요청은 JWT 인증 건너뛰기
+		if (path.startsWith("/api/ws/")) {
+			filterChain.doFilter(request, response);
+			return;
+		}
+
+		String header = request.getHeader("Authorization");
+
+		if (header != null && header.startsWith("Bearer ")) {
+
 			try {
+				// 2) 토큰에서 userId추출
 				String token = header.substring(7).trim();
 				Long userId = jwt.getUserId(token);
-				List<String> roles = jwt.getRoles(token);
-				
-				// [수정] roles가 null일 경우를 대비한 방어 코드
-				List<SimpleGrantedAuthority> authorities;
-				if (roles == null) {
-					authorities = Collections.emptyList();
-				} else {
-					authorities = roles.stream()
-							.map(SimpleGrantedAuthority::new)
-							.collect(Collectors.toList());
-				}
-									
-				UsernamePasswordAuthenticationToken authToken
-				= new UsernamePasswordAuthenticationToken(userId, null , authorities);
-				
+				UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userId, null,
+						List.of(new SimpleGrantedAuthority("ROLE_USER")));
+
+				// 인증처리 끝
 				SecurityContextHolder.getContext().setAuthentication(authToken);
-				log.debug("userId: {} -> roles: {} 권한 처리 완료", userId, roles);
-				
-			} catch(ExpiredJwtException e) {
+			} catch (ExpiredJwtException e) {
 				SecurityContextHolder.clearContext();
-				response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+				response.sendError(HttpServletResponse.SC_UNAUTHORIZED);// 401상태
 				return;
 			}
 		}
-		
+
 		filterChain.doFilter(request, response);
 	}
 }
