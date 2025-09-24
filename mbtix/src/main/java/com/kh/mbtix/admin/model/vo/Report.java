@@ -22,6 +22,10 @@ public class Report {
     private Date processedAt;
     private int reportCategory;
     
+    // 신고된 콘텐츠 확인
+    private Integer boardId;
+    private Integer commentId;
+    
     private String reporterId; // 신고한 회원 아이디
     private String reportedId; // 신고된 회원 아이디
     private String reportCategoryName; // 신고 유형
