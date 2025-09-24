@@ -1,5 +1,7 @@
 package com.kh.mbtix.admin.model.service;
 
+import java.util.Map;
+
 import com.kh.mbtix.admin.model.vo.Report;
 import com.kh.mbtix.admin.model.vo.UserDetailDTO;
 import com.kh.mbtix.common.model.vo.PageResponse;
@@ -7,6 +9,7 @@ import com.kh.mbtix.user.model.vo.UserEntity;
 import com.kh.mbtix.admin.model.vo.DashboardStatsDTO;
 
 public interface AdminService {
+	void insertGameData(Map<String, Object> data);
     
 	PageResponse<UserEntity> selectAllUsers(int currentPage, String searchType, String keyword, String status);
     

@@ -20,7 +20,6 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 
 import com.kh.mbtix.security.filter.JWTAutenticationFilter;
 import com.kh.mbtix.security.model.handler.OAuth2SuccessHandler;
-//import com.kh.mbtix.security.model.service.OAuth2Service;
 import com.kh.mbtix.security.model.service.OAuth2Service;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -39,16 +38,14 @@ public class SecurityConfig {
 				// Cors관련 빈객체 등록
 				.cors(cors -> cors.configurationSource(corsConfigurationSource()))
 				// CSRF는 SPA어플리케이션에서 사용하지 않음.
-				.csrf(csrf -> csrf.disable())
-				.exceptionHandling(e -> e
-						.authenticationEntryPoint((req, res, ex) -> {
-							//인증 실패시 401처리
-							res.sendError(HttpServletResponse.SC_UNAUTHORIZED,"UNAUTHORIZED");
-						}).accessDeniedHandler((req, res, ex) -> {
-							//인증 실패시 403처리
-							res.sendError(HttpServletResponse.SC_FORBIDDEN,"FORBIDDEN");
-						}))
-				
+				.csrf(csrf -> csrf.disable()).exceptionHandling(e -> e.authenticationEntryPoint((req, res, ex) -> {
+					// 인증 실패시 401처리
+					res.sendError(HttpServletResponse.SC_UNAUTHORIZED, "UNAUTHORIZED");
+				}).accessDeniedHandler((req, res, ex) -> {
+					// 인증 실패시 403처리
+					res.sendError(HttpServletResponse.SC_FORBIDDEN, "FORBIDDEN");
+				}))
+
 				// 서버에서 인증상태를 관리하지 않게 하는 설정.
 				.sessionManagement(
 						management -> 
@@ -84,6 +81,8 @@ public class SecurityConfig {
                     .requestMatchers("/uploads/**").permitAll()
                     
 					.requestMatchers("/oauth2/**","/login**","/error").permitAll()
+					.requestMatchers("/ws/**", "/api/ws/**", "/topic/**", "/app/**").permitAll()
+					.requestMatchers("/getQuizTitle", "/getUserMBTI").permitAll() // 일반 회원들도 볼 수 있게 해주장 ㅠㅠ
 					.requestMatchers("/uploads/**").permitAll()
 					.requestMatchers("/**").authenticated()
 				);
@@ -98,15 +97,19 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // 허용 Origin설정 - React 개발 서버
-        config.setAllowedOrigins(List.of("http://localhost:5173"));
+		// 허용 Origin설정
+		config.setAllowedOrigins(List.of(
+			    "http://localhost:5173",
+			    "http://192.168.10.230:5173" // LAN IP 허용
+			));
 
-        // 허용 메서드
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("*"));
-        config.setExposedHeaders(List.of("Location", "Authorization"));
-        config.setAllowCredentials(true); // 세션, 쿠키 허용
-        config.setMaxAge(3600L); // 요청정보 캐싱시간
+		// 허용 메서드
+		config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+		config.setAllowedHeaders(List.of("*"));
+		config.setExposedHeaders(List.of("Location", "Authorization", "Set-Cookie"));
+
+		config.setAllowCredentials(true); // 세션,쿠키 허용
+		config.setMaxAge(3600L); // 요청정보 캐싱시간
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
