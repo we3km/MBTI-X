@@ -304,9 +304,11 @@ public class OnlineGameServiceImpl implements OnlineGameService {
 
 		log.info("✅ {}번 방 메모리 적재/갱신 완료. 참여자 수: {}", roomId, room.getPlayers().size());
 
-		// 4. 현재 방의 최신 상태를 모든 클라이언트에게 전송합니다.
-		GameStateMessage initialStateMessage = GameStateMessage.builder().status(room.getStatus()) // 현재 방의 상태를 그대로 유지
-				.gamers(new ArrayList<>(room.getPlayers().values())).captain(captain).build();
+		// 현재 방의 최신 상태를 모든 클라이언트에게 전송합니다.
+		GameStateMessage initialStateMessage = GameStateMessage.builder()
+				.status(room.getStatus()) // 현재 방의 상태를 그대로 유지
+				.gamers(new ArrayList<>(room.getPlayers().values()))
+				.captain(captain).build();
 
 		messagingTemplate.convertAndSend("/sub/game/" + roomId + "/state", initialStateMessage);
 	}
