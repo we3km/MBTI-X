@@ -1,8 +1,6 @@
-// security/filter/JWTAutenticationFilter.java
 package com.kh.mbtix.security.filter;
 
 import java.io.IOException;
-import java.util.Collections; // [추가]
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -33,7 +31,6 @@ public class JWTAutenticationFilter extends OncePerRequestFilter {
 			throws ServletException, IOException {
 		String path = request.getServletPath();
 
-		// 1) /api/ws/** 요청은 JWT 인증 건너뛰기
 		if (path.startsWith("/api/ws/")) {
 			filterChain.doFilter(request, response);
 			return;
@@ -44,17 +41,25 @@ public class JWTAutenticationFilter extends OncePerRequestFilter {
 		if (header != null && header.startsWith("Bearer ")) {
 
 			try {
-				// 2) 토큰에서 userId추출
 				String token = header.substring(7).trim();
+				
 				Long userId = jwt.getUserId(token);
-				UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userId, null,
-						List.of(new SimpleGrantedAuthority("ROLE_USER")));
-
+				
+				List<String> roles = jwt.getRoles(token);
+				
+				List<SimpleGrantedAuthority> authorities = roles.stream()
+																.map(SimpleGrantedAuthority::new)
+																.collect(Collectors.toList());
+				
+				UsernamePasswordAuthenticationToken authToken = 
+						new UsernamePasswordAuthenticationToken(userId, null, authorities);
+				
 				// 인증처리 끝
 				SecurityContextHolder.getContext().setAuthentication(authToken);
+
 			} catch (ExpiredJwtException e) {
 				SecurityContextHolder.clearContext();
-				response.sendError(HttpServletResponse.SC_UNAUTHORIZED);// 401상태
+				response.sendError(HttpServletResponse.SC_UNAUTHORIZED); // 401상태
 				return;
 			}
 		}
