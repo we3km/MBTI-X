@@ -9,6 +9,7 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -41,6 +42,7 @@ import lombok.extern.slf4j.Slf4j;
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "http://192.168.10.230:5173")
 public class AuthController {
 
 	private final SecurityConfig securityConfig;

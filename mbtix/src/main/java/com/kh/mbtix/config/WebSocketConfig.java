@@ -1,5 +1,6 @@
 package com.kh.mbtix.config;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
@@ -8,6 +9,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+import org.springframework.web.socket.server.standard.ServletServerContainerFactoryBean;
 
 @Configuration
 @EnableWebSocketMessageBroker
@@ -64,4 +66,17 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 	public void registerStompEndpoints(StompEndpointRegistry registry) {
 		registry.addEndpoint("/ws").setAllowedOriginPatterns("*").withSockJS();
 	}
+	
+	@Bean
+    public ServletServerContainerFactoryBean createWebSocketContainer() {
+        ServletServerContainerFactoryBean container = new ServletServerContainerFactoryBean();
+        // 최대 텍스트 메시지 버퍼 크기 (예: 1MB = 1024 * 1024)
+        // 그림판 스냅샷이 클 경우 이 값을 늘려야 합니다. 1MB는 충분할 것입니다.
+        container.setMaxTextMessageBufferSize(1024 * 1024);
+        // 최대 바이너리 메시지 버퍼 크기 (필요 시)
+        container.setMaxBinaryMessageBufferSize(1024 * 1024);
+        // 타임아웃 설정 (ms)
+        container.setAsyncSendTimeout(5000L); // 5초
+        return container;
+    }
 }

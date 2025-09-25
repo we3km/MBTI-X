@@ -147,6 +147,7 @@ public class MiniGameController {
 			log.info("{}번 방이 비었으므로 DB에서 삭제합니다.", roomId);
 			miniGameService.deleteRoom(roomId);
 		}
+		log.info("나가는 정보 : {}", map);
 		onlineGameService.handleLeaveRoom(roomId, userId, isKickedOut);
 
 		return Map.of("status", "success");
@@ -187,7 +188,6 @@ public class MiniGameController {
 		map.put("roomName", roomName);
 		map.put("maxCount", maxCount);
 		map.put("roomId", roomId);
-		log.info("{}번방 변경하는 방 속성 : {}", roomId, map);
 
 		miniGameService.changeRoomInfo(map);
 
