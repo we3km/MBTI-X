@@ -1,18 +1,9 @@
 package com.kh.mbtix.admin;
 
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.kh.mbtix.admin.model.service.AdminService;
-
-import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -33,8 +24,12 @@ import com.kh.mbtix.admin.model.vo.UserDetailDTO;
 import com.kh.mbtix.board.model.vo.Board;
 import com.kh.mbtix.board.model.vo.BoardComment;
 import com.kh.mbtix.common.model.vo.PageResponse;
+import com.kh.mbtix.miniGame.model.dto.CatchMindWord;
+import com.kh.mbtix.miniGame.model.dto.Quiz;
 import com.kh.mbtix.user.model.vo.UserEntity;
 import com.nimbusds.oauth2.sdk.Response;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RestController
@@ -52,7 +47,48 @@ public class AdminController {
 		log.info("받은 데이터 : {}", data);
 		return ResponseEntity.ok().build();
 	}
-
+	
+	// 게임 데이터 다 가져오기
+	@GetMapping("/selectAllSpeedQuiz")
+	public List<Quiz> selectAllSpeedQuiz() {
+		List<Quiz> speedQuizList = adminService.selectAllSpeedQuiz();
+		return speedQuizList;
+	}
+	
+	@GetMapping("/selectAllCatchMindWords")
+	public List<CatchMindWord> selectAllCatchMindWords() {
+		List<CatchMindWord> catchMindWordList = adminService.selectAllCatchMindWords();
+		return catchMindWordList;
+	}
+	
+	// 게임 데이터 업데이트
+	@PatchMapping("/updateSpeedQuiz")
+	public ResponseEntity<Void> updateSpeedQuiz(@RequestBody Quiz quiz) {
+		adminService.updateSpeedQuiz(quiz);
+		return ResponseEntity.ok().build();
+	}
+	
+	@PatchMapping("/updateCatchMindWord")
+	public ResponseEntity<Void> updateCatchMindWord(@RequestBody CatchMindWord catchMindWord) {
+		adminService.updateCatchMindWord(catchMindWord);
+		return ResponseEntity.ok().build();
+	}
+	
+	// 게임 데이터 삭제
+	@DeleteMapping("/deleteSpeedQuiz")
+	public ResponseEntity<Void> deleteSpeedQuiz(@RequestBody Map<String, Integer> body) {
+		int questionId = body.get("id");
+		adminService.deleteSpeedQuiz(questionId);
+		return ResponseEntity.ok().build();
+	}
+	
+	@DeleteMapping("/deleteCatchMindWord")
+	public ResponseEntity<Void> deleteCatchMindWord(@RequestBody Map<String, Integer> body) {
+		int wordId = body.get("id");
+		adminService.deleteCatchMindWord(wordId);
+		return ResponseEntity.ok().build();
+	}
+	
 	// 대시보드 통계 조회 메소드
 	@GetMapping("/dashboard/stats")
 	public ResponseEntity<DashboardStatsDTO> getDashboardStats() {
