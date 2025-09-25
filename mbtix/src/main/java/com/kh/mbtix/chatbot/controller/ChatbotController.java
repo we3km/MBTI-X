@@ -114,9 +114,8 @@ public class ChatbotController {
 	    
 	    // 사용자 닉네임 가져오기
 	    long userId = room.getUserId();
-	    System.out.println("userId:"+userId);
 	    String nickname = chatbotService.getNickName(userId);
-	    System.out.println("닉네임:"+nickname);
+	    
 	    // 3. FastAPI에 챗봇 초기 메시지 생성 요청
 	    String fastApiUrl = "http://localhost:8000/initial_message";
 	    Map<String, Object> requestBody = new HashMap<>();
