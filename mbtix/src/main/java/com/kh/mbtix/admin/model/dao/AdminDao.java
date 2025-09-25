@@ -9,6 +9,8 @@ import com.kh.mbtix.admin.model.vo.BanInfo;
 import com.kh.mbtix.admin.model.vo.DashboardStatsDTO;
 import com.kh.mbtix.admin.model.vo.Report;
 import com.kh.mbtix.admin.model.vo.UserDetailDTO;
+import com.kh.mbtix.miniGame.model.dto.CatchMindWord;
+import com.kh.mbtix.miniGame.model.dto.Quiz;
 import com.kh.mbtix.board.model.vo.Board;
 import com.kh.mbtix.board.model.vo.BoardComment;
 import com.kh.mbtix.security.model.dto.AuthDto.UserAuthority;
@@ -18,6 +20,8 @@ import com.kh.mbtix.user.model.vo.UserEntity;
 public interface AdminDao {
 	void insertSpeedQuiz(Map<String, Object> data);
 	void insertCathMindWords(Map<String, Object> data);
+	List<Quiz> selectAllSpeedQuiz();
+	List<CatchMindWord> selectAllCatchMindWords();
 
     List<UserEntity> selectAllUsers(Map<String, Object> param);
     int selectListCount(Map<String, Object> param);
@@ -48,4 +52,11 @@ public interface AdminDao {
     
     // 관리자 페이지 통계
     DashboardStatsDTO selectDashboardStats();
+    
+    
+	void updateSpeedQuiz(Quiz quiz);
+	void updateCatchMindWord(CatchMindWord catchMindWord);
+	
+	void deleteSpeedQuiz(int questionId);
+	void deleteCatchMindWord(int wordId);	
 }
