@@ -100,4 +100,12 @@ public class BoardDao {
 		return template.delete("board.deleteComment",comment);
 	}
 
+	public Long selectBoardAuthorId(int boardId) {
+	    return template.selectOne("board.selectBoardAuthorId", boardId);
+	}
+	
+	public Long selectParentCommentAuthorId(int parentId) {
+	    return template.selectOne("board.selectParentCommentAuthorId", parentId);
+	}
+	
 }

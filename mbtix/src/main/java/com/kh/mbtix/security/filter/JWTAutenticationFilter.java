@@ -1,4 +1,3 @@
-// security/filter/JWTAutenticationFilter.java
 package com.kh.mbtix.security.filter;
 
 import java.io.IOException;
@@ -25,49 +24,49 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @RequiredArgsConstructor
 public class JWTAutenticationFilter extends OncePerRequestFilter {
-	private final JWTProvider jwt;
+    private final JWTProvider jwt;
 
-	@Override
-	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-			throws ServletException, IOException {
-		String path = request.getServletPath();
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
+        String path = request.getServletPath();
 
-		// 1) /api/ws/** 요청은 JWT 인증 건너뛰기
-		if (path.startsWith("/api/ws/")) {
-			filterChain.doFilter(request, response);
-			return;
-		}
+        if (path.startsWith("/api/ws/")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
-		String header = request.getHeader("Authorization");
+        String header = request.getHeader("Authorization");
 
-		// 관리자 인증 추가
-		if (header != null && header.startsWith("Bearer ")) {
-		    try {
-		    	// 2) 토큰에서 userId추출
-		        String token = header.substring(7).trim();
-		        Long userId = jwt.getUserId(token);
+        // 관리자 인증 추가
+        if (header != null && header.startsWith("Bearer ")) {
+            try {
+                // 토큰에서 userId 추출
+                String token = header.substring(7).trim();
+                Long userId = jwt.getUserId(token);
 
-		        // JWT에서 roles 읽기
-		        List<String> roles = jwt.getRoles(token);
+                // JWT에서 roles 읽기
+                List<String> roles = jwt.getRoles(token);
 
-		        // roles -> GrantedAuthority 변환
-		        List<SimpleGrantedAuthority> authorities = roles.stream()
-		                .map(SimpleGrantedAuthority::new)
-		                .collect(Collectors.toList());
+                // roles -> GrantedAuthority 변환
+                List<SimpleGrantedAuthority> authorities = roles.stream()
+                        .map(SimpleGrantedAuthority::new)
+                        .collect(Collectors.toList());
 
-		        // Authentication 객체 생성 및 SecurityContext에 설정
-		        UsernamePasswordAuthenticationToken authToken =
-		                new UsernamePasswordAuthenticationToken(userId, null, authorities);
-		        // 인증처리 끝
-		        SecurityContextHolder.getContext().setAuthentication(authToken);
+                // Authentication 객체 생성 및 SecurityContext에 설정
+                UsernamePasswordAuthenticationToken authToken =
+                        new UsernamePasswordAuthenticationToken(userId, null, authorities);
+                
+                // 인증처리 끝
+                SecurityContextHolder.getContext().setAuthentication(authToken);
 
-		    } catch (ExpiredJwtException e) {
-		        SecurityContextHolder.clearContext();
-		        response.sendError(HttpServletResponse.SC_UNAUTHORIZED); // 401
-		        return;
-		    }
-		}
+            } catch (ExpiredJwtException e) {
+                SecurityContextHolder.clearContext();
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED); // 401
+                return;
+            }
+        }
 
-		filterChain.doFilter(request, response);
-	}
+        filterChain.doFilter(request, response);
+    }
 }
