@@ -5,17 +5,8 @@ import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.kh.mbtix.balgame.model.dto.BalGameDtos.CreateGameReq;
 import com.kh.mbtix.balgame.model.dto.BalGameDtos.CreateGameRes;
@@ -26,13 +17,18 @@ import com.kh.mbtix.balgame.model.service.BalGameService;
 
 import lombok.RequiredArgsConstructor;
 
-
 @RestController
 @RequestMapping("/balance")
 @RequiredArgsConstructor
 public class BalGameController {
-    private final BalGameService svc;
 
+    private final BalGameService svc;
+    
+    
+
+    /**
+     * 현재 로그인된 유저 ID 가져오기
+     */
     private long currentUserId() {
         var auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.getPrincipal() instanceof Long userId) {
@@ -40,46 +36,18 @@ public class BalGameController {
         }
         throw new IllegalStateException("로그인 정보가 없습니다.");
     }
-    
-//    @GetMapping("/me")
-//    public Map<String, Object> me() {
-//        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-//
-//        return Map.of(
-//            "userId", auth.getName(),
-//            "roles", auth.getAuthorities().stream()
-//                         .map(Object::toString)
-//                         .toList()
-//        );
-//    }
-//    
-    @GetMapping("/me")
-    public Map<String, Object> me() {
-        // ✅ 테스트: userId=44, ROLE_ADMIN으로 강제 로그인
-        var auth = new UsernamePasswordAuthenticationToken(
-            44L,                         // principal (userId)
-            null,                        // credentials
-            List.of(new SimpleGrantedAuthority("ROLE_ADMIN")) // 권한
-        );
-        SecurityContextHolder.getContext().setAuthentication(auth);
 
-        var current = SecurityContextHolder.getContext().getAuthentication();
-        return Map.of(
-            "userId", current.getPrincipal(),
-            "roles", current.getAuthorities().stream()
-                            .map(Object::toString)
-                            .toList()
-        );
-    }
-
-    
-    
-
+    /**
+     * 오늘의 밸런스 게임 (페이지네이션)
+     */
     @GetMapping("/today")
     public TodayListRes today(@RequestParam(defaultValue = "1") int page) {
         return svc.getTodayPaged(currentUserId(), page, 1);
     }
 
+    /**
+     * 지난 밸런스 게임 (날짜별 페이지네이션)
+     */
     @GetMapping("/past")
     public PastListRes past(
             @RequestParam String date,
@@ -89,16 +57,25 @@ public class BalGameController {
         return svc.getPast(date, page, size);
     }
 
+    /**
+     * 지난 게임 날짜 목록
+     */
     @GetMapping("/past/dates")
     public List<String> pastDates() {
         return svc.getPastDates();
     }
 
+    /**
+     * 특정 날짜의 모든 게임 조회
+     */
     @GetMapping("/past/by-date")
     public List<PastListRes.PastCard> pastByDate(@RequestParam String date) {
         return svc.getPastGamesByDate(date);
     }
 
+    /**
+     * 투표하기
+     */
     @PostMapping("/{gameId}/vote")
     public ResponseEntity<?> vote(@PathVariable long gameId, @RequestBody VoteReq req) {
         try {
@@ -114,14 +91,19 @@ public class BalGameController {
 
     public record VoteReq(String option) {}
 
+    /**
+     * 특정 게임의 통계 조회
+     */
     @GetMapping("/{gameId}/stats")
     public ResponseEntity<StatsRes> stats(@PathVariable Long gameId) {
         return ResponseEntity.ok(svc.stats(gameId));
     }
 
+    /**
+     * 새로운 밸런스 게임 생성 (관리자 전용)
+     */
     @PostMapping
     public ResponseEntity<CreateGameRes> create(@RequestBody CreateGameReq req) {
         return ResponseEntity.ok(svc.createGame(req));
     }
 }
-

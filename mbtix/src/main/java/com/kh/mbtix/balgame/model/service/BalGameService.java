@@ -23,7 +23,12 @@ import com.kh.mbtix.balgame.model.dto.BalGameDtos.TodayListRes;
 public class BalGameService {
     private final BalGameMapper mapper;
     public BalGameService(BalGameMapper mapper){ this.mapper = mapper; }
+    
+    
 
+    /**
+     * 오늘의 게임 (페이지네이션)
+     */
     public TodayListRes getTodayPaged(Long userId, int page, int size) {
         int offset = (page - 1) * size;
         var games = mapper.selectTodayGamesPaged(offset, size);
@@ -51,11 +56,19 @@ public class BalGameService {
 
         return new TodayListRes(content, page, size, totalPages);
     }
-
+    
+    /**
+     * 지난 게임 날짜 목록
+     */
     public List<String> getPastDates() {
         return mapper.selectPastDates();
     }
+    
 
+    
+    /**
+     * 특정 날짜의 게임 목록 조회
+     */
     public List<PastListRes.PastCard> getPastGamesByDate(String date) {
         return mapper.selectPastGamesByDate(date).stream().map(r -> {
             Long gameId = ((Number) r.get("GAME_ID")).longValue();
@@ -71,7 +84,10 @@ public class BalGameService {
             );
         }).toList();
     }
-
+    
+    /**
+     * 지난 게임 (날짜별 페이징)
+     */
     public PastListRes getPast(String date, int page, int size) {
         int offset = (page - 1) * size;
         var rows = mapper.selectPastGamesPaged(date, offset, size);
@@ -94,7 +110,10 @@ public class BalGameService {
 
         return new PastListRes(cards, page, size, totalPages);
     }
-
+    
+    /**
+     * 투표하기
+     */
     @Transactional
     public void vote(Long gameId, String optionLabel, Long userId) {
         if (mapper.hasUserVoted(gameId, userId) > 0)
@@ -109,7 +128,10 @@ public class BalGameService {
         String snapMbti = mapper.selectUserMbtiCode(userId);
         mapper.insertVote(gameId, chosen.optionId(), userId, snapMbti);
     }
-
+    
+    /**
+     * 투표 통계 (전체 투표 수 + 옵션별 비율 + MBTI 분포)
+     */
     public StatsRes stats(Long gameId) {
         var counts = mapper.selectOptionVoteCounts(gameId);
         long total = counts.stream().mapToLong(m -> ((Number) m.get("CNT")).longValue()).sum();
@@ -135,7 +157,10 @@ public class BalGameService {
 
         return new StatsRes(gameId, total, options, mbti);
     }
-
+    
+    /**
+     * 게임 생성 (기존 Y → N 비활성화 후 새 게임 추가)
+     */
     @Transactional
     public CreateGameRes createGame(CreateGameReq req) {
         mapper.deactivateAllActiveGames();
