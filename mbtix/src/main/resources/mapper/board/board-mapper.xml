@@ -147,4 +147,16 @@
      	  AND USER_ID =#{userId}
      </select>
      
+     <select id="selectBoardAuthorId" parameterType="_int" resultType="_long">
+    	SELECT USER_ID
+    	FROM BOARD
+    	WHERE BOARD_ID = #{boardId}
+	</select>
+	
+	<select id="selectParentCommentAuthorId" parameterType="_int" resultType="_long">
+    	SELECT USER_ID
+    	FROM BOARD_COMMENT
+    	HERE COMMENT_ID = #{parentId}
+	</select>
+     
 </mapper>
