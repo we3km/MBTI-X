@@ -1,7 +1,5 @@
 package com.kh.mbtix.config;
-
 import java.util.List;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -17,7 +15,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
-
 import com.kh.mbtix.security.filter.JWTAutenticationFilter;
 import com.kh.mbtix.security.model.handler.OAuth2SuccessHandler;
 import com.kh.mbtix.security.model.service.OAuth2Service;
@@ -27,7 +24,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @EnableWebSecurity
 public class SecurityConfig {
-
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http,
 			JWTAutenticationFilter jwtFilter,
@@ -45,10 +41,9 @@ public class SecurityConfig {
 					// 인증 실패시 403처리
 					res.sendError(HttpServletResponse.SC_FORBIDDEN, "FORBIDDEN");
 				}))
-
 				// 서버에서 인증상태를 관리하지 않게 하는 설정.
 				.sessionManagement(
-						management -> 
+						management ->
 						management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.formLogin(form -> form.disable())
 				
@@ -60,7 +55,7 @@ public class SecurityConfig {
 					        res.sendRedirect(redirect);
 					    })
 					)
-				.authorizeHttpRequests(auth -> 
+				.authorizeHttpRequests(auth ->
 					auth
 					.requestMatchers("/chatbot_profiles/**").permitAll()
 					.requestMatchers("/auth/login", "/auth/signup", "/auth/logout","/auth/refresh",
@@ -76,62 +71,48 @@ public class SecurityConfig {
 					.requestMatchers(HttpMethod.POST, "/faqs").hasRole("ADMIN")
 					.requestMatchers(HttpMethod.PUT, "/faqs/**").hasRole("ADMIN")
 					.requestMatchers(HttpMethod.DELETE, "/faqs/**").hasRole("ADMIN")
-
-					.requestMatchers("/mypage/profile/images/**").permitAll() 
-
+					.requestMatchers("/mypage/profile/images/**").permitAll()
 					// cs경로
 					.requestMatchers("/cs/**").authenticated()
                     // 알림 허용
                     .requestMatchers("/alarms/**").authenticated()
-                    
                     // 업로드된 파일에 대한 접근 허용
                     .requestMatchers("/uploads/**").permitAll()
-                    
 					.requestMatchers("/oauth2/**","/login**","/error").permitAll()
 					.requestMatchers("/ws/**", "/api/ws/**", "/topic/**", "/app/**").permitAll()
-					.requestMatchers("/getQuizTitle", "/getUserMBTI").permitAll() // 일반 회원들도 볼 수 있게 해주장 ㅠㅠ
+					.requestMatchers("/getQuizTitle", "/getUserMBTI").permitAll()
 					.requestMatchers("/uploads/**").permitAll()
 					.anyRequest().authenticated()
 				);
-
 		http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 		
 		return http.build();
 	}
-
     // CORS 설정정보를 가진 빈객체
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-
 		// 허용 Origin설정
 		config.setAllowedOrigins(List.of(
 			    "http://localhost:5173",
 			    "http://192.168.10.230:5173" // LAN IP 허용
 			));
-
 		// 허용 메서드
 		config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
 		config.setAllowedHeaders(List.of("*"));
 		config.setExposedHeaders(List.of("Location", "Authorization", "Set-Cookie"));
-
 		config.setAllowCredentials(true); // 세션,쿠키 허용
 		config.setMaxAge(3600L); // 요청정보 캐싱시간
-
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
-
         return source;
     }
-    
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-    
     @Bean
     public RestTemplate restTemplate() {
         return new RestTemplate();
     }
 }
-
