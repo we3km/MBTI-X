@@ -6,7 +6,7 @@
 <mapper namespace="com.kh.mbtix.balgame.mapper.BalGameMapper">
 
   <!-- ==========================
-       ResultMaps
+       ResultMaps (DTO 매핑)
   ========================== -->
   <resultMap id="GameDtoMap" type="com.kh.mbtix.balgame.model.dto.BalGameDtos$GameDto">
     <constructor>
@@ -30,7 +30,7 @@
        SELECTS
   ========================== -->
 
-  <!-- 오늘의 게임 -->
+  <!-- 오늘의 게임 (페이지네이션) -->
   <select id="selectTodayGamesPaged" resultMap="GameDtoMap">
     SELECT
       g.BAL_ID AS GAME_ID,
@@ -47,7 +47,7 @@
     SELECT COUNT(*) FROM BAL_GAME WHERE TRUNC(CREATE_DATE)=TRUNC(SYSDATE)
   </select>
 
-  <!-- 옵션 -->
+  <!-- 옵션 조회 -->
   <select id="selectOptionsByGameId" parameterType="long" resultMap="OptionDtoMap">
     SELECT
       o.OPTION_ID,
@@ -59,7 +59,7 @@
     ORDER BY o.LABEL
   </select>
 
-  <!-- 옵션별 총 투표수 -->
+  <!-- 옵션별 투표 수 -->
   <select id="selectOptionVoteCounts" parameterType="long" resultType="map">
     SELECT o.LABEL AS LABEL, COUNT(*) AS CNT
     FROM BAL_VOTE v
@@ -69,7 +69,7 @@
     ORDER BY o.LABEL
   </select>
 
-  <!-- 내가 투표한 라벨 -->
+  <!-- 내가 투표한 옵션 라벨 -->
   <select id="selectUserVoteLabel" resultType="string">
     SELECT o.LABEL
     FROM BAL_VOTE v
@@ -92,7 +92,7 @@
     ORDER BY o.LABEL, MBTI
   </select>
 
-  <!-- 과거 게임 (날짜별 페이징) -->
+  <!-- 과거 게임 (날짜별 페이지네이션) -->
   <select id="selectPastGamesPaged" resultType="map">
     SELECT BAL_ID AS GAME_ID,
            TITLE,
@@ -109,6 +109,7 @@
     WHERE TRUNC(CREATE_DATE)=TO_DATE(#{date},'YYYY-MM-DD')
   </select>
 
+  <!-- 지난 게임 날짜 목록 -->
   <select id="selectPastDates" resultType="string">
     SELECT DISTINCT TO_CHAR(CREATE_DATE,'YYYY-MM-DD') AS GAME_DATE
     FROM BAL_GAME
@@ -116,6 +117,7 @@
     ORDER BY GAME_DATE DESC
   </select>
 
+  <!-- 특정 날짜의 게임 목록 -->
   <select id="selectPastGamesByDate" resultType="map">
     SELECT BAL_ID AS GAME_ID,
            TITLE,
@@ -125,13 +127,14 @@
     ORDER BY BAL_ID ASC
   </select>
 
-  <!-- 투표 -->
+  <!-- 투표 여부 확인 -->
   <select id="hasUserVoted" resultType="int">
     SELECT COUNT(*) FROM BAL_VOTE
     WHERE BAL_ID = #{gameId}
       AND USER_ID = #{userId}
   </select>
 
+  <!-- 유저 MBTI 코드 가져오기 -->
   <select id="selectUserMbtiCode" parameterType="long" resultType="string">
     SELECT m.MBTI_NAME
     FROM USERS u
@@ -139,12 +142,13 @@
     WHERE u.USER_ID = #{userId}
   </select>
 
+  <!-- 투표 저장 -->
   <insert id="insertVote">
     INSERT INTO BAL_VOTE (VOTE_ID, BAL_ID, OPTION_ID, USER_ID, SNAP_MBTI)
     VALUES (BAL_VOTE_SEQ.NEXTVAL, #{gameId}, #{optionId}, #{userId}, #{snapMbti})
   </insert>
 
-  <!-- 게임 생성 -->
+  <!-- 게임 생성 관련 -->
   <update id="deactivateAllActiveGames">
     UPDATE BAL_GAME SET ACTIVE = 'N' WHERE ACTIVE = 'Y'
   </update>
