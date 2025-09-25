@@ -111,11 +111,17 @@ public class ChatbotController {
 	    
 	    // 2. DB에 짧은 이미지 URL(로컬 경로)을 업데이트합니다.
 	    chatbotService.updateChatbotProfileImage(roomId, savedImageUrl);
-
+	    
+	    // 사용자 닉네임 가져오기
+	    long userId = room.getUserId();
+	    System.out.println("userId:"+userId);
+	    String nickname = chatbotService.getNickName(userId);
+	    System.out.println("닉네임:"+nickname);
 	    // 3. FastAPI에 챗봇 초기 메시지 생성 요청
 	    String fastApiUrl = "http://localhost:8000/initial_message";
 	    Map<String, Object> requestBody = new HashMap<>();
 	    requestBody.put("mbti", room.getBotMbti());
+	    requestBody.put("nickname", nickname);
 	    requestBody.put("botName", room.getBotName());
 	    requestBody.put("gender", room.getGender());
 	    requestBody.put("talkStyle", room.getTalkStyle());
