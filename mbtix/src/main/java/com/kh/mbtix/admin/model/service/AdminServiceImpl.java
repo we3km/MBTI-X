@@ -13,6 +13,8 @@ import com.kh.mbtix.admin.model.vo.BanInfo;
 import com.kh.mbtix.admin.model.vo.DashboardStatsDTO;
 import com.kh.mbtix.admin.model.vo.Report;
 import com.kh.mbtix.admin.model.vo.UserDetailDTO;
+import com.kh.mbtix.board.model.vo.Board;
+import com.kh.mbtix.board.model.vo.BoardComment;
 import com.kh.mbtix.common.model.vo.PageInfo;
 import com.kh.mbtix.common.model.vo.PageResponse;
 import com.kh.mbtix.miniGame.model.dto.CatchMindWord;
@@ -22,6 +24,7 @@ import com.kh.mbtix.user.model.vo.UserEntity;
 
 @Service
 public class AdminServiceImpl implements AdminService {
+	
 	@Autowired
 	private AdminDao adminDao;
 
@@ -170,6 +173,13 @@ public class AdminServiceImpl implements AdminService {
 	}
 
 	@Override
+	@Transactional
+	public boolean rejectReport(int reportId) {
+		int result = adminDao.updateReportStatus(reportId);
+		return result > 0;
+	}
+
+	@Override
 	public DashboardStatsDTO getDashboardStats() {
 		return adminDao.selectDashboardStats();
 	}
@@ -193,4 +203,37 @@ public class AdminServiceImpl implements AdminService {
 	public void deleteCatchMindWord(int id) {
 		adminDao.deleteCatchMindWord(id);
 	}
+	
+	public int createReport(Report report) {
+		return adminDao.insertReport(report);
+	}
+
+	// 특정 회원이 작성한 게시글 목록 조회
+	@Override
+	public PageResponse<Board> findPostsByUserId(int userId, int currentPage) {
+		Map<String, Object> param = new HashMap<>();
+		param.put("userId", userId);
+
+		int listCount = adminDao.selectPostCountByUserId(param);
+		PageInfo pi = new PageInfo(listCount, currentPage, 5, 10); // 한 페이지에 5개씩 표시
+		param.put("pi", pi);
+
+		List<Board> list = adminDao.selectPostsByUserId(param);
+		return new PageResponse<>(pi, list);
+	}
+
+	// 특정 회원이 작성한 댓글 목록 조회
+	@Override
+	public PageResponse<BoardComment> findCommentsByUserId(int userId, int currentPage) {
+		Map<String, Object> param = new HashMap<>();
+		param.put("userId", userId);
+
+		int listCount = adminDao.selectCommentCountByUserId(param);
+		PageInfo pi = new PageInfo(listCount, currentPage, 5, 10); // 한 페이지에 5개씩 표시
+		param.put("pi", pi);
+
+		List<BoardComment> list = adminDao.selectCommentsByUserId(param);
+		return new PageResponse<>(pi, list);
+	}
+
 }

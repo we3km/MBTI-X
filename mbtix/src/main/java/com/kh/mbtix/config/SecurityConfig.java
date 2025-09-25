@@ -66,17 +66,24 @@ public class SecurityConfig {
 					.requestMatchers("/auth/login", "/auth/signup", "/auth/logout","/auth/refresh",
 							 "/auth/checkId", "/auth/checkNickname","/auth/send-code","/auth/verify-code",
 							 "/auth/checkemail","/auth/social-signup","/auth/namematch","/auth/send-code-if-match",
-							 "/auth/find-id","/auth/idmatch","/auth/pw-send-code","/auth/updatePW","/board/**" 
+							 "/auth/find-id","/auth/idmatch","/auth/pw-send-code","/auth/updatePW",
+							 "/uploads/**", "/oauth2/**", "/login**", "/error"
 							).permitAll()
+					
+					// FAQ,관리자페이지
+					.requestMatchers(HttpMethod.GET, "/faqs/**").permitAll()
+					.requestMatchers("/admin/**").hasRole("ADMIN")
+					.requestMatchers(HttpMethod.POST, "/faqs").hasRole("ADMIN")
+					.requestMatchers(HttpMethod.PUT, "/faqs/**").hasRole("ADMIN")
+					.requestMatchers(HttpMethod.DELETE, "/faqs/**").hasRole("ADMIN")
+
 					.requestMatchers("/mypage/profile/images/**").permitAll() 
+
 					// cs경로
 					.requestMatchers("/cs/**").authenticated()
-					// 관리자 페이지 허용
-                    .requestMatchers("/admin/**").hasRole("ADMIN")
-                    // FAQ는 GET 요청만 허용
-                    .requestMatchers(HttpMethod.GET, "/faqs/**").permitAll()
                     // 알림 허용
                     .requestMatchers("/alarms/**").authenticated()
+                    
                     // 업로드된 파일에 대한 접근 허용
                     .requestMatchers("/uploads/**").permitAll()
                     
@@ -84,7 +91,7 @@ public class SecurityConfig {
 					.requestMatchers("/ws/**", "/api/ws/**", "/topic/**", "/app/**").permitAll()
 					.requestMatchers("/getQuizTitle", "/getUserMBTI").permitAll() // 일반 회원들도 볼 수 있게 해주장 ㅠㅠ
 					.requestMatchers("/uploads/**").permitAll()
-					.requestMatchers("/**").authenticated()
+					.anyRequest().authenticated()
 				);
 
 		http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
