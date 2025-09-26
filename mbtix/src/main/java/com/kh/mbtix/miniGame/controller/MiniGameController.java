@@ -27,7 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RequiredArgsConstructor
 @RestController // @ResponseBody + @Controlle
-@CrossOrigin(origins = { "http://localhost:5173", "http://192.168.10.230:5173" })
+//@CrossOrigin(origins = { "http://localhost:5173", "http://192.168.10.230:5173", "http://52.65.147.249/" })
 public class MiniGameController {
 	private final MiniGameService miniGameService;
 	private final OnlineGameService onlineGameService;

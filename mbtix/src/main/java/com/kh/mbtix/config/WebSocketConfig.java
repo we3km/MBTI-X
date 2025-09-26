@@ -59,7 +59,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 		registry.setApplicationDestinationPrefixes("/pub");
 	}
 
-	/**
+	/* 
 	 * STOMP 연결을 위한 엔드포인트를 설정합니다.
 	 */
 	@Override
