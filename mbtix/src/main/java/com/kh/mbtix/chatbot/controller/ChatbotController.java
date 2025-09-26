@@ -63,7 +63,7 @@ public class ChatbotController {
     @PostMapping("/chatbot/generate-image")
     public ResponseEntity<Map<String, String>> generateImage(@RequestBody CreateChatbotRoom req) {
         try {
-            String fastApiImageUrl = "http://localhost:8000/generate-image";
+            String fastApiImageUrl = "http://52.65.147.249/fastapi/generate-image";
             // req 객체에 personality와 appearance가 포함되어 FastAPI로 전달됩니다.
             ResponseEntity<Map> imageResponse = restTemplate.postForEntity(fastApiImageUrl, req, Map.class);
             // FastAPI에서 반환하는 Base64 데이터 URL을 그대로 프론트엔드에 전달
@@ -117,7 +117,7 @@ public class ChatbotController {
 	    String nickname = chatbotService.getNickName(userId);
 	    
 	    // 3. FastAPI에 챗봇 초기 메시지 생성 요청
-	    String fastApiUrl = "http://localhost:8000/initial_message";
+	    String fastApiUrl = "http://52.65.147.249/fastapi/initial_message";
 	    Map<String, Object> requestBody = new HashMap<>();
 	    requestBody.put("mbti", room.getBotMbti());
 	    requestBody.put("nickname", nickname);
