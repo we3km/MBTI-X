@@ -10,6 +10,10 @@ import org.springframework.stereotype.Repository;
 import com.kh.mbtix.test.model.dto.MbtiModelDto.MbtiRatioRes;
 import com.kh.mbtix.test.model.dto.MbtiModelDto.Question;
 
+/**
+ * MBTI 검사 DAO
+ * - MyBatis 매퍼 호출
+ */
 @Repository
 public class MbtiTestDao {
 
@@ -19,25 +23,25 @@ public class MbtiTestDao {
         this.sqlSession = sqlSession;
     }
 
-    // 질문 전체 조회
+    /** 질문 전체 조회 */
     public List<Question> findAllQuestions() {
         return sqlSession.selectList("MbtiMapper.findAllQuestions");
     }
 
-    // MBTI_ID 찾기
+    /** MBTI_ID 조회 */
     public Long findMbtiIdByName(String mbtiName) {
         return sqlSession.selectOne("MbtiMapper.findMbtiIdByName", mbtiName);
     }
 
-    // USERS 테이블 업데이트
+    /** USERS 테이블 MBTI 업데이트 */
     public void updateUserMbti(Long userId, Long mbtiId) {
         Map<String,Object> param = new HashMap<>();
         param.put("userId", userId);
         param.put("mbtiId", mbtiId);
         sqlSession.update("MbtiMapper.updateUserMbti", param);
     }
-    
- // ✅ 사용자 MBTI 비율 조회
+
+    /** 사용자 MBTI 비율 조회 */
     public MbtiRatioRes selectUserMbtiRatio(Long userId) {
         Map<String,Object> map = sqlSession.selectOne("MbtiMapper.selectUserMbtiRatio", userId);
         if (map == null) return null;
@@ -46,5 +50,4 @@ public class MbtiTestDao {
             ((Number) map.get("RATIO")).doubleValue()
         );
     }
-
 }
