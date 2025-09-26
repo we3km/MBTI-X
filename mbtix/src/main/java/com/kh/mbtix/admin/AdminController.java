@@ -107,10 +107,6 @@ public class AdminController {
 		try {
 			PageResponse<UserEntity> response = adminService.selectAllUsers(currentPage, searchType, keyword, status);
 
-			if (response.getList().isEmpty()) {
-				return ResponseEntity.noContent().build();
-			}
-
 			return ResponseEntity.ok(response);
 
 		} catch (Exception e) {
