@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,7 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RequiredArgsConstructor
 @RestController // @ResponseBody + @Controlle
-@CrossOrigin(origins = { "http://localhost:5173", "http://192.168.10.230:5173" })
+//@CrossOrigin(origins = { "http://localhost:5173", "http://192.168.10.230:5173", "http://52.65.147.249/" })
 public class MiniGameController {
 	private final MiniGameService miniGameService;
 	private final OnlineGameService onlineGameService;
@@ -147,6 +148,7 @@ public class MiniGameController {
 			log.info("{}번 방이 비었으므로 DB에서 삭제합니다.", roomId);
 			miniGameService.deleteRoom(roomId);
 		}
+		log.info("나가는 정보 : {}", map);
 		onlineGameService.handleLeaveRoom(roomId, userId, isKickedOut);
 
 		return Map.of("status", "success");
@@ -187,7 +189,6 @@ public class MiniGameController {
 		map.put("roomName", roomName);
 		map.put("maxCount", maxCount);
 		map.put("roomId", roomId);
-		log.info("{}번방 변경하는 방 속성 : {}", roomId, map);
 
 		miniGameService.changeRoomInfo(map);
 

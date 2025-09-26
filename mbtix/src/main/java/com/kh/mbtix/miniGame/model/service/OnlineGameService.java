@@ -21,4 +21,5 @@ public interface OnlineGameService {
 	public void updateAndNotifyRoomInfo(GameRoomInfo updatedInfo);
 
 	public void handleLeaveRoom(int roomId, int userId, int isKickedOut);
+
 }
