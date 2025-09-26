@@ -325,7 +325,7 @@ public class AuthController {
 	            };
 
 	            return ResponseEntity.badRequest().body(
-	                providerName + " 계정으로 가입된 사용자입니다.1`"
+	                providerName + " 계정으로 가입된 사용자입니다."
 	            );
 	        }
 

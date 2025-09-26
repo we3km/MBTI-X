@@ -51,7 +51,7 @@ public class SecurityConfig {
 					    .userInfoEndpoint(u -> u.userService(oauth2Service))
 					    .successHandler(oauth2SuccessHandler)  // 성공 처리 → 우리가 직접 구현
 					    .failureHandler((req, res, ex) -> {
-					        String redirect = "http://localhost:5173/login?error";
+					        String redirect = "http://52.65.147.249/login?error";
 					        res.sendRedirect(redirect);
 					    })
 					)
@@ -94,8 +94,9 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
 		// 허용 Origin설정
 		config.setAllowedOrigins(List.of(
-			    "http://localhost:5173",
-			    "http://192.168.10.230:5173" // LAN IP 허용
+//			    "http://localhost:5173",
+			    "http://192.168.10.230:5173",
+			    "http://52.65.147.249" // LAN IP 허용
 			));
 		// 허용 메서드
 		config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));

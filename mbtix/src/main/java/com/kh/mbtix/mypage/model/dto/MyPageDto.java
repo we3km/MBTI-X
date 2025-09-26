@@ -37,7 +37,6 @@ public class MyPageDto {
 	public static class UserProfileDto{
 		private Long userId;
 		private String nickname;
-		private String email;
 		private String mbtiName;
 		private String profileType;
 		private String profileFileName;
