@@ -329,7 +329,6 @@ public class OnlineGameServiceImpl implements OnlineGameService {
 			log.warn("{}번 방에 {}번 유저가 없어 나가기 처리를 스킵합니다.", roomId, userId);
 			return;
 		}
-
 		chunkBuffers.remove(userId);
 
 		// 전달할 메세지 초기화
@@ -350,8 +349,6 @@ public class OnlineGameServiceImpl implements OnlineGameService {
 
 			chatMessageText = "방장에 의해 " + leavingGamer.getNickname() + "님이 강퇴당했습니다.";
 			messagingTemplate.convertAndSend("/sub/chat/" + roomId, Map.of("message", chatMessageText));
-		} else {
-
 		}
 
 		if (room.getPlayers().isEmpty()) {
@@ -395,6 +392,8 @@ public class OnlineGameServiceImpl implements OnlineGameService {
 			return;
 		}
 
+		Gamer currentCaptain = room.getCaptain();
+		
 		if (wasDrawerInDrawingPhase) {
 			log.info("출제자({})가 나가 현재 라운드를 종료하고 다음 라운드를 시작합니다.", leavingGamer.getNickname());
 			stopTimer(roomId);
@@ -403,14 +402,25 @@ public class OnlineGameServiceImpl implements OnlineGameService {
 			Map<String, String> systemMessage = Map.of("message", "출제자가 " + exitReason + " 현재 라운드가 종료됩니다.");
 			messagingTemplate.convertAndSend("/sub/chat/" + roomId, systemMessage);
 
+			// 출제자면서 방장이였으면 새로운 방장 정보 할당해주자
+			if (wasCaptain) {
+				Gamer newCaptain = new ArrayList<>(room.getPlayers().values()).get(0);
+				room.setCaptain(newCaptain);
+				currentCaptain = newCaptain;
+
+				Map<String, Object> captainInfo = new HashMap<>();
+				captainInfo.put("userId", currentCaptain.getUserId());
+				captainInfo.put("roomId", roomId);
+				miniGameService.changeCaptain(captainInfo);
+			}
+
 			startNextRoundOrEndGame(roomId);
 
 			return;
 		}
 
-		Gamer currentCaptain = room.getCaptain();
-
 		if (wasCaptain) {
+			// 남는 플레이어 리스트 중 한명 방장 주자
 			Gamer newCaptain = new ArrayList<>(room.getPlayers().values()).get(0);
 			room.setCaptain(newCaptain);
 			currentCaptain = newCaptain;
@@ -422,8 +432,11 @@ public class OnlineGameServiceImpl implements OnlineGameService {
 
 			chatMessageText = "방장 " + leavingGamer.getNickname() + "님이 나가서 새로운 방장은 " + newCaptain.getNickname()
 					+ "님입니다.";
-
 			chatMessageText = leavingGamer.getNickname() + "님이 방을 나갔습니다.";
+
+			GameStateMessage updatedMessage = GameStateMessage.builder()
+					.gamers(new ArrayList<>(room.getPlayers().values())).captain(currentCaptain).build();
+			messagingTemplate.convertAndSend("/sub/game/" + roomId + "/state", updatedMessage);
 		}
 
 		messagingTemplate.convertAndSend("/sub/chat/" + roomId, Map.of("message", chatMessageText));
@@ -434,7 +447,7 @@ public class OnlineGameServiceImpl implements OnlineGameService {
 	@Override
 	public void updateAndNotifyRoomInfo(GameRoomInfo updatedInfo) {
 		log.info("변경하는 방 속성 : {}", updatedInfo);
-		
+
 		GameRoom room = gameRooms.get(updatedInfo.getRoomId());
 
 		GameStateMessage updatedMessage = GameStateMessage.builder().roomName(updatedInfo.getRoomName())

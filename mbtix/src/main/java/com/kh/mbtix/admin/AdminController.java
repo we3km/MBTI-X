@@ -47,33 +47,33 @@ public class AdminController {
 		log.info("받은 데이터 : {}", data);
 		return ResponseEntity.ok().build();
 	}
-	
+
 	// 게임 데이터 다 가져오기
 	@GetMapping("/selectAllSpeedQuiz")
 	public List<Quiz> selectAllSpeedQuiz() {
 		List<Quiz> speedQuizList = adminService.selectAllSpeedQuiz();
 		return speedQuizList;
 	}
-	
+
 	@GetMapping("/selectAllCatchMindWords")
 	public List<CatchMindWord> selectAllCatchMindWords() {
 		List<CatchMindWord> catchMindWordList = adminService.selectAllCatchMindWords();
 		return catchMindWordList;
 	}
-	
+
 	// 게임 데이터 업데이트
 	@PatchMapping("/updateSpeedQuiz")
 	public ResponseEntity<Void> updateSpeedQuiz(@RequestBody Quiz quiz) {
 		adminService.updateSpeedQuiz(quiz);
 		return ResponseEntity.ok().build();
 	}
-	
+
 	@PatchMapping("/updateCatchMindWord")
 	public ResponseEntity<Void> updateCatchMindWord(@RequestBody CatchMindWord catchMindWord) {
 		adminService.updateCatchMindWord(catchMindWord);
 		return ResponseEntity.ok().build();
 	}
-	
+
 	// 게임 데이터 삭제
 	@DeleteMapping("/deleteSpeedQuiz")
 	public ResponseEntity<Void> deleteSpeedQuiz(@RequestBody Map<String, Integer> body) {
@@ -81,14 +81,14 @@ public class AdminController {
 		adminService.deleteSpeedQuiz(questionId);
 		return ResponseEntity.ok().build();
 	}
-	
+
 	@DeleteMapping("/deleteCatchMindWord")
 	public ResponseEntity<Void> deleteCatchMindWord(@RequestBody Map<String, Integer> body) {
 		int wordId = body.get("id");
 		adminService.deleteCatchMindWord(wordId);
 		return ResponseEntity.ok().build();
 	}
-	
+
 	// 대시보드 통계 조회 메소드
 	@GetMapping("/dashboard/stats")
 	public ResponseEntity<DashboardStatsDTO> getDashboardStats() {
@@ -103,16 +103,9 @@ public class AdminController {
 			@RequestParam(value = "searchType", required = false) String searchType,
 			@RequestParam(value = "keyword", required = false) String keyword,
 			@RequestParam(value = "status", required = false) String status) {
-
 		try {
 			PageResponse<UserEntity> response = adminService.selectAllUsers(currentPage, searchType, keyword, status);
-
-			if (response.getList().isEmpty()) {
-				return ResponseEntity.noContent().build();
-			}
-
 			return ResponseEntity.ok(response);
-
 		} catch (Exception e) {
 			// log.error("Error fetching users: ", e);
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -272,8 +265,7 @@ public class AdminController {
 
 	// 특정 회원이 작성한 게시글 목록 조회
 	@GetMapping("/users/{userId}/posts")
-	public ResponseEntity<PageResponse<Board>> getUserPosts(
-			@PathVariable("userId") int userId,
+	public ResponseEntity<PageResponse<Board>> getUserPosts(@PathVariable("userId") int userId,
 			@RequestParam(value = "cpage", defaultValue = "1") int currentPage) {
 		PageResponse<Board> response = adminService.findPostsByUserId(userId, currentPage);
 		return ResponseEntity.ok(response);
@@ -281,8 +273,7 @@ public class AdminController {
 
 	// 특정 회원이 작성한 댓글 목록 조회
 	@GetMapping("/users/{userId}/comments")
-	public ResponseEntity<PageResponse<BoardComment>> getUserComments(
-			@PathVariable("userId") int userId,
+	public ResponseEntity<PageResponse<BoardComment>> getUserComments(@PathVariable("userId") int userId,
 			@RequestParam(value = "cpage", defaultValue = "1") int currentPage) {
 		PageResponse<BoardComment> response = adminService.findCommentsByUserId(userId, currentPage);
 		return ResponseEntity.ok(response);
