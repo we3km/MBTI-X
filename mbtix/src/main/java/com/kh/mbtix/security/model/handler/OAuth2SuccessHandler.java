@@ -39,7 +39,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         // ✅ 신규 회원 처리
         if (oauthUser.isNewUser()) {
             String redirect = UriComponentsBuilder
-                    .fromUriString("http://localhost:5173/social-signup")
+                    .fromUriString("http://52.65.147.249/social-signup")
                     .queryParam("provider", oauthUser.getProvider())
                     .queryParam("providerUserId", oauthUser.getProviderUserId())
                     .queryParam("email", oauthUser.getEmail())
@@ -76,7 +76,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
-        String redirect = "http://localhost:5173/";
+        String redirect = "http://52.65.147.249/";
         response.sendRedirect(redirect);
         return;
     }
