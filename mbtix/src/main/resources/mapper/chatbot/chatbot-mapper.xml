@@ -62,4 +62,10 @@
 		SET STATUS = 'N'
 		WHERE ROOM_ID = #{roomId}
 	</update>
+	
+    <select id="getNickName" resultType="string">
+        SELECT NICKNAME
+        FROM USERS
+        WHERE USER_ID = #{userId}
+    </select>
 </mapper>

@@ -3,7 +3,7 @@ package com.kh.mbtix.miniGame.model.service;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
+//import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -205,7 +205,7 @@ public class OnlineGameServiceImpl implements OnlineGameService {
 				int userId = gamer.getUserId();
 				int score = gamer.getPoints();
 
-				Map<String, Object> point = new HashMap<>();
+				Map<String, Object> point = new ConcurrentHashMap<>();
 				point.put("userId", userId);
 				point.put("score", score);
 				point.put("gameCode", 3);
@@ -251,7 +251,7 @@ public class OnlineGameServiceImpl implements OnlineGameService {
 		room.setCurrentRound(1);
 		room.setStatus("start");
 
-		Map<String, Object> map = new HashMap<>();
+		Map<String, Object> map = new ConcurrentHashMap<>();
 
 		map.put("roomId", roomId);
 		map.put("status", "N");
@@ -373,12 +373,12 @@ public class OnlineGameServiceImpl implements OnlineGameService {
 			lastPlayer.setPoints(0);
 			room.setCaptain(lastPlayer);
 
-			Map<String, Object> captainInfo = new HashMap<>();
+			Map<String, Object> captainInfo = new ConcurrentHashMap<>();
 			captainInfo.put("userId", lastPlayer.getUserId());
 			captainInfo.put("roomId", roomId);
 			miniGameService.changeCaptain(captainInfo);
 
-			Map<String, Object> roomState = new HashMap<>();
+			Map<String, Object> roomState = new ConcurrentHashMap<>();
 			roomState.put("roomId", roomId);
 			roomState.put("status", "N");
 			miniGameService.setGameState(roomState);
@@ -393,7 +393,7 @@ public class OnlineGameServiceImpl implements OnlineGameService {
 		}
 
 		Gamer currentCaptain = room.getCaptain();
-		
+
 		if (wasDrawerInDrawingPhase) {
 			log.info("출제자({})가 나가 현재 라운드를 종료하고 다음 라운드를 시작합니다.", leavingGamer.getNickname());
 			stopTimer(roomId);
@@ -408,7 +408,7 @@ public class OnlineGameServiceImpl implements OnlineGameService {
 				room.setCaptain(newCaptain);
 				currentCaptain = newCaptain;
 
-				Map<String, Object> captainInfo = new HashMap<>();
+				Map<String, Object> captainInfo = new ConcurrentHashMap<>();
 				captainInfo.put("userId", currentCaptain.getUserId());
 				captainInfo.put("roomId", roomId);
 				miniGameService.changeCaptain(captainInfo);
@@ -425,21 +425,24 @@ public class OnlineGameServiceImpl implements OnlineGameService {
 			room.setCaptain(newCaptain);
 			currentCaptain = newCaptain;
 
-			Map<String, Object> captainInfo = new HashMap<>();
+			Map<String, Object> captainInfo = new ConcurrentHashMap<>();
 			captainInfo.put("userId", currentCaptain.getUserId());
 			captainInfo.put("roomId", roomId);
 			miniGameService.changeCaptain(captainInfo);
 
 			chatMessageText = "방장 " + leavingGamer.getNickname() + "님이 나가서 새로운 방장은 " + newCaptain.getNickname()
 					+ "님입니다.";
-			chatMessageText = leavingGamer.getNickname() + "님이 방을 나갔습니다.";
+			messagingTemplate.convertAndSend("/sub/chat/" + roomId, Map.of("message", chatMessageText));
 
 			GameStateMessage updatedMessage = GameStateMessage.builder()
 					.gamers(new ArrayList<>(room.getPlayers().values())).captain(currentCaptain).build();
 			messagingTemplate.convertAndSend("/sub/game/" + roomId + "/state", updatedMessage);
 		}
 
-		messagingTemplate.convertAndSend("/sub/chat/" + roomId, Map.of("message", chatMessageText));
+		if (isKickedOut == 0) {
+			chatMessageText = leavingGamer.getNickname() + "님이 방을 나갔습니다.";
+			messagingTemplate.convertAndSend("/sub/chat/" + roomId, Map.of("message", chatMessageText));
+		}
 		log.info("방 상태 : {}", room);
 	}
 
@@ -539,7 +542,6 @@ public class OnlineGameServiceImpl implements OnlineGameService {
 	@Override
 	public void drawAndBroadCast(int roomId, DrawMessage message) {
 		GameRoom room = gameRooms.get(roomId);
-		// 그림 그리기 상태일 때만 그림 정보를 전송하도록 방어 코드 추가
 
 		log.info("2. [서버] 그림 정보 수신 성공! 다시 모든 클라이언트로 전송합니다. ");
 		if (room != null && "drawing".equalsIgnoreCase(room.getStatus())) {
@@ -562,30 +564,28 @@ public class OnlineGameServiceImpl implements OnlineGameService {
 
 		chunks.put(message.getIndex(), message.getChunk());
 
-		// 1. 모든 조각이 도착했는지 확인합니다.
+		// 모든 조각이 도착했는지 확인
 		if (chunks.size() == message.getTotal()) {
 
-			// ✅ 2. [가장 먼저] 도착한 모든 조각을 합쳐서 fullDataString을 만듭니다.
+			// 도착한 모든 조각을 합쳐서 fullDataString 생성
 			StringBuilder fullDataString = new StringBuilder();
 			for (int i = 0; i < message.getTotal(); i++) {
 				fullDataString.append(chunks.get(i));
 			}
 
-			// 3. 마지막으로 전송한 시간을 확인합니다.
+			// 마지막으로 전송한 시간을 확인
 			long currentTime = System.currentTimeMillis();
 			long lastTime = lastBroadcastTime.getOrDefault(roomId, 0L);
 
-			// ✅ 4. [그 다음에] 전송 간격(100ms)이 지났는지 확인합니다.
 			if (currentTime - lastTime > BROADCAST_INTERVAL_MS) {
 
-				// ✅ 5. 위에서 만든 fullDataString을 사용해 데이터를 전송합니다.
+				// 위에서 만든 fullDataString을 사용해 데이터를 전송합니다.
 				messagingTemplate.convertAndSend("/sub/draw/" + roomId, fullDataString.toString());
 				lastBroadcastTime.put(roomId, currentTime);
 			} else {
 				log.trace("[THROTTLED] Broadcasting skipped for roomId: {}", roomId);
 			}
-
-			// 6. 조립이 끝난 데이터는 메모리에서 즉시 삭제합니다.
+			// 조립이 끝난 데이터 삭제
 			userBuffer.remove(message.getId());
 		}
 	}
