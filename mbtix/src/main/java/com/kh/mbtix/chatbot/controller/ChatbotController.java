@@ -85,9 +85,8 @@ public class ChatbotController {
 	@PostMapping("/chatbot")
 	public ResponseEntity<?> createRoom(@RequestBody CreateChatbotRoom room) {
 		log.info("Received request to create a chatbot: {}", room);
-	    
+
 		String savedImageUrl = "/uploads/chatbot_profiles/default_profile.png"; // 기본 이미지 경로
-		
 		// 이미지 URL이 Base64 데이터인지 확인 후 파일로 저장
 	    if (room.getBotProfileImageUrl() != null && room.getBotProfileImageUrl().startsWith("data:image")) {
 	        try {
@@ -100,22 +99,17 @@ public class ChatbotController {
 	            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 	        }
 	    }
-	    
 	    // 1. 챗봇방을 먼저 생성하고 roomId를 받아옵니다.
 		int result = chatbotService.createChatbot(room);
 	    if (result <= 0) {
 	        return ResponseEntity.badRequest().build();
 	    }
-	    
 	    long roomId = room.getRoomId();
-	    
 	    // 2. DB에 짧은 이미지 URL(로컬 경로)을 업데이트합니다.
 	    chatbotService.updateChatbotProfileImage(roomId, savedImageUrl);
-	    
 	    // 사용자 닉네임 가져오기
 	    long userId = room.getUserId();
 	    String nickname = chatbotService.getNickName(userId);
-	    
 	    // 3. FastAPI에 챗봇 초기 메시지 생성 요청
 	    String fastApiUrl = "http://52.65.147.249/fastapi/initial_message";
 	    Map<String, Object> requestBody = new HashMap<>();
@@ -128,21 +122,17 @@ public class ChatbotController {
         // personality와 appearance를 각각 전달
 	    requestBody.put("personality", room.getPersonality());
 	    requestBody.put("appearance", room.getAppearance());
-	    
 	    ResponseEntity<Map> response = restTemplate.postForEntity(fastApiUrl, requestBody, Map.class);
 	    String initialMessageContent = (String) response.getBody().get("message");
-
 	    // 4. 받아온 메시지를 DB에 저장
 	    ChatMessageSave initialMessage = new ChatMessageSave(0, roomId, "bot", initialMessageContent);
 	    chatbotService.saveMessage(initialMessage);
-		
 	    // 5. 생성된 방 정보와 이미지 URL을 함께 반환
 	    ChatbotRoomResponse createdRoom = new ChatbotRoomResponse(
 	        roomId, room.getUserId(), room.getBotMbti(), room.getBotName(),
 	        null, room.getGender(), room.getTalkStyle(), room.getAge(),
 	        room.getPersonality(), room.getAppearance(), savedImageUrl, "Y"
 	    );
-	    
 	    return ResponseEntity.status(HttpStatus.CREATED).body(createdRoom);
 	}
 	
