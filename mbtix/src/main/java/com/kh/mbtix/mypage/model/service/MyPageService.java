@@ -53,12 +53,11 @@ public class MyPageService {
 	        String encodedPw = passwordEncoder.encode(newPw);
 	        user.setPassword(encodedPw);
 
-	        // DAO에 User 객체 전달해서 업데이트
 	        dao.updatePassword(user);
 
-	        // 업데이트된 사용자 다시 조회해서 반환 (옵션)
 	        return dao.findUserById(userId);
 	    }
+	    
 
 		public User updateProfileImage(Long userId, String savedFileName) {
 			

@@ -25,14 +25,14 @@
 	
 	<!-- 각 게임의 랭크 뽑아옴 -->	
 	<select id="getRank" resultType="map">
-		SELECT 
+		SELECT
 		    M.MBTI_NAME,
 		    SUM(GS.SCORE) AS TOTAL_SCORE,
 		    GS.GAME_CODE
 		FROM GAME_SCORE GS
-		INNER JOIN USERS U 
+		INNER JOIN USERS U
 		    ON U.USER_ID = GS.USER_ID
-		INNER JOIN MBTI M 
+		INNER JOIN MBTI M
 		    ON U.MBTI_ID = M.MBTI_ID
 		GROUP BY M.MBTI_ID, M.MBTI_NAME, GS.GAME_CODE
 		ORDER BY TOTAL_SCORE DESC
@@ -48,7 +48,7 @@
 	
 	<!-- 각 회원의 MBTI 비율 -->
 	<select id="getUserMBTI" resultType="map">
-	    SELECT 
+	    SELECT
 		    M.MBTI_NAME,
 		    COUNT(U.USER_ID) AS USER_COUNT
 		FROM USERS U
@@ -68,28 +68,31 @@
 	<!-- =========================== 온라인 게임 =========================== -->
 	<!-- 게임방 리스트 불러오기 -->
 	<select id="selectGameRoomList" parameterType="int" resultType="GameRoomInfo">
-		SELECT 
-		    GR.ROOM_ID, 
-		    GR.ROOM_NAME, 
+		SELECT
+		    GR.ROOM_ID,
+		    GR.ROOM_NAME,
 		    GR.USER_ID AS CREATOR_ID,
-		    GR.MAX_COUNT, 
+		    GR.MAX_COUNT,
 		    TRIM(GR.STATUS) AS STATUS,
 		    U.NICKNAME,
 		    M.MBTI_NAME,
             F.FILE_NAME AS PROFILE,
+            U.PROFILE_TYPE,
             (SELECT COUNT(*) FROM GAME_PARTICIPANT WHERE ROOM_ID = GR.ROOM_ID) AS PLAYER_COUNT
 		FROM GAME_ROOM GR
 		LEFT JOIN USERS U ON GR.USER_ID = U.USER_ID
 		LEFT JOIN MBTI M ON M.MBTI_ID = U.MBTI_ID
-        LEFT JOIN "FILE" F ON F.REF_ID = U.USER_ID
+        LEFT JOIN "FILE" F
+            ON U.USER_ID = F.REF_ID
+           AND F.CATEGORY_ID = 4
 		ORDER BY ROOM_ID DESC
 	</select>
 	
 	<!-- 방 정보 가져오기 -->
 	<select id="selectGameRoomInfo" parameterType="int" resultType="GameRoomInfo">
-	    SELECT 
-	        GR.ROOM_ID, 
-	        GR.ROOM_NAME, 
+	    SELECT
+	        GR.ROOM_ID,
+	        GR.ROOM_NAME,
 	        GR.USER_ID AS CREATOR_ID,
 	        GR.MAX_COUNT,
 	        (SELECT COUNT(*) FROM GAME_PARTICIPANT WHERE ROOM_ID = GR.ROOM_ID AND STATUS = 'Y') AS PLAYER_COUNT
@@ -102,9 +105,9 @@
 	    <selectKey keyProperty="roomId" resultType="int" order="BEFORE">
 	        SELECT GAME_ROOM_SEQ.NEXTVAL FROM DUAL
 	    </selectKey>
-	    INSERT INTO GAME_ROOM 
+	    INSERT INTO GAME_ROOM
 	        (ROOM_ID, ROOM_NAME, USER_ID, STATUS, PLAYER_COUNT, MAX_COUNT)
-	    VALUES 
+	    VALUES
 	        (#{roomId}, #{roomName}, #{userId}, 'N', 1, #{maxCount})
 	</insert>
 		
@@ -119,11 +122,30 @@
 		  INSERT (ROOM_ID, USER_ID, STATUS)
 		  VALUES (s.ROOM_ID, s.USER_ID, 'Y')
 	</insert>	
-
 	<!-- 게임방 상태 확인 후 입장 가능하게 하자 -->	
 	<select id="getGameRoomStatus" parameterType="map" resultType="string">
 		SELECT STATUS FROM GAME_ROOM WHERE ROOM_ID = #{roomId}
 	</select>	
+	
+	<!-- 게임방 퇴장정보 할당 -->
+	<insert id="kickOut" parameterType="map">
+		INSERT INTO KICKED_USER
+			(KICKED_USER_SEQ, ROOM_ID, USER_ID)
+		VALUES (KICKED_USER_SEQ.NEXTVAL, #{roomId}, #{userId})
+	</insert>		
+	
+	<!-- 게임방 퇴장 정보 삭제 -->
+	<delete id="deleteKickOut" parameterType="int">
+		DELETE FROM KICKED_USER
+		WHERE ROOM_ID = #{roomId}
+	</delete>	
+	
+	<!-- 게임방 퇴장 정보 조회 -->
+	<select id="checkKickOut" parameterType="map" resultType="int">
+		SELECT KICKED_USER_SEQ
+		FROM KICKED_USER
+		WHERE USER_ID = #{userId} AND ROOM_ID = #{roomId}
+	</select>
 	
 	<!-- 게임방에 들어와있는 사람들 정보 가져오기 -->
 	<resultMap id="gamerResultMap" type="com.kh.mbtix.miniGame.model.dto.Gamer">
@@ -131,26 +153,31 @@
 	    <result property="nickname" column="NICKNAME"/>
 	    <result property="mbtiName" column="MBTI_NAME"/>
 	    <result property="profile" column="FILE_NAME"/>
+	    <result property="profileType" column="PROFILE_TYPE"/>
     </resultMap>
 	<select id="selectGamers" parameterType="int" resultMap="gamerResultMap">
-	   SELECT 
+	   SELECT
 	        GP.USER_ID,
 	        U.NICKNAME,
 	        M.MBTI_NAME,
+	        U.PROFILE_TYPE,
             (SELECT F.FILE_NAME
 		        FROM "FILE" F
-		     WHERE F.REF_ID = U.USER_ID 
-		        AND ROWNUM = 1) AS FILE_NAME 
+		     WHERE F.REF_ID = U.USER_ID
+		        AND ROWNUM = 1) AS FILE_NAME
 	    FROM GAME_PARTICIPANT GP
 	    LEFT JOIN USERS U ON GP.USER_ID = U.USER_ID
 	    LEFT JOIN MBTI M ON M.MBTI_ID = U.MBTI_ID
+	    LEFT JOIN "FILE" F
+            ON U.USER_ID = F.REF_ID
+           AND F.CATEGORY_ID = 4
 	    WHERE GP.ROOM_ID = #{roomId} AND GP.STATUS = 'Y'
 	</select>
 	
 	<!-- 게임방 나가기 -->
 	<delete id="leaveRoom" parameterType="map">
 	    DELETE FROM GAME_PARTICIPANT
-	    WHERE ROOM_ID = #{roomId} 
+	    WHERE ROOM_ID = #{roomId}
 	    AND USER_ID = #{userId}
 	</delete>
 	
@@ -165,10 +192,9 @@
 	    SET PLAYER_COUNT = PLAYER_COUNT - 1
 	    WHERE ROOM_ID = #{roomId}
 	</update>
-
 	<!-- 게임방에 아무도 없으면 삭제 -->
 	<delete id="deleteRoom" parameterType="int">
-    	DELETE FROM GAME_ROOM 
+    	DELETE FROM GAME_ROOM
     	WHERE ROOM_ID = #{roomId}
 	</delete>	
 	
@@ -200,7 +226,7 @@
 	<!-- 게임방 정보 바꾸기 -->
 	<update id="changeRoomInfo" parameterType="map">
 		UPDATE GAME_ROOM
-		SET 
+		SET
 			ROOM_NAME = #{roomName},
 			MAX_COUNT = #{maxCount}
 		WHERE ROOM_ID = #{roomId}

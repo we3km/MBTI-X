@@ -156,7 +156,7 @@
 	<select id="selectParentCommentAuthorId" parameterType="_int" resultType="_long">
     	SELECT USER_ID
     	FROM BOARD_COMMENT
-    	HERE COMMENT_ID = #{parentId}
+    	WHERE COMMENT_ID = #{parentId}
 	</select>
      
 </mapper>

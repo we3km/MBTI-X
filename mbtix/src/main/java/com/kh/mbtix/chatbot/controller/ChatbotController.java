@@ -67,9 +67,12 @@ public class ChatbotController {
             // req 객체에 personality와 appearance가 포함되어 FastAPI로 전달됩니다.
             ResponseEntity<Map> imageResponse = restTemplate.postForEntity(fastApiImageUrl, req, Map.class);
             // FastAPI에서 반환하는 Base64 데이터 URL을 그대로 프론트엔드에 전달
+            System.out.println("원본 응답: " + imageResponse.getBody());
             String openaiImageUrl = (String) imageResponse.getBody().get("imageUrl");
             Map<String, String> responseMap = new HashMap<>();
             responseMap.put("imageUrl", openaiImageUrl);
+            
+            
             return ResponseEntity.ok().body(responseMap);
 
         } catch (Exception e) {
@@ -107,9 +110,11 @@ public class ChatbotController {
 	    long roomId = room.getRoomId();
 	    // 2. DB에 짧은 이미지 URL(로컬 경로)을 업데이트합니다.
 	    chatbotService.updateChatbotProfileImage(roomId, savedImageUrl);
-	    // 사용자 닉네임 가져오기
+
+	 // 사용자 닉네임 가져오기
 	    long userId = room.getUserId();
 	    String nickname = chatbotService.getNickName(userId);
+
 	    // 3. FastAPI에 챗봇 초기 메시지 생성 요청
 	    String fastApiUrl = "http://52.65.147.249/fastapi/initial_message";
 	    Map<String, Object> requestBody = new HashMap<>();
