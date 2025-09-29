@@ -1,10 +1,7 @@
-
 package com.kh.mbtix.miniGame.model.dto;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -19,4 +16,5 @@ public class GameRoomInfo {
 	private String mbtiName; // 방 생성자 mbti
 	private String profile; // 생성자 프로필 (경로 + 프로필 img)
 	private int maxCount; // 최대 인원수
+	private String profileType;
 }

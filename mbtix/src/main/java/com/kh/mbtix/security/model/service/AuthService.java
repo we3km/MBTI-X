@@ -260,7 +260,7 @@ public class AuthService {
 	    if (loginId.length() <= 3) {
 	        return loginId.charAt(0) + "*".repeat(loginId.length() - 1);
 	    } else {
-	        String start = loginId.substring(0, 3);
+	        String start = loginId.substring(0, 4);
 	        String end = loginId.substring(loginId.length() - 1);
 	        int maskLength = loginId.length() - 4;
 	        return start + "*".repeat(maskLength) + end;
